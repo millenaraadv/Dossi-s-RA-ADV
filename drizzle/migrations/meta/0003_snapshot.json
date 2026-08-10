@@ -1,0 +1,1546 @@
+{
+  "id": "04684bbd-108b-4a1b-ac8a-5e8ac37a71b7",
+  "prevId": "582814ce-e296-43d8-9897-b9b2839c3258",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.arguments": {
+      "name": "arguments",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "dossier_id": {
+          "name": "dossier_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tag": {
+          "name": "tag",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "titulo": {
+          "name": "titulo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fato": {
+          "name": "fato",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "previsao_legal": {
+          "name": "previsao_legal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "jurisprudencia": {
+          "name": "jurisprudencia",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "doutrina": {
+          "name": "doutrina",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ordem": {
+          "name": "ordem",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {
+        "arguments_dossier_idx": {
+          "name": "arguments_dossier_idx",
+          "columns": [
+            {
+              "expression": "dossier_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "arguments_dossier_id_dossiers_id_fk": {
+          "name": "arguments_dossier_id_dossiers_id_fk",
+          "tableFrom": "arguments",
+          "tableTo": "dossiers",
+          "columnsFrom": [
+            "dossier_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.audit_log": {
+      "name": "audit_log",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dossier_id": {
+          "name": "dossier_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entidade": {
+          "name": "entidade",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entidade_id": {
+          "name": "entidade_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "acao": {
+          "name": "acao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "antes": {
+          "name": "antes",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "depois": {
+          "name": "depois",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "audit_log_entidade_idx": {
+          "name": "audit_log_entidade_idx",
+          "columns": [
+            {
+              "expression": "entidade",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "entidade_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "audit_log_dossier_idx": {
+          "name": "audit_log_dossier_idx",
+          "columns": [
+            {
+              "expression": "dossier_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "audit_log_user_id_users_id_fk": {
+          "name": "audit_log_user_id_users_id_fk",
+          "tableFrom": "audit_log",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "audit_log_dossier_id_dossiers_id_fk": {
+          "name": "audit_log_dossier_id_dossiers_id_fk",
+          "tableFrom": "audit_log",
+          "tableTo": "dossiers",
+          "columnsFrom": [
+            "dossier_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "auth.users": {
+      "name": "users",
+      "schema": "auth",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.deadlines": {
+      "name": "deadlines",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "dossier_id": {
+          "name": "dossier_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ato": {
+          "name": "ato",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contagem": {
+          "name": "contagem",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_texto": {
+          "name": "data_texto",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "redacao_ok": {
+          "name": "redacao_ok",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "redacao_link": {
+          "name": "redacao_link",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "redacao_por_id": {
+          "name": "redacao_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "redacao_em": {
+          "name": "redacao_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "correcao_ok": {
+          "name": "correcao_ok",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "correcao_por_id": {
+          "name": "correcao_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "correcao_em": {
+          "name": "correcao_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "protocolo_ok": {
+          "name": "protocolo_ok",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "protocolo_data": {
+          "name": "protocolo_data",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "protocolo_por_id": {
+          "name": "protocolo_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ordem": {
+          "name": "ordem",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "deadlines_dossier_idx": {
+          "name": "deadlines_dossier_idx",
+          "columns": [
+            {
+              "expression": "dossier_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "deadlines_dossier_id_dossiers_id_fk": {
+          "name": "deadlines_dossier_id_dossiers_id_fk",
+          "tableFrom": "deadlines",
+          "tableTo": "dossiers",
+          "columnsFrom": [
+            "dossier_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "deadlines_redacao_por_id_users_id_fk": {
+          "name": "deadlines_redacao_por_id_users_id_fk",
+          "tableFrom": "deadlines",
+          "tableTo": "users",
+          "columnsFrom": [
+            "redacao_por_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "deadlines_correcao_por_id_users_id_fk": {
+          "name": "deadlines_correcao_por_id_users_id_fk",
+          "tableFrom": "deadlines",
+          "tableTo": "users",
+          "columnsFrom": [
+            "correcao_por_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "deadlines_protocolo_por_id_users_id_fk": {
+          "name": "deadlines_protocolo_por_id_users_id_fk",
+          "tableFrom": "deadlines",
+          "tableTo": "users",
+          "columnsFrom": [
+            "protocolo_por_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.dossier_fields": {
+      "name": "dossier_fields",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "dossier_id": {
+          "name": "dossier_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "valor": {
+          "name": "valor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ordem": {
+          "name": "ordem",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {
+        "dossier_fields_dossier_idx": {
+          "name": "dossier_fields_dossier_idx",
+          "columns": [
+            {
+              "expression": "dossier_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "dossier_fields_dossier_id_dossiers_id_fk": {
+          "name": "dossier_fields_dossier_id_dossiers_id_fk",
+          "tableFrom": "dossier_fields",
+          "tableTo": "dossiers",
+          "columnsFrom": [
+            "dossier_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.dossier_versions": {
+      "name": "dossier_versions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "dossier_id": {
+          "name": "dossier_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "versao": {
+          "name": "versao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "marco": {
+          "name": "marco",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "revisor_id": {
+          "name": "revisor_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "etapa": {
+          "name": "etapa",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "dossier_versions_dossier_idx": {
+          "name": "dossier_versions_dossier_idx",
+          "columns": [
+            {
+              "expression": "dossier_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "dossier_versions_dossier_id_dossiers_id_fk": {
+          "name": "dossier_versions_dossier_id_dossiers_id_fk",
+          "tableFrom": "dossier_versions",
+          "tableTo": "dossiers",
+          "columnsFrom": [
+            "dossier_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "dossier_versions_revisor_id_users_id_fk": {
+          "name": "dossier_versions_revisor_id_users_id_fk",
+          "tableFrom": "dossier_versions",
+          "tableTo": "users",
+          "columnsFrom": [
+            "revisor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.dossiers": {
+      "name": "dossiers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "cliente": {
+          "name": "cliente",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "caso": {
+          "name": "caso",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "numero_processo": {
+          "name": "numero_processo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "materia": {
+          "name": "materia",
+          "type": "materia",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fase": {
+          "name": "fase",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "responsavel_id": {
+          "name": "responsavel_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "risco": {
+          "name": "risco",
+          "type": "risco",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'A avaliar'"
+        },
+        "valor_causa": {
+          "name": "valor_causa",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "orgao": {
+          "name": "orgao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "juiz": {
+          "name": "juiz",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "partes": {
+          "name": "partes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "advogado_contrario": {
+          "name": "advogado_contrario",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "resumo": {
+          "name": "resumo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "objetivo": {
+          "name": "objetivo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "objetivo_secundario": {
+          "name": "objetivo_secundario",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "linha_vermelha": {
+          "name": "linha_vermelha",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "versao": {
+          "name": "versao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'v1'"
+        },
+        "marco": {
+          "name": "marco",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "revisor_id": {
+          "name": "revisor_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "arquivado": {
+          "name": "arquivado",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "dossiers_nome_idx": {
+          "name": "dossiers_nome_idx",
+          "columns": [
+            {
+              "expression": "nome",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "dossiers_responsavel_idx": {
+          "name": "dossiers_responsavel_idx",
+          "columns": [
+            {
+              "expression": "responsavel_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "dossiers_responsavel_id_users_id_fk": {
+          "name": "dossiers_responsavel_id_users_id_fk",
+          "tableFrom": "dossiers",
+          "tableTo": "users",
+          "columnsFrom": [
+            "responsavel_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "dossiers_revisor_id_users_id_fk": {
+          "name": "dossiers_revisor_id_users_id_fk",
+          "tableFrom": "dossiers",
+          "tableTo": "users",
+          "columnsFrom": [
+            "revisor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.firac_blocks": {
+      "name": "firac_blocks",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "dossier_id": {
+          "name": "dossier_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "letra": {
+          "name": "letra",
+          "type": "firac_letra",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "paragrafo": {
+          "name": "paragrafo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ordem": {
+          "name": "ordem",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {
+        "firac_blocks_dossier_idx": {
+          "name": "firac_blocks_dossier_idx",
+          "columns": [
+            {
+              "expression": "dossier_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "firac_blocks_dossier_id_dossiers_id_fk": {
+          "name": "firac_blocks_dossier_id_dossiers_id_fk",
+          "tableFrom": "firac_blocks",
+          "tableTo": "dossiers",
+          "columnsFrom": [
+            "dossier_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.imports": {
+      "name": "imports",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "dossier_id": {
+          "name": "dossier_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "arquivo_nome": {
+          "name": "arquivo_nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "arquivo_storage_key": {
+          "name": "arquivo_storage_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "paginas_lidas": {
+          "name": "paginas_lidas",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "import_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'lendo'"
+        },
+        "erro": {
+          "name": "erro",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "campos_faltantes": {
+          "name": "campos_faltantes",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "resposta_bruta": {
+          "name": "resposta_bruta",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_por_id": {
+          "name": "criado_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "imports_dossier_idx": {
+          "name": "imports_dossier_idx",
+          "columns": [
+            {
+              "expression": "dossier_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "imports_dossier_id_dossiers_id_fk": {
+          "name": "imports_dossier_id_dossiers_id_fk",
+          "tableFrom": "imports",
+          "tableTo": "dossiers",
+          "columnsFrom": [
+            "dossier_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "imports_criado_por_id_users_id_fk": {
+          "name": "imports_criado_por_id_users_id_fk",
+          "tableFrom": "imports",
+          "tableTo": "users",
+          "columnsFrom": [
+            "criado_por_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.step_attempts": {
+      "name": "step_attempts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "step_id": {
+          "name": "step_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "resultado": {
+          "name": "resultado",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "registrado_por_id": {
+          "name": "registrado_por_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "step_attempts_step_idx": {
+          "name": "step_attempts_step_idx",
+          "columns": [
+            {
+              "expression": "step_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "step_attempts_data_idx": {
+          "name": "step_attempts_data_idx",
+          "columns": [
+            {
+              "expression": "data",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "step_attempts_step_id_steps_id_fk": {
+          "name": "step_attempts_step_id_steps_id_fk",
+          "tableFrom": "step_attempts",
+          "tableTo": "steps",
+          "columnsFrom": [
+            "step_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "step_attempts_registrado_por_id_users_id_fk": {
+          "name": "step_attempts_registrado_por_id_users_id_fk",
+          "tableFrom": "step_attempts",
+          "tableTo": "users",
+          "columnsFrom": [
+            "registrado_por_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.steps": {
+      "name": "steps",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "dossier_id": {
+          "name": "dossier_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "acao": {
+          "name": "acao",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "responsavel_id": {
+          "name": "responsavel_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "proxima_data": {
+          "name": "proxima_data",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "concluido": {
+          "name": "concluido",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "ordem": {
+          "name": "ordem",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "steps_dossier_idx": {
+          "name": "steps_dossier_idx",
+          "columns": [
+            {
+              "expression": "dossier_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "steps_responsavel_idx": {
+          "name": "steps_responsavel_idx",
+          "columns": [
+            {
+              "expression": "responsavel_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "steps_proxima_data_abertos_idx": {
+          "name": "steps_proxima_data_abertos_idx",
+          "columns": [
+            {
+              "expression": "proxima_data",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"steps\".\"concluido\" = false",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "steps_dossier_id_dossiers_id_fk": {
+          "name": "steps_dossier_id_dossiers_id_fk",
+          "tableFrom": "steps",
+          "tableTo": "dossiers",
+          "columnsFrom": [
+            "dossier_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "steps_responsavel_id_users_id_fk": {
+          "name": "steps_responsavel_id_users_id_fk",
+          "tableFrom": "steps",
+          "tableTo": "users",
+          "columnsFrom": [
+            "responsavel_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.timeline_entries": {
+      "name": "timeline_entries",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "dossier_id": {
+          "name": "dossier_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data_texto": {
+          "name": "data_texto",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ato": {
+          "name": "ato",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ordem": {
+          "name": "ordem",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {
+        "timeline_entries_dossier_idx": {
+          "name": "timeline_entries_dossier_idx",
+          "columns": [
+            {
+              "expression": "dossier_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "timeline_entries_dossier_id_dossiers_id_fk": {
+          "name": "timeline_entries_dossier_id_dossiers_id_fk",
+          "tableFrom": "timeline_entries",
+          "tableTo": "dossiers",
+          "columnsFrom": [
+            "dossier_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "nome": {
+          "name": "nome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "papel": {
+          "name": "papel",
+          "type": "papel",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cor": {
+          "name": "cor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ativo": {
+          "name": "ativo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "criado_em": {
+          "name": "criado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "atualizado_em": {
+          "name": "atualizado_em",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "users_id_users_id_fk": {
+          "name": "users_id_users_id_fk",
+          "tableFrom": "users",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_email_unique": {
+          "name": "users_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    }
+  },
+  "enums": {
+    "public.firac_letra": {
+      "name": "firac_letra",
+      "schema": "public",
+      "values": [
+        "F",
+        "I",
+        "R",
+        "A",
+        "C"
+      ]
+    },
+    "public.import_status": {
+      "name": "import_status",
+      "schema": "public",
+      "values": [
+        "lendo",
+        "processando",
+        "concluido",
+        "erro"
+      ]
+    },
+    "public.materia": {
+      "name": "materia",
+      "schema": "public",
+      "values": [
+        "Cível",
+        "Trabalhista",
+        "Tributário",
+        "Empresarial",
+        "Família e sucessões",
+        "Consumidor"
+      ]
+    },
+    "public.papel": {
+      "name": "papel",
+      "schema": "public",
+      "values": [
+        "socio",
+        "advogado",
+        "estagiario",
+        "admin"
+      ]
+    },
+    "public.risco": {
+      "name": "risco",
+      "schema": "public",
+      "values": [
+        "Favorável — êxito provável",
+        "Favorável com reservas",
+        "Incerto — prova em disputa",
+        "Desfavorável — mitigar exposição",
+        "A avaliar"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

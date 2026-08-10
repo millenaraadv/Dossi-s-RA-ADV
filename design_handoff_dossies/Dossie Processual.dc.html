@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-26534942-76f5-40ae-b66d-214adc85ff7e/styles.css">
+<script src="_ds/modernist-26534942-76f5-40ae-b66d-214adc85ff7e/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  doc-page:not(:defined) { visibility: hidden; }
+  body { margin: 0; font-family: var(--font-body); color: #3E332D; }
+  a { color: #A6332F; text-decoration: underline; }
+  a:hover { color: #A6332F; }
+  .keep { break-inside: avoid; orphans: 3; widows: 3; }
+</style>
+<script src="./doc-page.js"></script>
+</helmet>
+<doc-page size="a4" margin="0.7in">
+
+<div slot="header" style="display:flex; justify-content:space-between; align-items:flex-end; gap:var(--space-4); padding-bottom:var(--space-2); border-bottom:1px solid #C4443F; font-size:9.5pt; letter-spacing:0.08em; text-transform:uppercase; font-weight:600;">
+  <div style="display:flex; align-items:baseline; gap:var(--space-4);">
+    <span style="font-size:8pt; text-transform:uppercase; letter-spacing:0.16em; font-weight:400; color:#8C7F79;">Dossiê processual</span>
+    <span style="font-size:8pt; letter-spacing:0.06em; color:#C4443F; font-weight:400;">5001234-56.2025.8.24.0023</span>
+  </div>
+  <img src="assets/marca-rabelo-aguiar.png" alt="Rabelo Aguiar Advocacia" style="height:26pt; width:auto; display:block;" />
+</div>
+
+<div slot="footer" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:var(--space-3); padding-top:var(--space-2); border-top:1px solid #C4443F; font-size:8pt; line-height:1.35;">
+  <div>
+    <div style="text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Atualizado em</div>
+    <div style="font-weight:600;">07 de agosto de 2026</div>
+  </div>
+  <div>
+    <div style="text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Versão / marco</div>
+    <div style="font-weight:600;">v4 — sentença de 1º grau</div>
+  </div>
+  <div>
+    <div style="text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Responsável pela revisão</div>
+    <div style="font-weight:600;">Dra. Hermelinda Rabelo</div>
+  </div>
+  <div>
+    <div style="text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Próxima revisão</div>
+    <div style="font-weight:600;">30 de setembro de 2026</div>
+  </div>
+  <div style="grid-column:1 / -1; padding-top:var(--space-2); border-top:1px solid #EBE1DA; font-size:7pt; line-height:1.4; color:#8C7F79;">R. Arnóbio Marques, 253, Emp. Camilo Brito, Sala 1104 — Santo Amaro, Recife/PE, CEP 50100-130 &nbsp;·&nbsp; administracao@rabeloaguiar.adv.br &nbsp;·&nbsp; (81) 4141-5305</div>
+</div>
+
+<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:var(--space-6); margin-bottom:var(--space-3); margin-top:var(--space-6);">
+  <div style="font-size:9pt; text-transform:uppercase; letter-spacing:0.14em; font-weight:600; color:#A6332F;">Dossiê de processo judicial</div>
+  <sc-if value="{{ confidencial }}" hint-placeholder-val="{{ true }}">
+    <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.14em; font-weight:400; color:#fff; background:#C4443F; padding:var(--space-1) var(--space-3);">Confidencial — uso interno</div>
+  </sc-if>
+</div>
+
+<h1 style="font-family:var(--font-heading); font-weight:300; font-size:27pt; line-height:1.04; letter-spacing:0.06em; margin:0 0 var(--space-4); width:58%; text-align:justify; text-wrap:pretty;">Metalúrgica Aurora Ltda. contra Construtora Belveder S/A</h1>
+
+<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0; border-top:1px solid #C4443F; border-bottom:1px solid #C4443F;">
+  <div style="padding:var(--space-3) var(--space-4) var(--space-3) 0;">
+    <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:var(--space-1);">Objeto</div>
+    <div style="font-size:10.5pt; font-weight:600; line-height:1.3;">Cobrança c/c indenização por inadimplemento contratual</div>
+  </div>
+  <div style="padding:var(--space-3) var(--space-4); border-left:1px solid #EBE1DA;">
+    <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:var(--space-1);">Posição do escritório</div>
+    <div style="font-size:10.5pt; font-weight:600; line-height:1.3;">Patrono da autora (polo ativo)</div>
+  </div>
+  <div style="padding:var(--space-3) 0 var(--space-3) var(--space-4); border-left:1px solid #EBE1DA;">
+    <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:var(--space-1);">Risco / prognóstico</div>
+    <div style="font-size:10.5pt; font-weight:600; line-height:1.3; color:#A6332F;">{{ risco }}</div>
+  </div>
+</div>
+
+<div class="keep" style="margin-top:var(--space-6); border-bottom:1px solid #EBE1DA; padding-bottom:var(--space-4);">
+  <div style="font-size:8.5pt; text-transform:uppercase; letter-spacing:0.12em; font-weight:600; color:#A6332F; margin-bottom:var(--space-2);">Resumo executivo</div>
+  <p style="margin:0; font-size:11pt; line-height:1.5; max-width:74ch;">Cobrança de R$ 1,48 milhão referente a seis parcelas de contrato de fornecimento de estruturas metálicas. As catorze entregas foram recebidas sem ressalva e a perícia afastou atraso e desconformidade. A ré sustenta exceção de contrato não cumprido, sem prova de descumprimento anterior. A sentença acolheu o principal, mas fixou os juros da citação e negou lucros cessantes. Estratégia atual: apelação parcial em dois pontos e acordo com a condenação como alavanca.</p>
+</div>
+
+<div style="display:flex; align-items:baseline; gap:var(--space-4); border-top:1px solid #C4443F; margin-top:var(--space-8); padding-top:var(--space-3);">
+  <div style="font-family:var(--font-heading); font-weight:300; font-size:22pt; line-height:1; color:#C4443F;">01</div>
+  <h2 style="font-family:var(--font-heading); font-weight:400; font-size:15pt; letter-spacing:0.05em; margin:0; text-transform:uppercase;">Informações gerais</h2>
+</div>
+
+<table style="width:100%; border-collapse:collapse; margin-top:var(--space-4); font-size:10pt;">
+  <tbody>
+    <tr class="keep">
+      <th style="width:26%; text-align:left; vertical-align:top; padding:var(--space-2) var(--space-4) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; color:#8C7F79;">Número do processo</th>
+      <td style="padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-weight:600;">5001234-56.2025.8.24.0023</td>
+    </tr>
+    <tr class="keep">
+      <th style="width:26%; text-align:left; vertical-align:top; padding:var(--space-2) var(--space-4) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; color:#8C7F79;">Autora</th>
+      <td style="padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">Metalúrgica Aurora Ltda. — CNPJ 12.345.678/0001-90</td>
+    </tr>
+    <tr class="keep">
+      <th style="width:26%; text-align:left; vertical-align:top; padding:var(--space-2) var(--space-4) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; color:#8C7F79;">Ré</th>
+      <td style="padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">Construtora Belveder S/A — CNPJ 98.765.432/0001-10</td>
+    </tr>
+    <tr class="keep">
+      <th style="width:26%; text-align:left; vertical-align:top; padding:var(--space-2) var(--space-4) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; color:#8C7F79;">Advogado da parte contrária</th>
+      <td style="padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">Dr. Márcio Teixeira Vasques — OAB/SC 41.220</td>
+    </tr>
+    <tr class="keep">
+      <th style="width:26%; text-align:left; vertical-align:top; padding:var(--space-2) var(--space-4) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; color:#8C7F79;">Profissional responsável</th>
+      <td style="padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">Dra. Hermelinda Rabelo (sócia) · apoio: Dr. Gabriel Silveira</td>
+    </tr>
+    <tr class="keep">
+      <th style="width:26%; text-align:left; vertical-align:top; padding:var(--space-2) var(--space-4) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; color:#8C7F79;">Juízo</th>
+      <td style="padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">3ª Vara Cível da Comarca de Florianópolis/SC — TJSC</td>
+    </tr>
+    <tr class="keep">
+      <th style="width:26%; text-align:left; vertical-align:top; padding:var(--space-2) var(--space-4) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; color:#8C7F79;">Magistrado</th>
+      <td style="padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">Juiz de Direito Dr. Aurélio Sant'Anna Prado</td>
+    </tr>
+    <tr class="keep">
+      <th style="width:26%; text-align:left; vertical-align:top; padding:var(--space-2) var(--space-4) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; color:#8C7F79;">Rito e fase</th>
+      <td style="padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">Procedimento comum — sentença publicada em 22/07/2026; prazo de apelação em curso</td>
+    </tr>
+    <tr class="keep">
+      <th style="width:26%; text-align:left; vertical-align:top; padding:var(--space-2) var(--space-4) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; color:#8C7F79;">Distribuição</th>
+      <td style="padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">14/03/2025</td>
+    </tr>
+    <tr class="keep">
+      <th style="width:26%; text-align:left; vertical-align:top; padding:var(--space-2) var(--space-4) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; color:#8C7F79;">Valor da causa</th>
+      <td style="padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">R$ 1.480.000,00 — atualizado em 07/2026 para R$ 1.612.400,00</td>
+    </tr>
+    <tr class="keep">
+      <th style="width:26%; text-align:left; vertical-align:top; padding:var(--space-2) var(--space-4) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; color:#8C7F79;">Matéria e objeto do contrato</th>
+      <td style="padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">Cível — fornecimento de estruturas metálicas para a obra Edifício Belveder Norte</td>
+    </tr>
+    <tr class="keep">
+      <th style="width:26%; text-align:left; vertical-align:top; padding:var(--space-2) var(--space-4) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; color:#8C7F79;">Provisão / risco estimado</th>
+      <td style="padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">Ativo provável de R$ 1,35 milhão; risco de insolvência da ré em monitoramento</td>
+    </tr>
+    <tr class="keep">
+      <th style="width:26%; text-align:left; vertical-align:top; padding:var(--space-2) var(--space-4) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-size:8.5pt; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; color:#8C7F79;">Documentos-chave nos autos</th>
+      <td style="padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">Contrato de fornecimento (ev. 1, doc. 3); 14 notas fiscais e canhotos de entrega (ev. 1, docs. 5–18); e-mails de 02/2025 (ev. 1, doc. 21); laudo pericial contábil (ev. 62)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 style="font-family:var(--font-heading); font-weight:400; font-size:11pt; text-transform:uppercase; letter-spacing:0.06em; margin:var(--space-8) 0 var(--space-3);">Linha do tempo</h3>
+<div style="border-left:1px solid #C4443F; padding-left:var(--space-4);">
+  <div class="keep" style="display:grid; grid-template-columns:80px 1fr; gap:var(--space-3); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+    <div style="font-size:9.5pt; font-weight:600; color:#8C7F79;">14/03/2025</div>
+    <div style="font-size:10pt; line-height:1.4;">Distribuição da ação de cobrança c/c indenização</div>
+  </div>
+  <div class="keep" style="display:grid; grid-template-columns:80px 1fr; gap:var(--space-3); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+    <div style="font-size:9.5pt; font-weight:600; color:#8C7F79;">12/06/2025</div>
+    <div style="font-size:10pt; line-height:1.4;">Audiência de conciliação infrutífera</div>
+  </div>
+  <div class="keep" style="display:grid; grid-template-columns:80px 1fr; gap:var(--space-3); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+    <div style="font-size:9.5pt; font-weight:600; color:#8C7F79;">18/09/2025</div>
+    <div style="font-size:10pt; line-height:1.4;">Contestação: exceção de contrato não cumprido e alegação de desconformidade</div>
+  </div>
+  <div class="keep" style="display:grid; grid-template-columns:80px 1fr; gap:var(--space-3); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+    <div style="font-size:9.5pt; font-weight:600; color:#8C7F79;">03/04/2026</div>
+    <div style="font-size:10pt; line-height:1.4;">Laudo pericial contábil e documental (ev. 62) favorável à autora</div>
+  </div>
+  <div class="keep" style="display:grid; grid-template-columns:80px 1fr; gap:var(--space-3); padding:var(--space-2) 0;">
+    <div style="font-size:9.5pt; font-weight:600; color:#8C7F79;">22/07/2026</div>
+    <div style="font-size:10pt; line-height:1.4;">Sentença de procedência parcial: principal deferido, juros da citação, lucros cessantes negados</div>
+  </div>
+</div>
+
+<div style="border-top:1px solid #C4443F; margin-top:var(--space-8); padding-top:var(--space-3);">
+  <div style="font-size:9pt; text-transform:uppercase; letter-spacing:0.12em; font-weight:600; color:#A6332F;">Relatório FIRAC</div>
+  <p style="margin:var(--space-2) 0 0; font-size:9.5pt; color:#5C514C; max-width:62ch;">Facts · Issue · Rule · Application · Conclusion. Cada bloco é reescrito a cada marco processual; o texto anterior migra para o histórico de versões.</p>
+</div>
+
+<div class="keep" style="display:flex; gap:var(--space-4); margin-top:var(--space-6); padding-bottom:var(--space-4); border-bottom:1px solid #EBE1DA;">
+  <div style="flex:0 0 34px; height:34px; background:#C4443F; color:#fff; font-family:var(--font-heading); font-weight:400; font-size:16pt; line-height:34px; text-align:center;">F</div>
+  <div>
+    <h3 style="font-family:var(--font-heading); font-weight:400; font-size:12pt; margin:0 0 var(--space-2); text-transform:uppercase; letter-spacing:0.02em;">Fatos</h3>
+    <p style="margin:0 0 var(--space-2); font-size:10.5pt; line-height:1.5; max-width:66ch;">Em 08/01/2024 as partes celebraram contrato de fornecimento de estruturas metálicas para a obra do Edifício Belveder Norte, com preço global de R$ 2.100.000,00 e pagamento em doze parcelas mensais vinculadas a cronograma de entregas.</p>
+    <p style="margin:0 0 var(--space-2); font-size:10.5pt; line-height:1.5; max-width:66ch;">A autora entregou integralmente os lotes 1 a 14, todos com canhoto de recebimento assinado por preposto da ré e sem registro de recusa técnica. A ré pagou as seis primeiras parcelas e interrompeu os pagamentos a partir de 10/2024, remanescendo R$ 1.480.000,00 em aberto.</p>
+    <p style="margin:0; font-size:10.5pt; line-height:1.5; max-width:66ch;">Em fevereiro de 2025, por e-mail, a ré atribuiu a inadimplência a atrasos de entrega e a divergências de espessura de chapa. A perícia contábil e documental realizada nos autos (ev. 62) não confirmou atraso relevante nem desconformidade técnica.</p>
+  </div>
+</div>
+
+<div class="keep" style="display:flex; gap:var(--space-4); margin-top:var(--space-4); padding-bottom:var(--space-4); border-bottom:1px solid #EBE1DA;">
+  <div style="flex:0 0 34px; height:34px; background:#C4443F; color:#fff; font-family:var(--font-heading); font-weight:400; font-size:16pt; line-height:34px; text-align:center;">I</div>
+  <div>
+    <h3 style="font-family:var(--font-heading); font-weight:400; font-size:12pt; margin:0 0 var(--space-2); text-transform:uppercase; letter-spacing:0.02em;">Questão</h3>
+    <p style="margin:0 0 var(--space-2); font-size:10.5pt; line-height:1.5; max-width:66ch;">A ré pode opor exceção de contrato não cumprido para suspender o pagamento das parcelas 7 a 12, alegando atraso e desconformidade das entregas?</p>
+    <p style="margin:0; font-size:10.5pt; line-height:1.5; max-width:66ch;">Subsidiariamente: a partir de que marco incidem correção monetária e juros de mora sobre o saldo devedor, e há dano indenizável além do valor das parcelas vencidas?</p>
+  </div>
+</div>
+
+<div class="keep" style="display:flex; gap:var(--space-4); margin-top:var(--space-4); padding-bottom:var(--space-4); border-bottom:1px solid #EBE1DA;">
+  <div style="flex:0 0 34px; height:34px; background:#C4443F; color:#fff; font-family:var(--font-heading); font-weight:400; font-size:16pt; line-height:34px; text-align:center;">R</div>
+  <div>
+    <h3 style="font-family:var(--font-heading); font-weight:400; font-size:12pt; margin:0 0 var(--space-2); text-transform:uppercase; letter-spacing:0.02em;">Regra</h3>
+    <p style="margin:0 0 var(--space-2); font-size:10.5pt; line-height:1.5; max-width:66ch;">Código Civil, art. 476: a exceção de contrato não cumprido só socorre a parte que já cumpriu a própria obrigação. Art. 389: o inadimplemento sujeita o devedor a perdas e danos, juros, correção monetária e honorários. Art. 397: nas obrigações com termo certo, a mora se constitui pelo simples vencimento.</p>
+    <p style="margin:0; font-size:10.5pt; line-height:1.5; max-width:66ch;">CPC, art. 373, II: cabe ao réu provar os fatos impeditivos, modificativos ou extintivos do direito do autor — aqui, o alegado descumprimento anterior da autora.</p>
+  </div>
+</div>
+
+<div class="keep" style="display:flex; gap:var(--space-4); margin-top:var(--space-4); padding-bottom:var(--space-4); border-bottom:1px solid #EBE1DA;">
+  <div style="flex:0 0 34px; height:34px; background:#C4443F; color:#fff; font-family:var(--font-heading); font-weight:400; font-size:16pt; line-height:34px; text-align:center;">A</div>
+  <div>
+    <h3 style="font-family:var(--font-heading); font-weight:400; font-size:12pt; margin:0 0 var(--space-2); text-transform:uppercase; letter-spacing:0.02em;">Aplicação / análise</h3>
+    <p style="margin:0 0 var(--space-2); font-size:10.5pt; line-height:1.5; max-width:66ch;">A prova documental demonstra entrega integral e recebimento sem ressalva: os canhotos assinados esvaziam a alegação de desconformidade, que só apareceu quatro meses depois da última entrega e às vésperas do vencimento das parcelas em aberto.</p>
+    <p style="margin:0 0 var(--space-2); font-size:10.5pt; line-height:1.5; max-width:66ch;">A perícia (ev. 62) apurou atraso médio de 3,2 dias, dentro da tolerância contratual da cláusula 7.2, e espessura de chapa dentro da faixa especificada. Sem descumprimento anterior da autora, falta à ré o pressuposto do art. 476.</p>
+    <p style="margin:0; font-size:10.5pt; line-height:1.5; max-width:66ch;">O ônus de provar o fato impeditivo era da ré, que não o desincumbiu. A mora, por decorrer do termo contratual, dispensa interpelação, o que fixa os juros desde cada vencimento e não da citação.</p>
+  </div>
+</div>
+
+<div class="keep" style="display:flex; gap:var(--space-4); margin-top:var(--space-4); padding-bottom:var(--space-4); border-bottom:1px solid #C4443F;">
+  <div style="flex:0 0 34px; height:34px; background:#C4443F; color:#fff; font-family:var(--font-heading); font-weight:400; font-size:16pt; line-height:34px; text-align:center;">C</div>
+  <div>
+    <h3 style="font-family:var(--font-heading); font-weight:400; font-size:12pt; margin:0 0 var(--space-2); text-transform:uppercase; letter-spacing:0.02em;">Conclusão</h3>
+    <p style="margin:0 0 var(--space-2); font-size:10.5pt; line-height:1.5; max-width:66ch;">A tese da autora é sólida quanto ao principal. A sentença de 22/07/2026 condenou a ré ao pagamento de R$ 1.480.000,00 com correção pelo IPCA e juros de 1% ao mês, mas fixou o termo inicial dos juros na citação e rejeitou o pedido de lucros cessantes por falta de prova do dano.</p>
+    <p style="margin:0; font-size:10.5pt; line-height:1.5; max-width:66ch;">Recomenda-se apelação parcial limitada a dois pontos: termo inicial da mora e lucros cessantes. O núcleo condenatório deve ser preservado e usado como alavanca de acordo antes do julgamento do recurso.</p>
+  </div>
+</div>
+
+<div style="display:flex; align-items:baseline; gap:var(--space-4); border-top:1px solid #C4443F; margin-top:var(--space-8); padding-top:var(--space-3);">
+  <div style="font-family:var(--font-heading); font-weight:300; font-size:22pt; line-height:1; color:#C4443F;">02</div>
+  <h2 style="font-family:var(--font-heading); font-weight:400; font-size:15pt; letter-spacing:0.05em; margin:0; text-transform:uppercase;">Estratégia</h2>
+</div>
+
+<div class="keep" style="margin-top:var(--space-4); padding:var(--space-4); background:#C4443F; color:#fff;">
+  <div style="font-size:8.5pt; text-transform:uppercase; letter-spacing:0.12em; font-weight:600; margin-bottom:var(--space-2);">Objetivo</div>
+  <p style="margin:0; font-family:var(--font-heading); font-weight:600; font-size:14pt; line-height:1.28; max-width:48ch;">Converter a condenação de primeiro grau em recebimento efetivo até dezembro de 2026, preferencialmente por acordo de no mínimo R$ 1,35 milhão à vista ou em até seis parcelas com garantia real.</p>
+</div>
+
+<div class="keep" style="margin-top:var(--space-4); display:grid; grid-template-columns:1fr 1fr; gap:0; border-top:1px solid #EBE1DA; border-bottom:1px solid #EBE1DA;">
+  <div style="padding:var(--space-3) var(--space-4) var(--space-3) 0;">
+    <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:var(--space-1);">Objetivo secundário</div>
+    <div style="font-size:10pt; line-height:1.4;">Recuperar o termo inicial dos juros (de 10/2024, não da citação) — diferença estimada de R$ 118 mil.</div>
+  </div>
+  <div style="padding:var(--space-3) 0 var(--space-3) var(--space-4); border-left:1px solid #EBE1DA;">
+    <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:var(--space-1);">Linha vermelha</div>
+    <div style="font-size:10pt; line-height:1.4;">Não aceitar acordo abaixo de R$ 1,1 milhão nem parcelamento superior a doze meses sem garantia.</div>
+  </div>
+</div>
+
+<h3 style="font-family:var(--font-heading); font-weight:400; font-size:11pt; text-transform:uppercase; letter-spacing:0.06em; margin:var(--space-6) 0 var(--space-3);">Próximos passos</h3>
+
+<table style="width:100%; border-collapse:collapse; font-size:9.5pt;">
+  <thead>
+    <tr>
+      <th style="text-align:left; padding:var(--space-2) var(--space-3) var(--space-2) 0; border-top:1px solid #C4443F; border-bottom:1px solid #C4443F; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:#8C7F79; width:6%;">#</th>
+      <th style="text-align:left; padding:var(--space-2) var(--space-3); border-top:1px solid #C4443F; border-bottom:1px solid #C4443F; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:#8C7F79; width:30%;">Ação</th>
+      <th style="text-align:left; padding:var(--space-2) var(--space-3); border-top:1px solid #C4443F; border-bottom:1px solid #C4443F; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:#8C7F79; width:28%;">Tentativas</th>
+      <th style="text-align:left; padding:var(--space-2) var(--space-3); border-top:1px solid #C4443F; border-bottom:1px solid #C4443F; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:#8C7F79; width:16%;">Responsável</th>
+      <th style="text-align:left; padding:var(--space-2) 0 var(--space-2) var(--space-3); border-top:1px solid #C4443F; border-bottom:1px solid #C4443F; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:#8C7F79; width:16%;">Prazo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="keep">
+      <td style="padding:var(--space-2) var(--space-3) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-weight:600; color:#A6332F;">01</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Protocolar apelação parcial (termo inicial da mora e lucros cessantes), com preparo recolhido</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA; color:#9C8F89;">Nenhuma ainda</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Dr. Gabriel Silveira</td>
+      <td style="padding:var(--space-2) 0 var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA; font-weight:600;">até 19/08/2026</td>
+    </tr>
+    <tr class="keep">
+      <td style="padding:var(--space-2) var(--space-3) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-weight:600; color:#A6332F;">02</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Diligência na vara para conferir a certidão de intimação e a contagem do prazo recursal</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;"><strong>28/07/2026</strong> — servidor pediu retorno após a juntada da certidão</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Estagiária Ítalo Nascimento</td>
+      <td style="padding:var(--space-2) 0 var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA; font-weight:600;">12/08/2026</td>
+    </tr>
+    <tr class="keep">
+      <td style="padding:var(--space-2) var(--space-3) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-weight:600; color:#A6332F;">03</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Nova rodada de acordo extrajudicial com a diretoria financeira da ré, apresentando o cálculo atualizado da condenação</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;"><strong>06/11/2025</strong> — proposta de R$ 900 mil em 24 parcelas, recusada<br /><strong>14/05/2026</strong> — ré pediu prazo até a sentença<br /><strong>04/08/2026</strong> — nova sinalização de interesse após a condenação</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Dra. Hermelinda Rabelo</td>
+      <td style="padding:var(--space-2) 0 var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA; font-weight:600;">até 05/09/2026</td>
+    </tr>
+    <tr class="keep">
+      <td style="padding:var(--space-2) var(--space-3) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-weight:600; color:#A6332F;">04</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Despacho com o relator após a distribuição no TJSC, para sustentar a preferência de julgamento</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA; color:#9C8F89;">Nenhuma ainda</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Dra. Hermelinda Rabelo</td>
+      <td style="padding:var(--space-2) 0 var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA; font-weight:600;">a agendar</td>
+    </tr>
+    <tr class="keep">
+      <td style="padding:var(--space-2) var(--space-3) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-weight:600; color:#A6332F;">05</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Pesquisa patrimonial da ré (imóveis, veículos e recebíveis de obra) para instruir futura execução</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;"><strong>30/07/2026</strong> — concluída: duas execuções fiscais ativas e um imóvel livre em Palhoça</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Ítalo Nascimento</td>
+      <td style="padding:var(--space-2) 0 var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA; font-weight:600;">até 30/09/2026</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="keep" style="margin-top:var(--space-6); border-left:1px solid #C4443F; padding:var(--space-1) 0 var(--space-1) var(--space-4);">
+  <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#A6332F; margin-bottom:var(--space-1);">Riscos a monitorar</div>
+  <p style="margin:0; font-size:10pt; line-height:1.45; max-width:66ch;">Deterioração financeira da ré (duas execuções fiscais ativas) pode esvaziar a condenação. Se a pesquisa patrimonial confirmar risco de insolvência, avaliar tutela provisória de arresto antes do julgamento da apelação.</p>
+</div>
+
+<h3 style="font-family:var(--font-heading); font-weight:400; font-size:11pt; text-transform:uppercase; letter-spacing:0.06em; margin:var(--space-8) 0 var(--space-3);">Prazos em aberto</h3>
+<table style="width:100%; border-collapse:collapse; font-size:9.5pt;">
+  <thead>
+    <tr>
+      <th style="text-align:left; padding:var(--space-2) var(--space-3) var(--space-2) 0; border-top:1px solid #C4443F; border-bottom:1px solid #C4443F; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:#8C7F79;">Ato</th>
+      <th style="text-align:left; padding:var(--space-2) var(--space-3); border-top:1px solid #C4443F; border-bottom:1px solid #C4443F; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:#8C7F79; width:24%;">Contagem</th>
+      <th style="text-align:left; padding:var(--space-2) 0 var(--space-2) var(--space-3); border-top:1px solid #C4443F; border-bottom:1px solid #C4443F; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:#8C7F79; width:22%;">Data</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="keep">
+      <td style="padding:var(--space-2) var(--space-3) var(--space-2) 0; border-bottom:1px solid #EBE1DA;">Apelação da parte da sentença que fixou juros da citação</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">15 dias úteis</td>
+      <td style="padding:var(--space-2) 0 var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA; font-weight:600;">19/08/2026</td>
+    </tr>
+    <tr class="keep">
+      <td style="padding:var(--space-2) var(--space-3) var(--space-2) 0; border-bottom:1px solid #EBE1DA;">Contrarrazões, se a ré apelar</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">15 dias úteis</td>
+      <td style="padding:var(--space-2) 0 var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA; font-weight:600;">a contar da intimação</td>
+    </tr>
+    <tr class="keep">
+      <td style="padding:var(--space-2) var(--space-3) var(--space-2) 0; border-bottom:1px solid #EBE1DA;">Atualização do cálculo para fins de acordo</td>
+      <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">interno</td>
+      <td style="padding:var(--space-2) 0 var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA; font-weight:600;">31/08/2026</td>
+    </tr>
+  </tbody>
+</table>
+
+<div style="display:flex; align-items:baseline; gap:var(--space-4); border-top:1px solid #C4443F; margin-top:var(--space-8); padding-top:var(--space-3);">
+  <div style="font-family:var(--font-heading); font-weight:300; font-size:22pt; line-height:1; color:#C4443F;">03</div>
+  <h2 style="font-family:var(--font-heading); font-weight:400; font-size:15pt; letter-spacing:0.05em; margin:0; text-transform:uppercase;">Argumentos e embasamento</h2>
+</div>
+
+<p style="margin:var(--space-3) 0 0; font-size:9.5pt; color:#5C514C; max-width:66ch;">Cada argumento de fato vem acompanhado do que o sustenta em direito: previsão legal, jurisprudência e doutrina. As referências devem ser reconferidas na atualização de cada marco.</p>
+
+<div class="keep" style="margin-top:var(--space-6); border-top:1px solid #C4443F; padding-top:var(--space-3);">
+  <div style="display:flex; gap:var(--space-3); align-items:baseline; margin-bottom:var(--space-2);">
+    <span style="font-family:var(--font-heading); font-weight:400; font-size:11pt; color:#C4443F;">A1</span>
+    <h3 style="font-family:var(--font-heading); font-weight:400; font-size:12.5pt; margin:0; line-height:1.25;">A autora entregou tudo o que devia, e a ré recebeu sem ressalva</h3>
+  </div>
+  <p style="margin:0 0 var(--space-3); font-size:10.5pt; line-height:1.5; max-width:66ch;">Quatorze lotes entregues, quatorze canhotos assinados por preposto da ré, nenhuma recusa técnica registrada à época. A alegação de desconformidade surgiu apenas em fevereiro de 2025, depois de quatro parcelas vencidas.</p>
+  <div style="display:grid; grid-template-columns:1fr; gap:0; border-top:1px solid #EBE1DA;">
+    <div style="display:grid; grid-template-columns:22% 1fr; gap:var(--space-4); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+      <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Previsão legal</div>
+      <div style="font-size:10pt; line-height:1.45;">CC, arts. 476 e 477; CPC, art. 373, II. Cláusulas 4.1 e 7.2 do contrato (aceitação tácita e tolerância de atraso).</div>
+    </div>
+    <div style="display:grid; grid-template-columns:22% 1fr; gap:var(--space-4); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+      <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Jurisprudência</div>
+      <div style="font-size:10pt; line-height:1.45;">Orientação consolidada do STJ de que a exceptio non adimpleti contractus exige descumprimento anterior e proporcional da outra parte. <em>Localizar e citar os precedentes atualizados do STJ e do TJSC antes do protocolo.</em></div>
+    </div>
+    <div style="display:grid; grid-template-columns:22% 1fr; gap:var(--space-4); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+      <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Doutrina</div>
+      <div style="font-size:10pt; line-height:1.45;">Orlando Gomes, <em>Contratos</em>, sobre os limites da exceção de contrato não cumprido; Judith Martins-Costa, <em>A boa-fé no direito privado</em>, quanto ao comportamento contraditório da ré.</div>
+    </div>
+  </div>
+</div>
+
+<div class="keep" style="margin-top:var(--space-6); border-top:1px solid #C4443F; padding-top:var(--space-3);">
+  <div style="display:flex; gap:var(--space-3); align-items:baseline; margin-bottom:var(--space-2);">
+    <span style="font-family:var(--font-heading); font-weight:400; font-size:11pt; color:#C4443F;">A2</span>
+    <h3 style="font-family:var(--font-heading); font-weight:400; font-size:12.5pt; margin:0; line-height:1.25;">A perícia afastou o atraso e a desconformidade técnica</h3>
+  </div>
+  <p style="margin:0 0 var(--space-3); font-size:10.5pt; line-height:1.5; max-width:66ch;">O laudo do ev. 62 apurou atraso médio de 3,2 dias, dentro da tolerância contratual, e espessura de chapa na faixa especificada. A ré não impugnou o laudo por assistente técnico próprio.</p>
+  <div style="border-top:1px solid #EBE1DA;">
+    <div style="display:grid; grid-template-columns:22% 1fr; gap:var(--space-4); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+      <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Previsão legal</div>
+      <div style="font-size:10pt; line-height:1.45;">CPC, arts. 464 a 480 (prova técnica) e art. 371 (persuasão racional).</div>
+    </div>
+    <div style="display:grid; grid-template-columns:22% 1fr; gap:var(--space-4); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+      <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Jurisprudência</div>
+      <div style="font-size:10pt; line-height:1.45;">Precedentes que exigem elemento concreto para o juiz se afastar da conclusão pericial. <em>A conferir e citar.</em></div>
+    </div>
+    <div style="display:grid; grid-template-columns:22% 1fr; gap:var(--space-4); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+      <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Doutrina</div>
+      <div style="font-size:10pt; line-height:1.45;">Cândido Rangel Dinamarco, <em>Instituições de Direito Processual Civil</em>, sobre valoração da prova técnica.</div>
+    </div>
+  </div>
+</div>
+
+<div class="keep" style="margin-top:var(--space-6); border-top:1px solid #C4443F; padding-top:var(--space-3);">
+  <div style="display:flex; gap:var(--space-3); align-items:baseline; margin-bottom:var(--space-2);">
+    <span style="font-family:var(--font-heading); font-weight:400; font-size:11pt; color:#C4443F;">A3</span>
+    <h3 style="font-family:var(--font-heading); font-weight:400; font-size:12.5pt; margin:0; line-height:1.25;">A mora é ex re: os juros correm de cada vencimento, não da citação</h3>
+  </div>
+  <p style="margin:0 0 var(--space-3); font-size:10.5pt; line-height:1.5; max-width:66ch;">As parcelas tinham data certa de vencimento prevista em contrato. A sentença fixou o termo inicial na citação, o que reduz a condenação em cerca de R$ 118 mil. Este é o principal ponto da apelação.</p>
+  <div style="border-top:1px solid #EBE1DA;">
+    <div style="display:grid; grid-template-columns:22% 1fr; gap:var(--space-4); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+      <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Previsão legal</div>
+      <div style="font-size:10pt; line-height:1.45;">CC, arts. 389, 394, 395, 397, <em>caput</em>, e 407.</div>
+    </div>
+    <div style="display:grid; grid-template-columns:22% 1fr; gap:var(--space-4); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+      <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Jurisprudência</div>
+      <div style="font-size:10pt; line-height:1.45;">Súmula 163 do STF (mora do vencimento na obrigação com termo). <em>Complementar com precedentes atuais do STJ sobre mora ex re em obrigação contratual líquida.</em></div>
+    </div>
+    <div style="display:grid; grid-template-columns:22% 1fr; gap:var(--space-4); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+      <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Doutrina</div>
+      <div style="font-size:10pt; line-height:1.45;">Agostinho Alvim, <em>Da inexecução das obrigações e suas consequências</em>, sobre mora ex re e mora ex persona.</div>
+    </div>
+  </div>
+</div>
+
+<div class="keep" style="margin-top:var(--space-6); border-top:1px solid #C4443F; border-bottom:1px solid #C4443F; padding:var(--space-3) 0 var(--space-4);">
+  <div style="display:flex; gap:var(--space-3); align-items:baseline; margin-bottom:var(--space-2);">
+    <span style="font-family:var(--font-heading); font-weight:400; font-size:11pt; color:#C4443F;">A4</span>
+    <h3 style="font-family:var(--font-heading); font-weight:400; font-size:12.5pt; margin:0; line-height:1.25;">A interrupção dos pagamentos gerou dano além do valor das parcelas</h3>
+  </div>
+  <p style="margin:0 0 var(--space-3); font-size:10.5pt; line-height:1.5; max-width:66ch;">A autora recorreu a capital de giro bancário para manter a produção e recusou dois pedidos por falta de caixa. A sentença rejeitou o pedido por insuficiência de prova; a apelação deve reforçar o nexo com os contratos de crédito e a contabilidade juntada.</p>
+  <div style="border-top:1px solid #EBE1DA;">
+    <div style="display:grid; grid-template-columns:22% 1fr; gap:var(--space-4); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+      <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Previsão legal</div>
+      <div style="font-size:10pt; line-height:1.45;">CC, arts. 402 e 403 (danos emergentes e lucros cessantes por efeito direto e imediato).</div>
+    </div>
+    <div style="display:grid; grid-template-columns:22% 1fr; gap:var(--space-4); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+      <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Jurisprudência</div>
+      <div style="font-size:10pt; line-height:1.45;">Entendimento de que lucros cessantes exigem prova de lucro razoavelmente esperado, não de expectativa hipotética. <em>A conferir e citar.</em></div>
+    </div>
+    <div style="display:grid; grid-template-columns:22% 1fr; gap:var(--space-4); padding:var(--space-2) 0;">
+      <div style="font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Doutrina</div>
+      <div style="font-size:10pt; line-height:1.45;">Sergio Cavalieri Filho, <em>Programa de Responsabilidade Civil</em>, sobre a extensão do dano contratual.</div>
+    </div>
+  </div>
+</div>
+
+<sc-if value="{{ mostrarHistorico }}" hint-placeholder-val="{{ true }}">
+<div class="keep" style="margin-top:var(--space-8);">
+  <h3 style="font-family:var(--font-heading); font-weight:400; font-size:11pt; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 var(--space-3);">Histórico de atualizações</h3>
+  <table style="width:100%; border-collapse:collapse; font-size:9.5pt;">
+    <thead>
+      <tr>
+        <th style="text-align:left; padding:var(--space-2) var(--space-3) var(--space-2) 0; border-top:1px solid #C4443F; border-bottom:1px solid #C4443F; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:#8C7F79; width:10%;">Versão</th>
+        <th style="text-align:left; padding:var(--space-2) var(--space-3); border-top:1px solid #C4443F; border-bottom:1px solid #C4443F; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:#8C7F79; width:16%;">Data</th>
+        <th style="text-align:left; padding:var(--space-2) var(--space-3); border-top:1px solid #C4443F; border-bottom:1px solid #C4443F; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:#8C7F79;">Marco que motivou a revisão</th>
+        <th style="text-align:left; padding:var(--space-2) 0 var(--space-2) var(--space-3); border-top:1px solid #C4443F; border-bottom:1px solid #C4443F; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:#8C7F79; width:22%;">Revisor</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="keep">
+        <td style="padding:var(--space-2) var(--space-3) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-weight:600;">v4</td>
+        <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">07/08/2026</td>
+        <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Sentença de 1º grau; revisão de FIRAC, objetivo e argumentos A3 e A4</td>
+        <td style="padding:var(--space-2) 0 var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Hermelinda Rabelo</td>
+      </tr>
+      <tr class="keep">
+        <td style="padding:var(--space-2) var(--space-3) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-weight:600;">v3</td>
+        <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">03/04/2026</td>
+        <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Juntada do laudo pericial (ev. 62)</td>
+        <td style="padding:var(--space-2) 0 var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Gabriel Silveira</td>
+      </tr>
+      <tr class="keep">
+        <td style="padding:var(--space-2) var(--space-3) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-weight:600;">v2</td>
+        <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">18/09/2025</td>
+        <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Audiência de conciliação infrutífera; contestação apresentada</td>
+        <td style="padding:var(--space-2) 0 var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Gabriel Silveira</td>
+      </tr>
+      <tr class="keep">
+        <td style="padding:var(--space-2) var(--space-3) var(--space-2) 0; border-bottom:1px solid #EBE1DA; font-weight:600;">v1</td>
+        <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">20/03/2025</td>
+        <td style="padding:var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Abertura do dossiê após distribuição</td>
+        <td style="padding:var(--space-2) 0 var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA;">Hermelinda Rabelo</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</sc-if>
+
+</doc-page>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;risco&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Favorável — êxito provável&quot;,&quot;Favorável com reservas&quot;,&quot;Incerto — prova em disputa&quot;,&quot;Desfavorável — mitigar exposição&quot;],&quot;default&quot;:&quot;Favorável — êxito provável&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Dossiê&quot;},&quot;confidencial&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Dossiê&quot;},&quot;mostrarHistorico&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Dossiê&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      risco: this.props.risco ?? "Favorável — êxito provável",
+      confidencial: this.props.confidencial ?? true,
+      mostrarHistorico: this.props.mostrarHistorico ?? true,
+    };
+  }
+}
+</script>
+</body>
+</html>

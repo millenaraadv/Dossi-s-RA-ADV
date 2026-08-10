@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "PowerShell(node -v)",
+      "PowerShell(npm -v)",
+      "PowerShell(winget install --id OpenJS.NodeJS.LTS -e --accept-package-agreements --accept-source-agreements)",
+      "Bash(grep -n -i 'playwright\\\\|^\\\\- `pg`\\\\|postgres' 'C:\\\\Users\\\\pedro\\\\Downloads\\\\Dossiê de processos judiciais\\\\node_modules\\\\next\\\\dist\\\\docs/01-app/03-api-reference/05-config/01-next-config-js/serverExternalPackages.md')"
+    ]
+  }
+}

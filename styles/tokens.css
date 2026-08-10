@@ -1,0 +1,76 @@
+/* Design tokens — README Parte 7. Valores literais, não inventar/arredondar. */
+:root {
+  /* Cores */
+  --ground: #ffffff;
+  --texto: #3e332d;
+  --acento: #c4443f;
+  --acento-escuro: #a6332f;
+  --acento-profundo: #8f3226;
+  --ambar: #d4882f;
+  --tinta-clara: #fbf0ee;
+  --tinta-rosa: #f2dad3;
+  --divisoria-fina: #ebe1da;
+  --borda-campo: #dcd0c7;
+  --neutro-700: #8c7f79;
+  --neutro-800: #5c514c;
+  --neutro-200: #f4eeea;
+  --neutro-100: #faf6f3;
+  --fora-do-mes: #f0e9e5;
+  --desabilitado: #b3a8a2;
+
+  /* Cores por responsável (seed da equipe) */
+  --resp-millena: #c4443f;
+  --resp-gabriel: #7fa084;
+  --resp-amanda: #d4882f;
+  --resp-hermelinda: #8f3226;
+  --resp-geovanna: #4e6b57;
+  --resp-italo: #9a5f1c;
+  --resp-fallback: #b3a8a2;
+  --resp-fallback-tinta: #faf6f3;
+
+  /* Espaçamento — escala de 4px */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* Foco de teclado — nunca o anel azul padrão */
+  --focus-ring: #c24a3b;
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-texto: var(--texto);
+  --color-acento: var(--acento);
+  --color-acento-escuro: var(--acento-escuro);
+  --color-acento-profundo: var(--acento-profundo);
+  --color-ambar: var(--ambar);
+  --color-tinta-clara: var(--tinta-clara);
+  --color-tinta-rosa: var(--tinta-rosa);
+  --color-divisoria-fina: var(--divisoria-fina);
+  --color-borda-campo: var(--borda-campo);
+  --color-neutro-700: var(--neutro-700);
+  --color-neutro-800: var(--neutro-800);
+  --color-neutro-200: var(--neutro-200);
+  --color-neutro-100: var(--neutro-100);
+  --color-fora-do-mes: var(--fora-do-mes);
+  --color-desabilitado: var(--desabilitado);
+  --font-display: var(--font-archivo);
+}
+
+/* Nenhum canto arredondado em nenhum elemento (Parte 6/7) */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+  box-shadow: none;
+}
+
+/* Foco de teclado — nunca o anel azul padrão */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}

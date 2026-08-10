@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-26534942-76f5-40ae-b66d-214adc85ff7e/styles.css">
+<script src="_ds/modernist-26534942-76f5-40ae-b66d-214adc85ff7e/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#ffffff; font-family:"Archivo", system-ui, sans-serif; color:#3E332D; }
+  a { color:#A6332F; text-decoration:underline; }
+  a:hover { color:#C4443F; }
+  input, select, textarea { font-family:inherit; }
+  *:focus-visible { outline:2px solid #ec3013; outline-offset:2px; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>window.addEventListener("load", function () { if (window.pdfjsLib) { window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; } });</script>
+</helmet>
+
+<div style="min-height:100vh; background:#FFFFFF;">
+
+<div style="display:flex; align-items:center; justify-content:space-between; gap:var(--space-6); padding:var(--space-4) var(--space-8); border-bottom:1px solid #C4443F; background:#FFFFFF; flex-wrap:wrap;">
+  <div style="display:flex; align-items:center; gap:var(--space-6);">
+    <img src="assets/marca-rabelo-aguiar.png" alt="Rabelo Aguiar Advocacia" style="height:68px; width:auto; display:block;" />
+    <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.18em; font-weight:400; color:#8C7F79;">Dossiês processuais</span>
+  </div>
+  <div style="display:flex; align-items:center; gap:var(--space-2);">
+    <button type="button" onClick="{{ irLista }}" style="font-family:inherit; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-4); border:1px solid #C4443F; background:transparent; color:#3E332D; cursor:pointer;" style-hover="background:#F4EEEA">Dossiês</button>
+    <button type="button" onClick="{{ irCalendario }}" style="font-family:inherit; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-4); border:1px solid #C4443F; background:transparent; color:#3E332D; cursor:pointer;" style-hover="background:#F4EEEA">Calendário</button>
+    <button type="button" onClick="{{ abrirImport }}" style="font-family:inherit; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-4); border:1px solid #C4443F; background:transparent; color:#A6332F; cursor:pointer;" style-hover="background:#FBF0EE">Importar autos</button>
+    <button type="button" onClick="{{ abrirNovo }}" style="font-family:inherit; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-4); border:1px solid #C4443F; background:#C4443F; color:#fff; cursor:pointer;" style-hover="background:#A6332F; border-color:#A6332F">Novo dossiê</button>
+  </div>
+</div>
+
+<sc-if value="{{ isLista }}" hint-placeholder-val="{{ true }}">
+<div data-screen-label="Lista de dossiês" style="max-width:1100px; margin:0 auto; padding:var(--space-8);">
+  <div style="display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-4); margin-bottom:var(--space-4);">
+    <h1 style="font-family:var(--font-heading); font-weight:300; font-size:34px; letter-spacing:0.06em; margin:0;">Dossiês</h1>
+    <div style="display:flex; align-items:center; gap:var(--space-4);">
+      <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em; font-weight:600; color:#8C7F79;">Ordenar</span>
+      <div style="display:flex; border:1px solid #C4443F;">
+        <button type="button" onClick="{{ ordenarAlfa }}" style="font-family:inherit; font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-3); border:0; cursor:pointer; background:{{ bgAlfa }}; color:{{ fgAlfa }};">A – Z</button>
+        <button type="button" onClick="{{ ordenarRecente }}" style="font-family:inherit; font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-3); border:0; border-left:1px solid #C4443F; cursor:pointer; background:{{ bgRecente }}; color:{{ fgRecente }};">Demanda mais recente</button>
+      </div>
+      <span style="font-size:12px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">{{ contagem }}</span>
+    </div>
+  </div>
+
+  <input type="text" value="{{ busca }}" onChange="{{ setBusca }}" placeholder="Buscar por cliente, caso, nº do processo, matéria ou responsável" style="width:100%; box-sizing:border-box; font-size:15px; padding:var(--space-3) 0; border:0; border-bottom:1px solid #C4443F; background:transparent; color:#3E332D;" />
+
+  <div style="display:flex; flex-wrap:wrap; gap:var(--space-2); margin-top:var(--space-4); align-items:center;">
+    <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em; font-weight:600; color:#8C7F79; margin-right:var(--space-2);">Responsável</span>
+    <sc-for list="{{ responsaveis }}" as="r" hint-placeholder-count="4">
+      <button type="button" onClick="{{ r.set }}" style="font-family:inherit; font-size:12px; font-weight:600; white-space:nowrap; display:inline-flex; align-items:center; gap:var(--space-2); padding:var(--space-1) var(--space-3); border:1px solid #DCD0C7; background:{{ r.bg }}; color:{{ r.fg }}; cursor:pointer;"><span style="width:8px; height:8px; background:{{ r.cor }};"></span>{{ r.nome }}</button>
+    </sc-for>
+  </div>
+
+  <div style="margin-top:var(--space-6); border-top:1px solid #C4443F;">
+    <sc-for list="{{ lista }}" as="d" hint-placeholder-count="5">
+      <div onClick="{{ d.abrir }}" style="display:grid; grid-template-columns:1fr 250px; gap:var(--space-6); padding:var(--space-4) var(--space-3); border-bottom:1px solid #EBE1DA; border-left:5px solid {{ d.cor }}; cursor:pointer; align-items:start;" style-hover="background:#F4EEEA">
+        <div>
+          <div style="font-family:var(--font-heading); font-weight:600; font-size:16px; line-height:1.3;">{{ d.nome }}</div>
+          <div style="font-size:12.5px; color:#8C7F79; margin-top:var(--space-1);">{{ d.subtitulo }}</div>
+        </div>
+        <div>
+          <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Próxima demanda</div>
+          <div style="font-size:13px; line-height:1.35; margin-top:2px;">{{ d.proximaAcao }}</div>
+          <div style="font-size:13px; font-weight:600; margin-top:2px; color:{{ d.corData }};">{{ d.proximaDataFmt }}</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ listaVazia }}" hint-placeholder-val="{{ false }}">
+    <p style="margin:var(--space-6) 0 0; font-size:14px; color:#8C7F79;">Nenhum dossiê corresponde à busca.</p>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCalendario }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Calendário unificado" style="max-width:1240px; margin:0 auto; padding:var(--space-8);">
+  <div style="display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-4); flex-wrap:wrap; margin-bottom:var(--space-4);">
+    <h1 style="font-family:var(--font-heading); font-weight:300; font-size:34px; letter-spacing:0.06em; margin:0;">Calendário</h1>
+    <div style="display:flex; align-items:center; gap:var(--space-2);">
+      <button type="button" onClick="{{ calAnterior }}" style="font-family:inherit; font-size:14px; font-weight:600; width:34px; height:34px; border:1px solid #C4443F; background:transparent; cursor:pointer;" style-hover="background:#F4EEEA">‹</button>
+      <span style="font-family:var(--font-heading); font-weight:600; font-size:15px; text-transform:uppercase; letter-spacing:0.06em; min-width:210px; text-align:center;">{{ calTitulo }}</span>
+      <button type="button" onClick="{{ calProximo }}" style="font-family:inherit; font-size:14px; font-weight:600; width:34px; height:34px; border:1px solid #C4443F; background:transparent; cursor:pointer;" style-hover="background:#F4EEEA">›</button>
+      <div style="display:flex; margin-left:var(--space-4); border:1px solid #C4443F;">
+        <button type="button" onClick="{{ verMes }}" style="font-family:inherit; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-4); border:0; cursor:pointer; background:{{ bgMes }}; color:{{ fgMes }};">Mês</button>
+        <button type="button" onClick="{{ verSemana }}" style="font-family:inherit; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-4); border:0; border-left:1px solid #C4443F; cursor:pointer; background:{{ bgSemana }}; color:{{ fgSemana }};">Semana</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; flex-wrap:wrap; gap:var(--space-2); margin-bottom:var(--space-6); align-items:center;">
+    <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em; font-weight:600; color:#8C7F79; margin-right:var(--space-2);">Responsável</span>
+    <sc-for list="{{ responsaveis }}" as="r" hint-placeholder-count="4">
+      <button type="button" onClick="{{ r.set }}" style="font-family:inherit; font-size:12px; font-weight:600; white-space:nowrap; display:inline-flex; align-items:center; gap:var(--space-2); padding:var(--space-1) var(--space-3); border:1px solid #DCD0C7; background:{{ r.bg }}; color:{{ r.fg }}; cursor:pointer;"><span style="width:8px; height:8px; background:{{ r.cor }};"></span>{{ r.nome }}</button>
+    </sc-for>
+    <div style="display:flex; align-items:center; gap:var(--space-4); margin-left:auto;">
+      <sc-for list="{{ legenda }}" as="l" hint-placeholder-count="4">
+        <div style="display:flex; align-items:center; gap:var(--space-2);">
+          <span style="width:12px; height:12px; background:{{ l.cor }};"></span>
+          <span style="font-size:11px; font-weight:600; color:#5C514C;">{{ l.nome }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <sc-if value="{{ isMes }}" hint-placeholder-val="{{ true }}">
+  <div style="display:grid; grid-template-columns:1fr 300px; gap:var(--space-8); align-items:start;">
+    <div>
+      <div style="display:grid; grid-template-columns:repeat(7, 1fr); border-top:1px solid #C4443F; border-left:1px solid #EBE1DA;">
+        <sc-for list="{{ diasSemana }}" as="w" hint-placeholder-count="7">
+          <div style="padding:var(--space-2); border-right:1px solid #EBE1DA; border-bottom:1px solid #C4443F; font-size:10px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">{{ w.nome }}</div>
+        </sc-for>
+        <sc-for list="{{ celulas }}" as="c" hint-placeholder-count="35">
+          <div style="min-height:96px; padding:var(--space-2); border-right:1px solid #EBE1DA; border-bottom:1px solid #EBE1DA; background:{{ c.bg }};">
+            <div style="font-size:12px; font-weight:600; color:{{ c.corDia }}; margin-bottom:4px;">{{ c.dia }}</div>
+            <sc-for list="{{ c.eventos }}" as="e" hint-placeholder-count="0">
+              <div onClick="{{ e.abrir }}" style="border-left:3px solid {{ e.cor }}; padding:2px var(--space-1); margin-bottom:4px; cursor:pointer; background:{{ e.tinta }};" style-hover="background:#F4EEEA">
+                <div style="font-size:10.5px; font-weight:600; line-height:1.25;">{{ e.acao }}</div>
+                <div style="font-size:9.5px; color:#8C7F79; line-height:1.25;">{{ e.dossie }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin:var(--space-3) 0 0; font-size:11.5px; color:#8C7F79;">A grade traz apenas demandas em aberto. As realizadas ficam na coluna ao lado.</p>
+    </div>
+    <div style="border-top:1px solid #C4443F; padding-top:var(--space-3);">
+      <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em; font-weight:600; color:#A6332F; margin-bottom:var(--space-3);">Realizadas no período</div>
+      <sc-for list="{{ realizadas }}" as="e" hint-placeholder-count="4">
+        <div onClick="{{ e.abrir }}" style="padding:var(--space-2) 0 var(--space-2) var(--space-3); border-bottom:1px solid #EBE1DA; border-left:3px solid {{ e.cor }}; cursor:pointer;" style-hover="background:#F4EEEA">
+          <div style="font-size:11px; font-weight:600; color:#8C7F79;">{{ e.dataFmt }}</div>
+          <div style="font-size:12.5px; font-weight:600; line-height:1.3;">{{ e.acao }}</div>
+          <div style="font-size:11.5px; color:#8C7F79; line-height:1.3;">{{ e.resultado }}</div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ semRealizadas }}" hint-placeholder-val="{{ false }}">
+        <p style="margin:0; font-size:12px; color:#8C7F79;">Nada registrado neste período.</p>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isSemana }}" hint-placeholder-val="{{ false }}">
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-8); align-items:start;">
+    <div style="border-top:1px solid #C4443F; padding-top:var(--space-3);">
+      <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em; font-weight:600; color:#A6332F; margin-bottom:var(--space-3);">Em aberto</div>
+      <sc-for list="{{ abertosSemana }}" as="e" hint-placeholder-count="3">
+        <div onClick="{{ e.abrir }}" style="display:grid; grid-template-columns:74px 1fr; gap:var(--space-3); padding:var(--space-3) 0 var(--space-3) var(--space-3); border-bottom:1px solid #EBE1DA; border-left:3px solid {{ e.cor }}; cursor:pointer;" style-hover="background:#F4EEEA">
+          <div style="font-size:12px; font-weight:600; color:{{ e.corData }};">{{ e.dataFmt }}</div>
+          <div>
+            <div style="font-size:13.5px; font-weight:600; line-height:1.35;">{{ e.acao }}</div>
+            <div style="font-size:11.5px; color:#8C7F79; margin-top:2px;">{{ e.dossie }} · {{ e.responsavel }}</div>
+          </div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ semAbertosSemana }}" hint-placeholder-val="{{ false }}">
+        <p style="margin:0; font-size:12px; color:#8C7F79;">Nenhuma demanda em aberto nesta semana.</p>
+      </sc-if>
+    </div>
+    <div style="border-top:1px solid #C4443F; padding-top:var(--space-3);">
+      <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em; font-weight:600; color:#A6332F; margin-bottom:var(--space-3);">Realizadas</div>
+      <sc-for list="{{ realizadas }}" as="e" hint-placeholder-count="3">
+        <div onClick="{{ e.abrir }}" style="display:grid; grid-template-columns:74px 1fr; gap:var(--space-3); padding:var(--space-3) 0 var(--space-3) var(--space-3); border-bottom:1px solid #EBE1DA; border-left:3px solid {{ e.cor }}; cursor:pointer;" style-hover="background:#F4EEEA">
+          <div style="font-size:12px; font-weight:600; color:#8C7F79;">{{ e.dataFmt }}</div>
+          <div>
+            <div style="font-size:13.5px; font-weight:600; line-height:1.35;">{{ e.acao }}</div>
+            <div style="font-size:11.5px; color:#8C7F79; margin-top:2px;">{{ e.dossie }} · {{ e.resultado }}</div>
+          </div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ semRealizadas }}" hint-placeholder-val="{{ false }}">
+        <p style="margin:0; font-size:12px; color:#8C7F79;">Nada registrado nesta semana.</p>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isDossie }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Dossiê" style="max-width:1100px; margin:0 auto; padding:var(--space-8);">
+  <button type="button" onClick="{{ irLista }}" style="font-family:inherit; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; white-space:nowrap; padding:0; border:0; background:transparent; color:#A6332F; cursor:pointer; margin-bottom:var(--space-4);">← Todos os dossiês</button>
+
+  <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-6); flex-wrap:wrap;">
+    <div style="width:62%;">
+      <h1 style="font-family:var(--font-heading); font-weight:300; font-size:23px; line-height:1.25; letter-spacing:0.03em; margin:0; text-align:left; text-wrap:balance;">{{ tituloCaso }}</h1>
+      <div style="font-family:var(--font-heading); font-weight:400; font-size:15px; letter-spacing:0.1em; color:#A6332F; margin-top:var(--space-2);">{{ tituloProc }}</div>
+    </div>
+    <div style="display:flex; gap:var(--space-2);">
+      <button type="button" onClick="{{ imprimir }}" style="font-family:inherit; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-4); border:1px solid #C4443F; background:#C4443F; color:#fff; cursor:pointer;" style-hover="background:#A6332F; border-color:#A6332F">Imprimir</button>
+    </div>
+  </div>
+
+  <div style="margin-top:var(--space-6); border-top:1px solid #C4443F; border-bottom:1px solid #C4443F; padding:var(--space-3) 0;">
+    <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em; font-weight:600; color:#A6332F; margin-bottom:var(--space-2);">Resumo executivo</div>
+    <sc-if value="{{ edit0 }}" hint-placeholder-val="{{ false }}">
+      <textarea value="{{ d.resumo }}" onChange="{{ setResumo }}" rows="5" style="width:100%; box-sizing:border-box; font-size:14px; line-height:1.5; padding:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3; color:#3E332D;"></textarea>
+    </sc-if>
+    <sc-if value="{{ ler0 }}" hint-placeholder-val="{{ true }}">
+      <p style="margin:0; font-size:14.5px; line-height:1.5; max-width:82ch;">{{ d.resumo }}</p>
+    </sc-if>
+  </div>
+
+  <div style="display:flex; gap:0; margin-top:var(--space-6); border-bottom:1px solid #C4443F;">
+    <sc-for list="{{ abas }}" as="a" hint-placeholder-count="3">
+      <button type="button" onClick="{{ a.set }}" style="font-family:var(--font-heading); font-size:12.5px; font-weight:400; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-3) var(--space-4); border:0; border-bottom:4px solid {{ a.rule }}; background:transparent; color:{{ a.cor }}; cursor:pointer; margin-bottom:-2px;">{{ a.rotulo }}</button>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ aba0 }}" hint-placeholder-val="{{ true }}">
+  <div style="padding-top:var(--space-6);">
+    <sc-if value="{{ temFaltantes }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-bottom:var(--space-4); padding:var(--space-3) var(--space-4); background:#FBF0EE; border-left:3px solid #C4443F; font-size:12.5px; line-height:1.45; color:#8F3226;">{{ faltantesTexto }}</div>
+    </sc-if>
+    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-4); margin:0 0 var(--space-4);">
+      <h2 style="font-family:var(--font-heading); font-weight:400; font-size:15px; text-transform:uppercase; letter-spacing:0.04em; margin:0;">Informações gerais</h2>
+      <button type="button" onClick="{{ toggle0 }}" style="font-family:inherit; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-4); border:1px solid #C4443F; background:{{ bg0 }}; color:{{ fg0 }}; cursor:pointer;">{{ rot0 }}</button>
+    </div>
+    <sc-if value="{{ ler0 }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0; border-top:1px solid #EBE1DA;">
+        <sc-for list="{{ camposGerais }}" as="c" hint-placeholder-count="10">
+          <div style="padding:var(--space-3) var(--space-4) var(--space-3) 0; border-bottom:1px solid #EBE1DA;">
+            <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">{{ c.label }}</div>
+            <div style="font-size:14px; line-height:1.4; margin-top:2px;">{{ c.valor }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ edit0 }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4);">
+        <sc-for list="{{ camposEdit }}" as="c" hint-placeholder-count="10">
+          <div>
+            <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:4px;">{{ c.label }}</div>
+            <input type="text" value="{{ c.valor }}" onChange="{{ c.onChange }}" style="width:100%; box-sizing:border-box; font-size:14px; padding:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3; color:#3E332D;" />
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <h2 style="font-family:var(--font-heading); font-weight:400; font-size:15px; text-transform:uppercase; letter-spacing:0.04em; margin:var(--space-8) 0 var(--space-4);">Linha do tempo</h2>
+    <sc-if value="{{ ler0 }}" hint-placeholder-val="{{ true }}">
+    <div style="border-left:1px solid #C4443F; padding-left:var(--space-4);">
+      <sc-for list="{{ d.timeline }}" as="t" hint-placeholder-count="5">
+        <div style="display:grid; grid-template-columns:96px 1fr; gap:var(--space-3); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+          <div style="font-size:12px; font-weight:600; color:#8C7F79;">{{ t.data }}</div>
+          <div style="font-size:13.5px; line-height:1.4;">{{ t.ato }}</div>
+        </div>
+      </sc-for>
+    </div>
+    </sc-if>
+    <sc-if value="{{ edit0 }}" hint-placeholder-val="{{ false }}">
+    <div style="border-left:1px solid #C4443F; padding-left:var(--space-4);">
+      <sc-for list="{{ timelineEdit }}" as="t" hint-placeholder-count="5">
+        <div style="display:grid; grid-template-columns:150px 1fr auto; gap:var(--space-3); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA; align-items:center;">
+          <input type="text" value="{{ t.data }}" onChange="{{ t.onData }}" placeholder="dd/mm/aaaa" style="width:100%; box-sizing:border-box; font-size:13px; padding:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3;" />
+          <input type="text" value="{{ t.ato }}" onChange="{{ t.onAto }}" placeholder="movimentação" style="width:100%; box-sizing:border-box; font-size:13px; padding:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3;" />
+          <button type="button" onClick="{{ t.remover }}" style="font-family:inherit; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-3); border:1px solid #3E332D; background:transparent; cursor:pointer;" style-hover="background:#E3D9D3">Excluir</button>
+        </div>
+      </sc-for>
+      <button type="button" onClick="{{ addTimeline }}" style="font-family:inherit; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; margin-top:var(--space-3); padding:var(--space-2) var(--space-3); border:1px solid #C4443F; background:transparent; color:#A6332F; cursor:pointer;" style-hover="background:#FBF0EE">+ Nova movimentação</button>
+    </div>
+    </sc-if>
+
+    <h2 style="font-family:var(--font-heading); font-weight:400; font-size:15px; text-transform:uppercase; letter-spacing:0.04em; margin:var(--space-8) 0 var(--space-4);">Relatório FIRAC</h2>
+    <sc-if value="{{ ler0 }}" hint-placeholder-val="{{ true }}">
+    <sc-for list="{{ firac }}" as="b" hint-placeholder-count="5">
+      <div style="display:flex; gap:var(--space-4); padding:var(--space-4) 0; border-bottom:1px solid #EBE1DA;">
+        <div style="flex:0 0 32px; height:32px; background:#C4443F; color:#fff; font-family:var(--font-heading); font-weight:400; font-size:17px; line-height:32px; text-align:center;">{{ b.letra }}</div>
+        <div>
+          <h3 style="font-family:var(--font-heading); font-weight:400; font-size:13px; text-transform:uppercase; letter-spacing:0.04em; margin:0 0 var(--space-2);">{{ b.titulo }}</h3>
+          <sc-for list="{{ b.paras }}" as="p" hint-placeholder-count="2">
+            <p style="margin:0 0 var(--space-2); font-size:14px; line-height:1.55; max-width:82ch;">{{ p.t }}</p>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+    </sc-if>
+    <sc-if value="{{ edit0 }}" hint-placeholder-val="{{ false }}">
+    <sc-for list="{{ firacEdit }}" as="b" hint-placeholder-count="5">
+      <div style="display:flex; gap:var(--space-4); padding:var(--space-4) 0; border-bottom:1px solid #EBE1DA;">
+        <div style="flex:0 0 32px; height:32px; background:#C4443F; color:#fff; font-family:var(--font-heading); font-weight:400; font-size:17px; line-height:32px; text-align:center;">{{ b.letra }}</div>
+        <div style="flex:1;">
+          <h3 style="font-family:var(--font-heading); font-weight:400; font-size:13px; text-transform:uppercase; letter-spacing:0.04em; margin:0 0 var(--space-2);">{{ b.titulo }}</h3>
+          <sc-for list="{{ b.campos }}" as="c" hint-placeholder-count="2">
+            <textarea value="{{ c.valor }}" onChange="{{ c.onChange }}" rows="4" style="width:100%; box-sizing:border-box; font-size:13.5px; line-height:1.5; padding:var(--space-2); margin-bottom:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3; color:#3E332D;"></textarea>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ aba1 }}" hint-placeholder-val="{{ false }}">
+  <div style="padding-top:var(--space-6);">
+    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-4); margin:0 0 var(--space-4);">
+      <h2 style="font-family:var(--font-heading); font-weight:400; font-size:15px; text-transform:uppercase; letter-spacing:0.04em; margin:0;">Estratégia</h2>
+      <div style="display:flex; gap:var(--space-2);">
+        <button type="button" onClick="{{ sugerirEstrategia }}" style="font-family:inherit; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-4); border:1px solid #C4443F; background:transparent; color:#A6332F; cursor:pointer;" style-hover="background:#FBF0EE">Sugestões da IA</button>
+        <button type="button" onClick="{{ toggle1 }}" style="font-family:inherit; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-4); border:1px solid #C4443F; background:{{ bg1 }}; color:{{ fg1 }}; cursor:pointer;">{{ rot1 }}</button>
+      </div>
+    </div>
+
+    <sc-if value="{{ sug1Carregando }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-bottom:var(--space-4); padding:var(--space-3) var(--space-4); background:#FAF6F3; border-left:3px solid #D4882F; font-size:12.5px; color:#8C7F79;">Lendo o dossiê e redigindo sugestões…</div>
+    </sc-if>
+    <sc-if value="{{ sugErroAberto }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-bottom:var(--space-4); padding:var(--space-3) var(--space-4); background:#FBF0EE; border-left:3px solid #C4443F; font-size:12.5px; color:#8F3226;">{{ sugErro }}</div>
+    </sc-if>
+    <sc-if value="{{ sug1Pronto }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-bottom:var(--space-6); padding:var(--space-4); background:#FAF6F3; border-left:3px solid #D4882F;">
+        <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em; font-weight:600; color:#A6332F; margin-bottom:var(--space-3);">Sugestões da IA — revise antes de aplicar</div>
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-4); padding-bottom:var(--space-3); border-bottom:1px solid #EBE1DA;">
+          <div>
+            <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Objetivo</div>
+            <div style="font-size:13.5px; line-height:1.45; margin-top:2px;">{{ sug1Objetivo }}</div>
+          </div>
+          <button type="button" onClick="{{ aplicarObjetivo }}" style="font-family:inherit; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-3); border:1px solid #C4443F; background:transparent; color:#A6332F; cursor:pointer;" style-hover="background:#FBF0EE">Substituir objetivo</button>
+        </div>
+        <sc-for list="{{ sug1Passos }}" as="p" hint-placeholder-count="3">
+          <div style="display:grid; grid-template-columns:1fr 150px auto; gap:var(--space-3); align-items:center; padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+            <div style="font-size:13px; line-height:1.4;">{{ p.acao }}</div>
+            <div style="font-size:11.5px; color:#8C7F79;">{{ p.responsavel }} · {{ p.dataFmt }}</div>
+            <button type="button" onClick="{{ p.aplicar }}" style="font-family:inherit; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-3); border:1px solid #C4443F; background:transparent; color:#A6332F; cursor:pointer;" style-hover="background:#FBF0EE">+ Adicionar</button>
+          </div>
+        </sc-for>
+        <sc-for list="{{ sug1Riscos }}" as="r" hint-placeholder-count="2">
+          <div style="font-size:12.5px; line-height:1.45; color:#5C514C; padding-top:var(--space-2);">Risco: {{ r.texto }}</div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ ler1 }}" hint-placeholder-val="{{ true }}">
+    <div style="padding:var(--space-6); background:#C4443F; color:#fff;">
+      <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em; font-weight:600; margin-bottom:var(--space-2);">Objetivo</div>
+      <p style="margin:0; font-family:var(--font-heading); font-weight:600; font-size:20px; line-height:1.3; max-width:48ch;">{{ d.objetivo }}</p>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:var(--space-4); border-top:1px solid #EBE1DA; border-bottom:1px solid #EBE1DA;">
+      <div style="padding:var(--space-3) var(--space-4) var(--space-3) 0;">
+        <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:2px;">Objetivo secundário</div>
+        <div style="font-size:13.5px; line-height:1.45;">{{ d.objetivoSec }}</div>
+      </div>
+      <div style="padding:var(--space-3) 0 var(--space-3) var(--space-4); border-left:1px solid #EBE1DA;">
+        <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:2px;">Linha vermelha</div>
+        <div style="font-size:13.5px; line-height:1.45;">{{ d.linhaVermelha }}</div>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-4); margin:var(--space-8) 0 var(--space-3);">
+      <h2 style="font-family:var(--font-heading); font-weight:400; font-size:15px; text-transform:uppercase; letter-spacing:0.04em; margin:0;">Próximos passos</h2>
+      <button type="button" onClick="{{ abrirDemanda }}" style="font-family:inherit; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-3); border:1px solid #C4443F; background:transparent; cursor:pointer;" style-hover="background:#F4EEEA">+ Nova demanda</button>
+    </div>
+
+    <sc-if value="{{ demandaOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid; grid-template-columns:1fr 200px 140px auto; gap:var(--space-3); align-items:end; padding:var(--space-4); margin-bottom:var(--space-4); background:#F4EEEA; border-left:1px solid #C4443F;">
+        <div>
+          <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:4px;">Ação</div>
+          <input type="text" value="{{ novaAcao }}" onChange="{{ setNovaAcao }}" placeholder="ex.: nova tentativa de acordo extrajudicial" style="width:100%; box-sizing:border-box; font-size:13.5px; padding:var(--space-2); border:1px solid #DCD0C7; background:#fff;" />
+        </div>
+        <div>
+          <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:4px;">Responsável</div>
+          <input type="text" value="{{ novaResp }}" onChange="{{ setNovaResp }}" style="width:100%; box-sizing:border-box; font-size:13.5px; padding:var(--space-2); border:1px solid #DCD0C7; background:#fff;" />
+        </div>
+        <div>
+          <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:4px;">Data</div>
+          <input type="date" value="{{ novaData }}" onChange="{{ setNovaData }}" style="width:100%; box-sizing:border-box; font-size:13.5px; padding:var(--space-2); border:1px solid #DCD0C7; background:#fff;" />
+        </div>
+        <button type="button" onClick="{{ salvarDemanda }}" style="font-family:inherit; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; padding:var(--space-2) var(--space-4); border:1px solid #C4443F; background:#C4443F; color:#fff; cursor:pointer; height:36px;">Adicionar</button>
+      </div>
+    </sc-if>
+
+    <div style="border-top:1px solid #C4443F;">
+      <sc-for list="{{ passos }}" as="p" hint-placeholder-count="4">
+        <div style="display:grid; grid-template-columns:1fr 300px 150px; gap:var(--space-4); padding:var(--space-4) 0; border-bottom:1px solid #EBE1DA; background:{{ p.bg }};">
+          <div>
+            <div style="font-size:14px; font-weight:600; line-height:1.4; text-decoration:{{ p.risco }};">{{ p.acao }}</div>
+            <div style="font-size:11.5px; color:#8C7F79; margin-top:var(--space-1); display:flex; align-items:center; gap:var(--space-2);"><span style="width:8px; height:8px; background:{{ p.cor }};"></span>{{ p.responsavel }} · {{ p.statusRotulo }}</div>
+            <div style="display:flex; gap:var(--space-2); margin-top:var(--space-2);">
+              <button type="button" onClick="{{ p.concluir }}" style="font-family:inherit; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:4px var(--space-2); border:1px solid #DCD0C7; background:transparent; cursor:pointer;" style-hover="background:#E3D9D3">{{ p.rotuloConcluir }}</button>
+              <button type="button" onClick="{{ p.registrar }}" style="font-family:inherit; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:4px var(--space-2); border:1px solid #C4443F; background:transparent; color:#A6332F; cursor:pointer;" style-hover="background:#FBF0EE">+ Tentativa</button>
+            </div>
+            <sc-if value="{{ p.formAberto }}" hint-placeholder-val="{{ false }}">
+              <div style="display:grid; grid-template-columns:140px 1fr auto; gap:var(--space-2); align-items:end; margin-top:var(--space-3); padding:var(--space-3); background:#F4EEEA; border-left:1px solid #C4443F;">
+                <input type="date" value="{{ tentData }}" onChange="{{ setTentData }}" style="box-sizing:border-box; font-size:13px; padding:var(--space-1) var(--space-2); border:1px solid #DCD0C7; background:#fff;" />
+                <input type="text" value="{{ tentResultado }}" onChange="{{ setTentResultado }}" placeholder="resultado da tentativa" style="box-sizing:border-box; font-size:13px; padding:var(--space-1) var(--space-2); border:1px solid #DCD0C7; background:#fff;" />
+                <button type="button" onClick="{{ salvarTentativa }}" style="font-family:inherit; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; padding:var(--space-2) var(--space-3); border:1px solid #C4443F; background:#C4443F; color:#fff; cursor:pointer;">Registrar</button>
+              </div>
+            </sc-if>
+          </div>
+          <div>
+            <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:var(--space-1);">Tentativas</div>
+            <sc-for list="{{ p.tentativas }}" as="t" hint-placeholder-count="2">
+              <div style="font-size:12.5px; line-height:1.4; padding:2px 0;"><span style="font-weight:600;">{{ t.data }}</span> — {{ t.resultado }}</div>
+            </sc-for>
+            <sc-if value="{{ p.semTentativas }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:12.5px; color:#9C8F89;">Nenhuma ainda</div>
+            </sc-if>
+          </div>
+          <div>
+            <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:var(--space-1);">Próxima data</div>
+            <div style="font-size:13.5px; font-weight:600; color:{{ p.corData }};">{{ p.proximaDataFmt }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <h2 style="font-family:var(--font-heading); font-weight:400; font-size:15px; text-transform:uppercase; letter-spacing:0.04em; margin:var(--space-8) 0 var(--space-3);">Prazos em aberto</h2>
+    <div style="border-top:1px solid #C4443F;">
+      <sc-for list="{{ prazosLista }}" as="z" hint-placeholder-count="3">
+        <div style="padding:var(--space-3) 0; border-bottom:1px solid #EBE1DA;">
+          <div style="display:grid; grid-template-columns:1fr 160px 120px; gap:var(--space-4);">
+            <div style="font-size:13.5px; line-height:1.4;">{{ z.ato }}</div>
+            <div style="font-size:12px; color:#8C7F79;">{{ z.contagem }}</div>
+            <div style="font-size:13.5px; font-weight:600;">{{ z.data }}</div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:var(--space-4); margin-top:var(--space-3);">
+            <div style="padding-left:var(--space-3); border-left:2px solid {{ z.corRedacao }};">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:var(--space-2);">
+                <span style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">1 · Redação</span>
+                <button type="button" onClick="{{ z.toggleRedacao }}" style="font-family:inherit; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:3px var(--space-2); border:1px solid #C4443F; background:{{ z.bgRedacao }}; color:{{ z.fgRedacao }}; cursor:pointer;">{{ z.rotuloRedacao }}</button>
+              </div>
+              <input type="text" value="{{ z.redacaoLink }}" onChange="{{ z.setRedacaoLink }}" placeholder="colar link do Word" style="width:100%; box-sizing:border-box; font-size:11.5px; padding:4px var(--space-2); margin-top:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3;" />
+              <sc-if value="{{ z.temLink }}" hint-placeholder-val="{{ false }}">
+                <a href="{{ z.redacaoLink }}" target="_blank" rel="noopener" style="display:inline-block; font-size:11.5px; margin-top:4px;">Abrir minuta</a>
+              </sc-if>
+            </div>
+            <div style="padding-left:var(--space-3); border-left:2px solid {{ z.corCorrecao }};">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:var(--space-2);">
+                <span style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">2 · Correção</span>
+                <button type="button" onClick="{{ z.toggleCorrecao }}" style="font-family:inherit; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:3px var(--space-2); border:1px solid #C4443F; background:{{ z.bgCorrecao }}; color:{{ z.fgCorrecao }}; cursor:pointer;">{{ z.rotuloCorrecao }}</button>
+              </div>
+              <select value="{{ z.correcaoPor }}" onChange="{{ z.setCorrecaoPor }}" style="width:100%; box-sizing:border-box; font-size:11.5px; padding:4px var(--space-2); margin-top:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3; color:#3E332D;">
+                <option value="">quem corrigiu</option>
+                <option value="Millena Frias">Millena Frias</option>
+                <option value="Gabriel Silveira">Gabriel Silveira</option>
+                <option value="Amanda Lopes">Amanda Lopes</option>
+                <option value="Hermelinda Rabelo">Hermelinda Rabelo</option>
+                <option value="Geovanna Rabelo">Geovanna Rabelo</option>
+                <option value="Ítalo Nascimento">Ítalo Nascimento</option>
+              </select>
+            </div>
+            <div style="padding-left:var(--space-3); border-left:2px solid {{ z.corProtocolo }};">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:var(--space-2);">
+                <span style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">3 · Protocolo</span>
+                <button type="button" onClick="{{ z.toggleProtocolo }}" style="font-family:inherit; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:3px var(--space-2); border:1px solid #C4443F; background:{{ z.bgProtocolo }}; color:{{ z.fgProtocolo }}; cursor:pointer;">{{ z.rotuloProtocolo }}</button>
+              </div>
+              <input type="date" value="{{ z.protocoloData }}" onChange="{{ z.setProtocoloData }}" style="width:100%; box-sizing:border-box; font-size:11.5px; padding:4px var(--space-2); margin-top:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3;" />
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ edit1 }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid; gap:var(--space-4);">
+        <sc-for list="{{ estrategiaEdit }}" as="c" hint-placeholder-count="3">
+          <div>
+            <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:4px;">{{ c.label }}</div>
+            <textarea value="{{ c.valor }}" onChange="{{ c.onChange }}" rows="{{ c.rows }}" style="width:100%; box-sizing:border-box; font-size:13.5px; line-height:1.5; padding:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3; color:#3E332D;"></textarea>
+          </div>
+        </sc-for>
+      </div>
+
+      <h3 style="font-family:var(--font-heading); font-weight:400; font-size:13px; text-transform:uppercase; letter-spacing:0.06em; margin:var(--space-8) 0 var(--space-3);">Próximos passos</h3>
+      <div style="border-top:1px solid #C4443F;">
+        <sc-for list="{{ passosEdit }}" as="p" hint-placeholder-count="4">
+          <div style="display:grid; grid-template-columns:1fr 180px 150px auto; gap:var(--space-3); padding:var(--space-3) 0; border-bottom:1px solid #EBE1DA; align-items:center;">
+            <input type="text" value="{{ p.acao }}" onChange="{{ p.onAcao }}" style="width:100%; box-sizing:border-box; font-size:13.5px; padding:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3;" />
+            <input type="text" value="{{ p.responsavel }}" onChange="{{ p.onResp }}" style="width:100%; box-sizing:border-box; font-size:13.5px; padding:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3;" />
+            <input type="date" value="{{ p.proximaData }}" onChange="{{ p.onData }}" style="width:100%; box-sizing:border-box; font-size:13.5px; padding:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3;" />
+            <button type="button" onClick="{{ p.remover }}" style="font-family:inherit; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-3); border:1px solid #DCD0C7; background:transparent; cursor:pointer;" style-hover="background:#E3D9D3">Excluir</button>
+          </div>
+        </sc-for>
+      </div>
+
+      <h3 style="font-family:var(--font-heading); font-weight:400; font-size:13px; text-transform:uppercase; letter-spacing:0.06em; margin:var(--space-8) 0 var(--space-3);">Prazos em aberto</h3>
+      <div style="border-top:1px solid #C4443F;">
+        <sc-for list="{{ prazosEdit }}" as="z" hint-placeholder-count="3">
+          <div style="display:grid; grid-template-columns:1fr 180px 180px auto; gap:var(--space-3); padding:var(--space-3) 0; border-bottom:1px solid #EBE1DA; align-items:center;">
+            <input type="text" value="{{ z.ato }}" onChange="{{ z.onAto }}" style="width:100%; box-sizing:border-box; font-size:13.5px; padding:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3;" />
+            <input type="text" value="{{ z.contagem }}" onChange="{{ z.onContagem }}" style="width:100%; box-sizing:border-box; font-size:13.5px; padding:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3;" />
+            <input type="text" value="{{ z.data }}" onChange="{{ z.onData }}" style="width:100%; box-sizing:border-box; font-size:13.5px; padding:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3;" />
+            <button type="button" onClick="{{ z.remover }}" style="font-family:inherit; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-3); border:1px solid #3E332D; background:transparent; cursor:pointer;" style-hover="background:#E3D9D3">Excluir</button>
+          </div>
+        </sc-for>
+      </div>
+      <button type="button" onClick="{{ addPrazo }}" style="font-family:inherit; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; margin-top:var(--space-3); padding:var(--space-2) var(--space-3); border:1px solid #C4443F; background:transparent; color:#A6332F; cursor:pointer;" style-hover="background:#FBF0EE">+ Novo prazo</button>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ aba2 }}" hint-placeholder-val="{{ false }}">
+  <div style="padding-top:var(--space-6);">
+    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-4);">
+      <h2 style="font-family:var(--font-heading); font-weight:400; font-size:15px; text-transform:uppercase; letter-spacing:0.04em; margin:0 0 var(--space-2);">Argumentos e embasamento</h2>
+      <div style="display:flex; gap:var(--space-2);">
+        <button type="button" onClick="{{ sugerirArgumentos }}" style="font-family:inherit; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-4); border:1px solid #C4443F; background:transparent; color:#A6332F; cursor:pointer;" style-hover="background:#FBF0EE">Sugestões da IA</button>
+        <button type="button" onClick="{{ toggle2 }}" style="font-family:inherit; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-4); border:1px solid #C4443F; background:{{ bg2 }}; color:{{ fg2 }}; cursor:pointer;">{{ rot2 }}</button>
+      </div>
+    </div>
+    <sc-if value="{{ sug2Carregando }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-bottom:var(--space-4); padding:var(--space-3) var(--space-4); background:#FAF6F3; border-left:3px solid #D4882F; font-size:12.5px; color:#8C7F79;">Redigindo sugestões de argumentos…</div>
+    </sc-if>
+    <sc-if value="{{ sug2Pronto }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-bottom:var(--space-6); padding:var(--space-4); background:#FAF6F3; border-left:3px solid #D4882F;">
+        <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em; font-weight:600; color:#A6332F; margin-bottom:var(--space-3);">Sugestões da IA — jurisprudência e doutrina precisam ser conferidas</div>
+        <sc-for list="{{ sug2Lista }}" as="g" hint-placeholder-count="3">
+          <div style="padding:var(--space-3) 0; border-bottom:1px solid #EBE1DA;">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-4);">
+              <div style="font-size:13.5px; font-weight:600; line-height:1.4;">{{ g.titulo }}</div>
+              <button type="button" onClick="{{ g.aplicar }}" style="font-family:inherit; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-3); border:1px solid #C4443F; background:transparent; color:#A6332F; cursor:pointer;" style-hover="background:#FBF0EE">+ Adicionar</button>
+            </div>
+            <div style="font-size:12.5px; line-height:1.45; margin-top:4px;">{{ g.fato }}</div>
+            <div style="font-size:12px; line-height:1.45; margin-top:4px; color:#5C514C;">Legal: {{ g.legal }}</div>
+            <div style="font-size:12px; line-height:1.45; color:#5C514C;">Jurisprudência: {{ g.juris }}</div>
+            <div style="font-size:12px; line-height:1.45; color:#5C514C;">Doutrina: {{ g.doutrina }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <p style="margin:0 0 var(--space-6); font-size:13px; color:#5C514C; max-width:80ch;">Cada argumento de fato vem acompanhado do que o sustenta em direito. As referências devem ser reconferidas na atualização de cada marco.</p>
+    <sc-if value="{{ ler2 }}" hint-placeholder-val="{{ true }}">
+    <sc-for list="{{ d.argumentos }}" as="g" hint-placeholder-count="3">
+      <div style="border-top:1px solid #C4443F; padding:var(--space-4) 0 var(--space-6);">
+        <div style="display:flex; gap:var(--space-3); align-items:baseline; margin-bottom:var(--space-2);">
+          <span style="font-family:var(--font-heading); font-weight:400; font-size:13px; color:#C4443F;">{{ g.tag }}</span>
+          <h3 style="font-family:var(--font-heading); font-weight:400; font-size:16px; margin:0; line-height:1.3;">{{ g.titulo }}</h3>
+        </div>
+        <p style="margin:0 0 var(--space-4); font-size:14px; line-height:1.55; max-width:82ch;">{{ g.fato }}</p>
+        <div style="border-top:1px solid #EBE1DA;">
+          <div style="display:grid; grid-template-columns:150px 1fr; gap:var(--space-4); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+            <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Previsão legal</div>
+            <div style="font-size:13.5px; line-height:1.45;">{{ g.legal }}</div>
+          </div>
+          <div style="display:grid; grid-template-columns:150px 1fr; gap:var(--space-4); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+            <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Jurisprudência</div>
+            <div style="font-size:13.5px; line-height:1.45;">{{ g.juris }}</div>
+          </div>
+          <div style="display:grid; grid-template-columns:150px 1fr; gap:var(--space-4); padding:var(--space-2) 0;">
+            <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Doutrina</div>
+            <div style="font-size:13.5px; line-height:1.45;">{{ g.doutrina }}</div>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+    </sc-if>
+    <sc-if value="{{ edit2 }}" hint-placeholder-val="{{ false }}">
+    <sc-for list="{{ argsEdit }}" as="g" hint-placeholder-count="3">
+      <div style="border-top:1px solid #C4443F; padding:var(--space-4) 0 var(--space-6);">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-4); margin-bottom:var(--space-3);">
+          <div style="font-family:var(--font-heading); font-weight:400; font-size:13px; color:#C4443F;">{{ g.tag }}</div>
+          <button type="button" onClick="{{ g.remover }}" style="font-family:inherit; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-3); border:1px solid #3E332D; background:transparent; cursor:pointer;" style-hover="background:#E3D9D3">Excluir argumento</button>
+        </div>
+        <sc-for list="{{ g.campos }}" as="c" hint-placeholder-count="5">
+          <div style="margin-bottom:var(--space-3);">
+            <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:4px;">{{ c.label }}</div>
+            <textarea value="{{ c.valor }}" onChange="{{ c.onChange }}" rows="{{ c.rows }}" style="width:100%; box-sizing:border-box; font-size:13.5px; line-height:1.5; padding:var(--space-2); border:1px solid #DCD0C7; background:#FAF6F3; color:#3E332D;"></textarea>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+    <button type="button" onClick="{{ addArgumento }}" style="font-family:inherit; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-3); border:1px solid #C4443F; background:transparent; color:#A6332F; cursor:pointer;" style-hover="background:#FBF0EE">+ Novo argumento</button>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <div onClick="{{ toggleHistorico }}" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:var(--space-4); margin-top:var(--space-8); padding:var(--space-3) var(--space-3) var(--space-3) 0; border-top:1px solid #C4443F; cursor:pointer;" style-hover="background:#FBF0EE">
+    <div>
+      <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Atualizado em</div>
+      <div style="font-size:13px; font-weight:600;">{{ d.atualizacao }}</div>
+    </div>
+    <div>
+      <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Versão</div>
+      <div style="font-size:13px; font-weight:600;">{{ d.versao }}</div>
+    </div>
+    <div>
+      <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Marco da atualização</div>
+      <div style="font-size:13px; font-weight:600;">{{ d.marco }}</div>
+    </div>
+    <div>
+      <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79;">Responsável pela revisão</div>
+      <div style="font-size:13px; font-weight:600;">{{ d.revisor }}</div>
+    </div>
+    <div style="grid-column:1 / -1; font-size:10.5px; color:#A6332F; letter-spacing:0.06em; text-transform:uppercase;">{{ dicaHistorico }}</div>
+  </div>
+
+  <sc-if value="{{ historicoOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="margin-top:var(--space-4);">
+    <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em; font-weight:600; color:#8C7F79; margin-bottom:var(--space-3);">Histórico de atualizações</div>
+    <div style="border-top:1px solid #C4443F;">
+      <sc-for list="{{ historico }}" as="h" hint-placeholder-count="3">
+        <div style="display:grid; grid-template-columns:70px 110px 1fr 180px; gap:var(--space-4); padding:var(--space-2) 0; border-bottom:1px solid #EBE1DA;">
+          <div style="font-size:12.5px; font-weight:600;">{{ h.versao }}</div>
+          <div style="font-size:12.5px; color:#8C7F79;">{{ h.data }}</div>
+          <div style="font-size:12.5px; line-height:1.4;">{{ h.marco }}</div>
+          <div style="font-size:12.5px; color:#5C514C;">{{ h.revisor }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ importOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed; inset:0; background:rgba(32,30,29,0.6); display:flex; align-items:flex-start; justify-content:center; padding:var(--space-8); z-index:60;">
+  <div style="width:560px; max-width:100%; background:#FFFFFF; border:1px solid #C4443F; padding:var(--space-6);">
+    <h2 style="font-family:var(--font-heading); font-weight:300; font-size:20px; margin:0 0 var(--space-2);">Importar autos</h2>
+    <p style="margin:0 0 var(--space-6); font-size:13px; line-height:1.5; color:#8C7F79;">Envie o PDF das peças principais (inicial, contestação, decisões) ou um .txt. A IA extrai os campos gerais e um rascunho de FIRAC; tudo entra em modo de edição para sua conferência. Não invente confiança: números, datas e valores devem ser checados nos autos.</p>
+    <sc-if value="{{ importEspera }}" hint-placeholder-val="{{ true }}">
+      <input type="file" accept=".pdf,.txt" onChange="{{ onArquivo }}" style="width:100%; box-sizing:border-box; font-size:13px; padding:var(--space-3); border:1px solid #DCD0C7; background:#FAF6F3;" />
+    </sc-if>
+    <sc-if value="{{ importLendo }}" hint-placeholder-val="{{ false }}">
+      <div style="font-size:13px; color:#A6332F;">Lendo {{ importNome }}…</div>
+    </sc-if>
+    <sc-if value="{{ importProcessando }}" hint-placeholder-val="{{ false }}">
+      <div style="font-size:13px; color:#A6332F;">Extraindo as informações dos autos…</div>
+    </sc-if>
+    <sc-if value="{{ importErroAberto }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:var(--space-3) var(--space-4); background:#FBF0EE; border-left:3px solid #C4443F; font-size:12.5px; line-height:1.45; color:#8F3226;">{{ importErro }}</div>
+    </sc-if>
+    <div style="display:flex; gap:var(--space-2); margin-top:var(--space-6);">
+      <button type="button" onClick="{{ fecharImport }}" style="font-family:inherit; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap; padding:var(--space-2) var(--space-4); border:1px solid #C4443F; background:transparent; cursor:pointer;" style-hover="background:#FBF0EE">Fechar</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ novoOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed; inset:0; background:rgba(32,30,29,0.6); display:flex; align-items:flex-start; justify-content:center; padding:var(--space-8); z-index:50;">
+  <div style="width:560px; max-width:100%; background:#FFFFFF; border:1px solid #C4443F; padding:var(--space-6);">
+    <h2 style="font-family:var(--font-heading); font-weight:300; font-size:20px; margin:0 0 var(--space-2);">Novo dossiê</h2>
+    <p style="margin:0 0 var(--space-6); font-size:13px; color:#8C7F79;">Escolha a matéria: os campos específicos e o FIRAC entram vazios, prontos para preencher.</p>
+    <div style="display:grid; gap:var(--space-4);">
+      <div>
+        <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:4px;">Matéria</div>
+        <select value="{{ novoMateria }}" onChange="{{ setNovoMateria }}" style="width:100%; box-sizing:border-box; font-size:14px; padding:var(--space-2); border:1px solid #DCD0C7; background:#fff; color:#3E332D;">
+          <option value="Cível">Cível</option>
+          <option value="Trabalhista">Trabalhista</option>
+          <option value="Tributário">Tributário</option>
+          <option value="Empresarial">Empresarial</option>
+          <option value="Família e sucessões">Família e sucessões</option>
+          <option value="Consumidor">Consumidor</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:4px;">Cliente</div>
+        <input type="text" value="{{ novoCliente }}" onChange="{{ setNovoCliente }}" placeholder="ex.: Metalúrgica Aurora Ltda." style="width:100%; box-sizing:border-box; font-size:14px; padding:var(--space-2); border:1px solid #DCD0C7; background:#fff;" />
+      </div>
+      <div>
+        <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:4px;">Caso</div>
+        <input type="text" value="{{ novoCaso }}" onChange="{{ setNovoCaso }}" placeholder="ex.: Cobrança Belveder" style="width:100%; box-sizing:border-box; font-size:14px; padding:var(--space-2); border:1px solid #DCD0C7; background:#fff;" />
+      </div>
+      <div>
+        <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:4px;">Nº do processo</div>
+        <input type="text" value="{{ novoProc }}" onChange="{{ setNovoProc }}" placeholder="0000000-00.0000.0.00.0000" style="width:100%; box-sizing:border-box; font-size:14px; padding:var(--space-2); border:1px solid #DCD0C7; background:#fff;" />
+      </div>
+      <div>
+        <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:#8C7F79; margin-bottom:4px;">Profissional responsável</div>
+        <input type="text" value="{{ novoResp }}" onChange="{{ setNovoResp }}" style="width:100%; box-sizing:border-box; font-size:14px; padding:var(--space-2); border:1px solid #DCD0C7; background:#fff;" />
+      </div>
+      <div style="font-size:12px; color:#8C7F79; border-left:1px solid #C4443F; padding-left:var(--space-3);">Nome gerado: <span style="font-weight:600; color:#3E332D;">{{ nomeGerado }}</span></div>
+    </div>
+    <div style="display:flex; gap:var(--space-2); margin-top:var(--space-6);">
+      <button type="button" onClick="{{ salvarNovo }}" style="font-family:inherit; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; padding:var(--space-2) var(--space-4); border:1px solid #C4443F; background:#C4443F; color:#fff; cursor:pointer;">Criar e abrir</button>
+      <button type="button" onClick="{{ fecharNovo }}" style="font-family:inherit; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; padding:var(--space-2) var(--space-4); border:1px solid #C4443F; background:transparent; cursor:pointer;">Cancelar</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900}}">
+const HOJE = "2026-08-07";
+
+const D = [
+  {
+    id: "d1", cliente: "Metalúrgica Aurora", caso: "Cobrança Belveder", proc: "5001234-56.2025.8.24.0023",
+    materia: "Cível", fase: "Sentença publicada — prazo de apelação", responsavel: "Hermelinda Rabelo",
+    risco: "Favorável — êxito provável", valor: "R$ 1.612.400,00 (atualizado 07/2026)",
+    orgao: "3ª Vara Cível da Comarca de Florianópolis/SC — TJSC", juiz: "Dr. Aurélio Sant'Anna Prado",
+    partes: "Metalúrgica Aurora Ltda. (autora) × Construtora Belveder S/A (ré)",
+    contraria: "Dr. Márcio Teixeira Vasques — OAB/SC 41.220",
+    atualizacao: "07/08/2026", versao: "v4", marco: "Sentença de 1º grau", revisor: "Hermelinda Rabelo",
+    resumo: "Cobrança de R$ 1,48 milhão referente a seis parcelas de contrato de fornecimento de estruturas metálicas. As catorze entregas foram recebidas sem ressalva e a perícia afastou atraso e desconformidade. A ré sustenta exceção de contrato não cumprido, sem prova de descumprimento anterior. A sentença acolheu o principal, mas fixou os juros da citação e negou lucros cessantes. Estratégia atual: apelação parcial em dois pontos e acordo com a condenação como alavanca.",
+    especificos: [
+      { label: "Objeto do contrato", valor: "Fornecimento de estruturas metálicas — obra Edifício Belveder Norte" },
+      { label: "Provisão / risco estimado", valor: "Ativo provável de R$ 1,35 mi; risco de insolvência da ré em monitoramento" }
+    ],
+    timeline: [
+      { data: "14/03/2025", ato: "Distribuição da ação de cobrança c/c indenização" },
+      { data: "12/06/2025", ato: "Audiência de conciliação infrutífera" },
+      { data: "18/09/2025", ato: "Contestação: exceção de contrato não cumprido e alegação de desconformidade" },
+      { data: "03/04/2026", ato: "Laudo pericial contábil e documental (ev. 62) favorável à autora" },
+      { data: "22/07/2026", ato: "Sentença de procedência parcial: principal deferido, juros da citação, lucros cessantes negados" }
+    ],
+    firac: {
+      f: ["Em 08/01/2024 as partes celebraram contrato de fornecimento de estruturas metálicas para a obra do Edifício Belveder Norte, com preço global de R$ 2.100.000,00 e pagamento em doze parcelas vinculadas ao cronograma de entregas.",
+          "A autora entregou integralmente os lotes 1 a 14, todos com canhoto assinado por preposto da ré e sem registro de recusa técnica. A ré pagou as seis primeiras parcelas e interrompeu os pagamentos a partir de 10/2024, remanescendo R$ 1.480.000,00 em aberto.",
+          "Em fevereiro de 2025 a ré atribuiu a inadimplência a atrasos de entrega e a divergências de espessura de chapa. A perícia (ev. 62) não confirmou atraso relevante nem desconformidade técnica."],
+      i: ["A ré pode opor exceção de contrato não cumprido para suspender o pagamento das parcelas 7 a 12, alegando atraso e desconformidade das entregas?",
+          "Subsidiariamente: de que marco incidem correção e juros de mora, e há dano indenizável além do valor das parcelas vencidas?"],
+      r: ["Código Civil, art. 476: a exceção de contrato não cumprido só socorre quem já cumpriu a própria obrigação. Art. 389: o inadimplemento sujeita o devedor a perdas e danos, juros, correção e honorários. Art. 397: nas obrigações com termo certo, a mora se constitui pelo simples vencimento.",
+          "CPC, art. 373, II: cabe ao réu provar os fatos impeditivos, modificativos ou extintivos do direito do autor."],
+      a: ["A prova documental demonstra entrega integral e recebimento sem ressalva. Os canhotos assinados esvaziam a alegação de desconformidade, que surgiu quatro meses depois da última entrega e às vésperas do vencimento das parcelas em aberto.",
+          "A perícia apurou atraso médio de 3,2 dias, dentro da tolerância da cláusula 7.2, e espessura de chapa na faixa especificada. Sem descumprimento anterior da autora, falta à ré o pressuposto do art. 476.",
+          "O ônus do fato impeditivo era da ré, que não o desincumbiu. A mora, decorrente do termo contratual, dispensa interpelação e fixa os juros desde cada vencimento."],
+      c: ["A tese da autora é sólida quanto ao principal. A sentença condenou a ré a R$ 1.480.000,00 com correção pelo IPCA e juros de 1% ao mês, mas fixou o termo inicial na citação e rejeitou os lucros cessantes por falta de prova.",
+          "Recomenda-se apelação parcial limitada a dois pontos: termo inicial da mora e lucros cessantes. O núcleo condenatório deve ser preservado e usado como alavanca de acordo."]
+    },
+    objetivo: "Converter a condenação de primeiro grau em recebimento efetivo até dezembro de 2026, preferencialmente por acordo de no mínimo R$ 1,35 milhão à vista ou em até seis parcelas com garantia real.",
+    objetivoSec: "Recuperar o termo inicial dos juros (de 10/2024, não da citação) — diferença estimada de R$ 118 mil.",
+    linhaVermelha: "Não aceitar acordo abaixo de R$ 1,1 milhão nem parcelamento superior a doze meses sem garantia.",
+    passos: [
+      { acao: "Protocolar apelação parcial: termo inicial da mora e lucros cessantes, com preparo recolhido", responsavel: "Gabriel Silveira", proximaData: "2026-08-19", concluido: false, tentativas: [] },
+      { acao: "Diligência na vara para conferir a certidão de intimação e a contagem do prazo recursal", responsavel: "Ítalo Nascimento", proximaData: "2026-08-12", concluido: false, tentativas: [{ data: "2026-07-28", resultado: "Servidor pediu retorno após a juntada da certidão" }] },
+      { acao: "Acordo extrajudicial com a diretoria financeira da ré, com cálculo atualizado da condenação", responsavel: "Hermelinda Rabelo", proximaData: "2026-09-03", concluido: false, tentativas: [{ data: "2025-11-06", resultado: "Proposta de R$ 900 mil em 24 parcelas — recusada" }, { data: "2026-05-14", resultado: "Ré pediu prazo até a sentença" }, { data: "2026-08-04", resultado: "Nova sinalização de interesse após a condenação" }] },
+      { acao: "Despacho com o relator após a distribuição no TJSC, sustentando preferência de julgamento", responsavel: "Hermelinda Rabelo", proximaData: "2026-09-24", concluido: false, tentativas: [] },
+      { acao: "Pesquisa patrimonial da ré (imóveis, veículos e recebíveis de obra) para instruir execução", responsavel: "Ítalo Nascimento", proximaData: "2026-07-30", concluido: true, tentativas: [{ data: "2026-07-30", resultado: "Duas execuções fiscais ativas; um imóvel livre em Palhoça" }] }
+    ],
+    prazos: [
+      { ato: "Apelação da parte da sentença que fixou juros da citação", contagem: "15 dias úteis", data: "19/08/2026" },
+      { ato: "Contrarrazões, se a ré apelar", contagem: "15 dias úteis", data: "a contar da intimação" },
+      { ato: "Atualização do cálculo para fins de acordo", contagem: "interno", data: "31/08/2026" }
+    ],
+    argumentos: [
+      { tag: "A1", titulo: "A autora entregou tudo o que devia, e a ré recebeu sem ressalva", fato: "Catorze lotes entregues, catorze canhotos assinados por preposto da ré, nenhuma recusa técnica à época. A alegação de desconformidade surgiu apenas em fevereiro de 2025, depois de quatro parcelas vencidas.", legal: "CC, arts. 476 e 477; CPC, art. 373, II. Cláusulas 4.1 e 7.2 do contrato.", juris: "Orientação consolidada do STJ de que a exceptio non adimpleti contractus exige descumprimento anterior e proporcional da outra parte. A conferir e citar os precedentes atualizados de STJ e TJSC antes do protocolo.", doutrina: "Orlando Gomes, Contratos, sobre os limites da exceção de contrato não cumprido; Judith Martins-Costa, A boa-fé no direito privado, quanto ao comportamento contraditório da ré." },
+      { tag: "A2", titulo: "A perícia afastou o atraso e a desconformidade técnica", fato: "O laudo do ev. 62 apurou atraso médio de 3,2 dias, dentro da tolerância contratual, e espessura de chapa na faixa especificada. A ré não impugnou o laudo por assistente técnico próprio.", legal: "CPC, arts. 464 a 480 (prova técnica) e art. 371 (persuasão racional).", juris: "Precedentes que exigem elemento concreto para o juiz se afastar da conclusão pericial. A conferir e citar.", doutrina: "Cândido Rangel Dinamarco, Instituições de Direito Processual Civil, sobre valoração da prova técnica." },
+      { tag: "A3", titulo: "A mora é ex re: os juros correm de cada vencimento, não da citação", fato: "As parcelas tinham data certa de vencimento prevista em contrato. A sentença fixou o termo inicial na citação, o que reduz a condenação em cerca de R$ 118 mil. É o principal ponto da apelação.", legal: "CC, arts. 389, 394, 395, 397, caput, e 407.", juris: "Súmula 163 do STF (mora do vencimento na obrigação com termo). Complementar com precedentes atuais do STJ sobre mora ex re em obrigação contratual líquida.", doutrina: "Agostinho Alvim, Da inexecução das obrigações e suas consequências, sobre mora ex re e mora ex persona." },
+      { tag: "A4", titulo: "A interrupção dos pagamentos gerou dano além do valor das parcelas", fato: "A autora recorreu a capital de giro bancário para manter a produção e recusou dois pedidos por falta de caixa. A sentença rejeitou o pedido por insuficiência de prova; a apelação deve reforçar o nexo com os contratos de crédito e a contabilidade juntada.", legal: "CC, arts. 402 e 403 (danos emergentes e lucros cessantes por efeito direto e imediato).", juris: "Entendimento de que lucros cessantes exigem prova de lucro razoavelmente esperado, não de expectativa hipotética. A conferir e citar.", doutrina: "Sergio Cavalieri Filho, Programa de Responsabilidade Civil, sobre a extensão do dano contratual." }
+    ]
+  },
+  {
+    id: "d2", cliente: "Panificadora Trigo Real", caso: "Reclamação J. Moreira", proc: "0010234-77.2025.5.12.0002",
+    materia: "Trabalhista", fase: "Instrução — audiência una designada", responsavel: "Gabriel Silveira",
+    risco: "Incerto — prova oral decisiva", valor: "R$ 214.000,00",
+    orgao: "2ª Vara do Trabalho de Florianópolis/SC — TRT-12", juiz: "Juíza Dra. Renata Bittencourt Lyra",
+    partes: "Jonas Moreira (reclamante) × Panificadora Trigo Real Ltda. (reclamada, nossa cliente)",
+    contraria: "Dra. Priscila Andrade Fontes — OAB/SC 33.907",
+    atualizacao: "24/07/2026", versao: "v3", marco: "Designação da audiência una", revisor: "Gabriel Silveira",
+    resumo: "Ex-padeiro pede horas extras, intervalo intrajornada e adicional noturno de três anos de contrato. Há controle de ponto eletrônico regular em quase todo o período, com lacuna de quatro meses em 2023. O risco concentra-se nessa lacuna e na prova oral sobre a jornada real. Estratégia: sustentar a validade do ponto, restringir o pedido à lacuna e negociar acordo na audiência dentro do teto autorizado pela cliente.",
+    especificos: [
+      { label: "Período contratual", valor: "02/2021 a 11/2024 — padeiro, jornada 6x1" },
+      { label: "Provisão / risco estimado", valor: "Provisão de R$ 62.000,00; teto de acordo autorizado: R$ 45.000,00" }
+    ],
+    timeline: [
+      { data: "09/12/2025", ato: "Ajuizamento da reclamação" },
+      { data: "27/02/2026", ato: "Defesa com juntada dos controles de ponto e recibos" },
+      { data: "15/05/2026", ato: "Réplica: reclamante alega ponto britânico e coação no registro" },
+      { data: "24/07/2026", ato: "Audiência una designada para 09/09/2026" }
+    ],
+    firac: {
+      f: ["O reclamante trabalhou como padeiro de 02/2021 a 11/2024 em jornada 6x1, com registro eletrônico de ponto.",
+          "Os cartões apresentam variação natural de horários e pagamento de horas extras em folha. Entre 03/2023 e 06/2023 há lacuna de registro, atribuída pela cliente a falha no equipamento."],
+      i: ["A lacuna de quatro meses no controle de ponto inverte o ônus da prova quanto a toda a jornada ou apenas ao período sem registro?"],
+      r: ["CLT, art. 74, § 2º; Súmula 338, I, do TST: a ausência injustificada dos controles de jornada gera presunção relativa da jornada alegada, elidível por prova em contrário."],
+      a: ["A presunção da Súmula 338 é relativa e limitada ao período sem registro. Nos demais 32 meses os cartões são regulares, com variação de horários, o que afasta a tese de ponto britânico.",
+          "Para os quatro meses, a prova oral dos dois padeiros do mesmo turno e o volume de produção registrado podem delimitar a jornada efetiva."],
+      c: ["Exposição realista concentrada na lacuna: cerca de R$ 55 a 70 mil. Acordo na audiência una é a via preferível, dentro do teto de R$ 45 mil."]
+    },
+    objetivo: "Encerrar o processo em acordo na audiência una de 09/09/2026 por até R$ 45.000,00, sem reconhecimento de jornada para os demais períodos.",
+    objetivoSec: "Se não houver acordo, limitar a condenação ao período de 03 a 06/2023.",
+    linhaVermelha: "Não aceitar acordo que reconheça jornada habitual além da lacuna nem que sirva de precedente para os outros dois processos da cliente.",
+    passos: [
+      { acao: "Arrolar as duas testemunhas do turno e preparar a prova de produção do período", responsavel: "Gabriel Silveira", proximaData: "2026-08-21", concluido: false, tentativas: [] },
+      { acao: "Levantar com a cliente o laudo de manutenção do relógio de ponto de 2023", responsavel: "Ítalo Nascimento", proximaData: "2026-08-14", concluido: false, tentativas: [{ data: "2026-06-19", resultado: "TI da cliente não localizou o registro de chamado" }] },
+      { acao: "Sondar proposta de acordo com a patrona do reclamante antes da audiência", responsavel: "Gabriel Silveira", proximaData: "2026-08-28", concluido: false, tentativas: [{ data: "2026-04-02", resultado: "Pedido de R$ 120 mil — inviável" }] },
+      { acao: "Audiência una de instrução e julgamento", responsavel: "Gabriel Silveira", proximaData: "2026-09-09", concluido: false, tentativas: [] }
+    ],
+    prazos: [
+      { ato: "Rol de testemunhas", contagem: "até 5 dias antes da audiência", data: "02/09/2026" },
+      { ato: "Juntada de documentos complementares", contagem: "interno", data: "28/08/2026" }
+    ],
+    argumentos: [
+      { tag: "A1", titulo: "Os controles de ponto são válidos em 32 dos 36 meses", fato: "Os cartões mostram variação de horários, marcações de intervalo e pagamento de horas extras em folha, o que afasta a alegação de jornada britânica ou de registro coagido.", legal: "CLT, art. 74, § 2º; CPC, art. 373, I, aplicado subsidiariamente.", juris: "Súmula 338, III, do TST: os cartões que registram horários variáveis geram presunção de veracidade, a ser elidida por prova em contrário.", doutrina: "Maurício Godinho Delgado, Curso de Direito do Trabalho, sobre distribuição do ônus da prova da jornada." },
+      { tag: "A2", titulo: "A presunção da lacuna alcança só o período sem registro", fato: "A falha do equipamento entre março e junho de 2023 está circunscrita a quatro meses e não contamina os cartões anteriores e posteriores.", legal: "CLT, art. 74, § 2º.", juris: "Súmula 338, I, do TST, com a leitura de que a presunção é relativa. Localizar precedentes do TRT-12 no mesmo sentido.", doutrina: "Homero Batista Mateus da Silva, CLT Comentada, sobre limites da inversão do ônus." }
+    ]
+  },
+  {
+    id: "d3", cliente: "Transportes Costa Verde", caso: "Créditos de PIS e COFINS", proc: "5009876-12.2024.4.04.7200",
+    materia: "Tributário", fase: "Apelação distribuída no TRF-4", responsavel: "Amanda Lopes",
+    risco: "Favorável com reservas", valor: "R$ 3.740.000,00",
+    orgao: "1ª Vara Federal de Florianópolis/SC — TRF-4", juiz: "Juiz Federal Dr. Tomás Aguiar Vilela",
+    partes: "Transportes Costa Verde Ltda. × União (Fazenda Nacional)",
+    contraria: "Procuradoria-Regional da Fazenda Nacional da 4ª Região",
+    atualizacao: "30/06/2026", versao: "v5", marco: "Distribuição da apelação", revisor: "Amanda Lopes",
+    resumo: "Ação para excluir valores da base de cálculo do PIS e da COFINS e recuperar o indébito dos cinco anos anteriores. A sentença acolheu a exclusão, mas restringiu a compensação e negou parte do período. Discute-se agora, em apelação, o alcance temporal e a forma de aproveitamento dos créditos. Estratégia: preservar a tese principal, ampliar o período e habilitar a compensação administrativa o quanto antes.",
+    especificos: [
+      { label: "Tributos discutidos", valor: "PIS e COFINS — competências de 01/2019 a 12/2023" },
+      { label: "Provisão / risco estimado", valor: "Crédito provável de R$ 2,6 mi; parte controvertida de R$ 1,1 mi" }
+    ],
+    timeline: [
+      { data: "11/09/2024", ato: "Distribuição da ação com pedido de tutela" },
+      { data: "28/11/2024", ato: "Tutela deferida em parte para suspender a exigibilidade" },
+      { data: "19/02/2026", ato: "Sentença de procedência parcial" },
+      { data: "30/06/2026", ato: "Apelação da cliente e da Fazenda distribuídas no TRF-4" }
+    ],
+    firac: {
+      f: ["A cliente recolheu PIS e COFINS incluindo na base valores que não compõem receita própria, no período de 01/2019 a 12/2023.",
+          "A sentença reconheceu a exclusão a partir de 2020 e determinou compensação apenas depois do trânsito em julgado."],
+      i: ["O período reconhecido deve alcançar 2019, e a habilitação do crédito pode ser requerida antes do trânsito em julgado?"],
+      r: ["CTN, arts. 165 a 168 (repetição do indébito) e art. 170-A (compensação após trânsito em julgado); Lei 9.430/1996, art. 74."],
+      a: ["O prazo quinquenal contado do ajuizamento alcança as competências de 2019, ponto em que a sentença foi mais restritiva que a própria tese acolhida.",
+          "A vedação do art. 170-A não impede a habilitação prévia do crédito, apenas o encontro de contas, o que permite ganhar tempo no procedimento administrativo."],
+      c: ["A tese principal está segura. A apelação deve recuperar 2019 e a instrução administrativa pode ser preparada em paralelo."]
+    },
+    objetivo: "Confirmar a exclusão em segundo grau com o período ampliado para 2019 e ter o crédito habilitado para compensação no primeiro semestre de 2027.",
+    objetivoSec: "Manter a suspensão da exigibilidade sobre as competências vincendas.",
+    linhaVermelha: "Não transigir em transação tributária que exija renúncia ao período de 2019 sem desconto equivalente.",
+    passos: [
+      { acao: "Memoriais ao relator no TRF-4 com planilha do período de 2019", responsavel: "Amanda Lopes", proximaData: "2026-08-25", concluido: false, tentativas: [] },
+      { acao: "Preparar pedido de habilitação prévia do crédito na Receita Federal", responsavel: "Amanda Lopes", proximaData: "2026-09-15", concluido: false, tentativas: [] },
+      { acao: "Reunião com a contabilidade da cliente para fechar a memória de cálculo", responsavel: "Gabriel Silveira", proximaData: "2026-08-18", concluido: false, tentativas: [{ data: "2026-05-22", resultado: "Faltavam SPEDs de 2019; cliente ficou de recuperar" }] }
+    ],
+    prazos: [
+      { ato: "Contrarrazões à apelação da Fazenda", contagem: "30 dias", data: "27/08/2026" },
+      { ato: "Memoriais ao relator", contagem: "antes da sessão", data: "a designar" }
+    ],
+    argumentos: [
+      { tag: "A1", titulo: "O quinquênio contado do ajuizamento alcança as competências de 2019", fato: "A ação foi distribuída em 11/09/2024; a repetição alcança os pagamentos indevidos dos cinco anos anteriores, incluindo todo o exercício de 2019.", legal: "CTN, arts. 165, I, e 168, I; LC 118/2005, art. 3º.", juris: "Jurisprudência consolidada sobre o termo inicial da prescrição quinquenal na repetição de indébito. A conferir e citar.", doutrina: "Paulo de Barros Carvalho, Curso de Direito Tributário, sobre prescrição do indébito." },
+      { tag: "A2", titulo: "A habilitação do crédito pode ser requerida antes do trânsito em julgado", fato: "A vedação legal alcança o encontro de contas, não o procedimento de habilitação, que é meramente instrutório.", legal: "CTN, art. 170-A; Lei 9.430/1996, art. 74; IN RFB sobre habilitação de crédito decorrente de decisão judicial.", juris: "Precedentes que distinguem habilitação e compensação efetiva. A conferir e citar.", doutrina: "Hugo de Brito Machado, Curso de Direito Tributário, sobre compensação tributária." }
+    ]
+  },
+  {
+    id: "d4", cliente: "Café Serra Azul", caso: "Dissolução parcial de sociedade", proc: "5003321-08.2026.8.24.0023",
+    materia: "Empresarial", fase: "Contestação apresentada — perícia a designar", responsavel: "Geovanna Rabelo",
+    risco: "Incerto — apuração de haveres em disputa", valor: "R$ 890.000,00",
+    orgao: "1ª Vara Empresarial da Comarca de Florianópolis/SC", juiz: "Juiz de Direito Dr. Nelson Kraemer Filho",
+    partes: "Café Serra Azul Ltda. e sócios remanescentes × Ricardo Vilanova (sócio retirante)",
+    contraria: "Dr. Eduardo Pacheco Lins — OAB/SC 28.114",
+    atualizacao: "12/06/2026", versao: "v2", marco: "Contestação apresentada", revisor: "Gabriel Silveira",
+    resumo: "Sócio retirante pretende apuração de haveres por valor de mercado, com goodwill, enquanto o contrato social prevê balanço de determinação com critério patrimonial. A disputa central é o critério e a data-base da apuração. Estratégia: fazer prevalecer a cláusula contratual, fixar a data-base na notificação e conduzir a perícia com assistente técnico próprio.",
+    especificos: [
+      { label: "Participação do retirante", valor: "24% das quotas — ingresso em 2016" },
+      { label: "Provisão / risco estimado", valor: "Diferença entre critérios: R$ 310.000,00" }
+    ],
+    timeline: [
+      { data: "04/02/2026", ato: "Notificação de retirada pelo sócio" },
+      { data: "18/03/2026", ato: "Distribuição da ação de dissolução parcial" },
+      { data: "12/06/2026", ato: "Contestação: prevalência da cláusula de balanço de determinação" }
+    ],
+    firac: {
+      f: ["O retirante notificou a saída em 04/02/2026, após dez anos de sociedade, e pede haveres calculados por valor de mercado com goodwill.",
+          "A cláusula 12 do contrato social prevê apuração por balanço de determinação, a valor patrimonial contábil ajustado, pago em vinte e quatro parcelas."],
+      i: ["Prevalece o critério contratual de apuração de haveres ou o valor de mercado pretendido pelo retirante?"],
+      r: ["CC, art. 1.031; CPC, arts. 604 e 606: o contrato social rege a apuração; na omissão, aplica-se o valor patrimonial em balanço de determinação."],
+      a: ["Havendo cláusula expressa e não abusiva, ela prevalece — o CPC só admite critério judicial na omissão do contrato.",
+          "A data-base deve ser a da notificação, momento em que a resolução do vínculo se opera para o sócio retirante."],
+      c: ["A posição da cliente é defensável quanto ao critério, com exposição concentrada em eventuais ajustes de reavaliação de imóveis."]
+    },
+    objetivo: "Fazer prevalecer a apuração por balanço de determinação com data-base em 04/02/2026 e pagamento parcelado conforme o contrato.",
+    objetivoSec: "Evitar inclusão de goodwill e de fundo de comércio na base de cálculo.",
+    linhaVermelha: "Não aceitar pagamento à vista que comprometa o capital de giro da sociedade.",
+    passos: [
+      { acao: "Indicar assistente técnico contábil e formular quesitos", responsavel: "Geovanna Rabelo", proximaData: "2026-08-20", concluido: false, tentativas: [] },
+      { acao: "Reunião com sócios remanescentes sobre proposta de saída negociada", responsavel: "Geovanna Rabelo", proximaData: "2026-09-01", concluido: false, tentativas: [{ data: "2026-07-10", resultado: "Sócios abertos a parcelamento em 24 meses" }] }
+    ],
+    prazos: [
+      { ato: "Quesitos e assistente técnico", contagem: "15 dias da decisão de saneamento", data: "20/08/2026" }
+    ],
+    argumentos: [
+      { tag: "A1", titulo: "A cláusula contratual de apuração é válida e prevalece", fato: "O contrato social de 2016, assinado pelo próprio retirante, fixa balanço de determinação a valor patrimonial ajustado e pagamento em vinte e quatro parcelas.", legal: "CC, art. 1.031; CPC, arts. 604 e 606.", juris: "Precedentes que reconhecem a prevalência do critério contratual de apuração de haveres. A conferir e citar.", doutrina: "Modesto Carvalhosa, Comentários ao Código Civil, sobre resolução da sociedade em relação a um sócio." },
+      { tag: "A2", titulo: "A data-base é a da notificação de retirada", fato: "A retirada se operou com a notificação de 04/02/2026, e não com a citação, o que exclui resultados posteriores da base de cálculo.", legal: "CC, art. 1.029; CPC, art. 605, II.", juris: "A conferir e citar precedentes sobre data-base na retirada imotivada.", doutrina: "Erasmo Valladão A. e N. França, sobre resolução parcial de sociedade." }
+    ]
+  },
+  {
+    id: "d5", cliente: "R. A. Nogueira", caso: "Divórcio e partilha", proc: "5004455-90.2026.8.24.0023",
+    materia: "Família e sucessões", fase: "Inicial protocolada — audiência de mediação", responsavel: "Millena Frias",
+    risco: "Favorável com reservas", valor: "R$ 1.250.000,00",
+    orgao: "2ª Vara de Família da Comarca de Florianópolis/SC", juiz: "Juíza de Direito Dra. Cláudia Reis Amorim",
+    partes: "R. A. Nogueira × M. S. Nogueira",
+    contraria: "Dra. Letícia Barbosa Duarte — OAB/SC 45.302",
+    atualizacao: "28/07/2026", versao: "v1", marco: "Abertura do dossiê após protocolo", revisor: "Millena Frias",
+    resumo: "Divórcio consensual quanto ao vínculo e à guarda compartilhada, litigioso quanto à partilha de um imóvel adquirido na constância do casamento com recursos de doação recebida por um dos cônjuges. Discute-se a sub-rogação de bem particular. Estratégia: comprovar a origem dos recursos e resolver a partilha em mediação, preservando o acordo de guarda já alinhado.",
+    especificos: [
+      { label: "Regime de bens", valor: "Comunhão parcial — casamento em 2014" },
+      { label: "Provisão / risco estimado", valor: "Imóvel controvertido avaliado em R$ 780.000,00" }
+    ],
+    timeline: [
+      { data: "16/07/2026", ato: "Protocolo da inicial de divórcio com pedido de partilha" },
+      { data: "28/07/2026", ato: "Designação de audiência de mediação para 22/09/2026" }
+    ],
+    firac: {
+      f: ["O casamento ocorreu em 2014 sob comunhão parcial. Em 2018 foi adquirido imóvel em nome de ambos, com recursos de doação recebida por nosso cliente de seus pais, documentada em escritura.",
+          "Há consenso quanto ao divórcio, à guarda compartilhada e aos alimentos dos filhos."],
+      i: ["O imóvel adquirido com recursos de doação a um dos cônjuges integra a partilha ou é bem particular por sub-rogação?"],
+      r: ["CC, art. 1.659, I e II: excluem-se da comunhão os bens recebidos por doação e os sub-rogados em seu lugar."],
+      a: ["A escritura de doação e o extrato da transferência permitem rastrear os recursos até a aquisição, caracterizando sub-rogação de bem particular.",
+          "A titularidade conjunta na matrícula não altera a natureza do recurso empregado, mas exige prova documental do fluxo."],
+      c: ["A tese é sustentável com a prova bancária; a mediação é a via mais rápida, com compensação em bens de menor valor."]
+    },
+    objetivo: "Homologar em mediação o divórcio com guarda compartilhada e reconhecimento do imóvel como bem particular, com compensação de até R$ 90.000,00.",
+    objetivoSec: "Preservar integralmente o acordo já alinhado sobre convivência e alimentos.",
+    linhaVermelha: "Não vincular a discussão patrimonial ao regime de convivência com os filhos.",
+    passos: [
+      { acao: "Reunir extratos de 2018 que rastreiam a doação até a aquisição do imóvel", responsavel: "Millena Frias", proximaData: "2026-08-26", concluido: false, tentativas: [{ data: "2026-07-24", resultado: "Banco entregou apenas 2019 em diante; pedido reiterado" }] },
+      { acao: "Audiência de mediação", responsavel: "Millena Frias", proximaData: "2026-09-22", concluido: false, tentativas: [] }
+    ],
+    prazos: [
+      { ato: "Juntada da prova bancária antes da mediação", contagem: "interno", data: "15/09/2026" }
+    ],
+    argumentos: [
+      { tag: "A1", titulo: "O imóvel é bem particular por sub-rogação de doação", fato: "A doação de R$ 520.000,00 recebida em 2018 foi integralmente empregada na aquisição do imóvel, quatro dias após o crédito.", legal: "CC, art. 1.659, I e II.", juris: "Precedentes sobre sub-rogação de bens particulares na comunhão parcial. A conferir e citar.", doutrina: "Paulo Lôbo, Direito Civil — Famílias, sobre bens excluídos da comunhão." }
+    ]
+  }
+];
+
+const MESES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+const DIAS = ["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+
+const CORES = {
+  "Millena Frias": { solida: "#C4443F", tinta: "#F7DEDC" },
+  "Gabriel Silveira": { solida: "#7FA084", tinta: "#E6EEE8" },
+  "Amanda Lopes": { solida: "#D4882F", tinta: "#FAEBD6" },
+  "Hermelinda Rabelo": { solida: "#8F3226", tinta: "#F3DFDA" },
+  "Geovanna Rabelo": { solida: "#4E6B57", tinta: "#E2E9E3" },
+  "Ítalo Nascimento": { solida: "#9A5F1C", tinta: "#F4E7D5" }
+};
+function corDe(n) { return CORES[n] || { solida: "#B3A8A2", tinta: "#FAF6F3" }; }
+function proxVersao(v) { const n = parseInt(String(v).replace(/[^0-9]/g, ""), 10) || 0; return "v" + (n + 1); }
+const ETAPAS = ["Gerais e FIRAC", "Estratégia", "Argumentos"];
+function curto(n) { const p = n.split(" "); return p.length > 1 ? p[0] + " " + p[1] : n; }
+
+function nomeDe(d) { return d.cliente + " - " + d.caso + " - Proc. " + d.proc; }
+function fmt(iso) { if (!iso) return "—"; const p = iso.split("-"); return p[2] + "/" + p[1] + "/" + p[0]; }
+function iso(dt) { return dt.toISOString().slice(0, 10); }
+function parse(s) { const p = s.split("-"); return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])); }
+
+class Component extends DCLogic {
+  state = {
+    view: "lista", selId: "d1", aba: 0, busca: "", resp: "Todos", ordem: "alfabetica",
+    calMode: "mes", calRef: "2026-08-07", editAba: null, historicoOpen: false,
+    importOpen: false, importFase: "espera", importNome: "", importErro: "",
+    sug1Fase: "idle", sug1: null, sug2Fase: "idle", sug2: [], sugErro: "",
+    novoOpen: false, novoMateria: "Cível", novoCliente: "", novoCaso: "", novoProc: "", novoResp: "Hermelinda Rabelo",
+    demandaOpen: false, novaAcao: "", novaResp: "", novaData: "",
+    tentativaIdx: null, tentData: "", tentResultado: "",
+    dossies: D.map(function (d) {
+      return Object.assign({}, d, {
+        nome: nomeDe(d),
+        historico: [{ versao: d.versao, data: d.atualizacao, marco: d.marco, revisor: d.revisor }]
+      });
+    })
+  };
+
+  upd(fn) {
+    const id = this.state.selId;
+    this.setState(function (s) {
+      return { dossies: s.dossies.map(function (d) { return d.id === id ? fn(Object.assign({}, d)) : d; }) };
+    });
+  }
+
+  sel() { const s = this.state; return s.dossies.filter(function (d) { return d.id === s.selId; })[0] || s.dossies[0]; }
+
+  async lerArquivo(file) {
+    if (/\.pdf$/i.test(file.name)) {
+      const lib = window.pdfjsLib;
+      if (!lib) throw new Error("O leitor de PDF ainda não carregou. Tente de novo em alguns segundos.");
+      const buf = await file.arrayBuffer();
+      const pdf = await lib.getDocument({ data: buf }).promise;
+      const partes = [];
+      const limite = Math.min(pdf.numPages, 80);
+      for (let i = 1; i <= limite; i++) {
+        const pg = await pdf.getPage(i);
+        const tc = await pg.getTextContent();
+        partes.push(tc.items.map(function (it) { return it.str; }).join(" "));
+      }
+      return partes.join("\n");
+    }
+    return await file.text();
+  }
+
+  async importarAutos(file) {
+    const self = this;
+    this.setState({ importFase: "lendo", importNome: file.name, importErro: "" });
+    try {
+      const texto = await this.lerArquivo(file);
+      if (!texto || texto.replace(/\s/g, "").length < 200) throw new Error("Não consegui extrair texto do arquivo. Se for um PDF digitalizado, será preciso OCR antes.");
+      this.setState({ importFase: "processando" });
+      const prompt = "Você é assistente de um escritório de advocacia brasileiro. Leia o trecho dos autos abaixo e devolva SOMENTE um objeto JSON, sem comentários, com estas chaves: " +
+        '{"cliente":"","caso":"","proc":"","materia":"","fase":"","orgao":"","juiz":"","partes":"","contraria":"","valor":"","resumo":"","timeline":[{"data":"dd/mm/aaaa","ato":""}],"firac":{"f":[""],"i":[""],"r":[""],"a":[""],"c":[""]}}. ' +
+        "Regras: use string vazia quando a informação não estiver no texto — nunca invente número de processo, data, valor ou nome. 'materia' deve ser uma de: Cível, Trabalhista, Tributário, Empresarial, Família e sucessões, Consumidor. 'resumo' em até 5 frases. No FIRAC, cada chave é uma lista de 1 a 3 parágrafos em português. AUTOS:\n\n" +
+        texto.slice(0, 45000);
+      const bruto = await window.claude.complete({ model: "claude-sonnet-4-5", max_tokens: 4000, messages: [{ role: "user", content: prompt }] });
+      const i = bruto.indexOf("{"), j = bruto.lastIndexOf("}");
+      if (i < 0 || j < 0) throw new Error("A IA não devolveu um resultado utilizável. Tente novamente.");
+      const r = JSON.parse(bruto.slice(i, j + 1));
+      const vazio = "não localizado nos autos";
+      const faltantes = [];
+      const campo = function (v, label) { if (v && String(v).trim()) return String(v).trim(); faltantes.push(label); return vazio; };
+      const hoje = fmt(HOJE);
+      const resp = self.sel().responsavel;
+      const listaFirac = function (a) { return (Array.isArray(a) && a.length && a.join("").trim()) ? a : [""]; };
+      const novo = {
+        id: "imp" + Date.now(),
+        cliente: campo(r.cliente, "Cliente"), caso: campo(r.caso, "Caso"), proc: campo(r.proc, "Nº do processo"),
+        materia: r.materia || "Cível", fase: campo(r.fase, "Fase processual"), responsavel: resp,
+        risco: "A avaliar", valor: campo(r.valor, "Valor da causa"),
+        orgao: campo(r.orgao, "Comarca / tribunal"), juiz: campo(r.juiz, "Magistrado"),
+        partes: campo(r.partes, "Partes"), contraria: campo(r.contraria, "Advogado da parte contrária"),
+        atualizacao: hoje, versao: "v1", marco: "Importação dos autos", revisor: resp,
+        resumo: r.resumo || "",
+        especificos: [{ label: "Provisão / risco estimado", valor: "" }],
+        timeline: (Array.isArray(r.timeline) && r.timeline.length ? r.timeline : [{ data: hoje, ato: "Importação dos autos" }]),
+        firac: { f: listaFirac(r.firac && r.firac.f), i: listaFirac(r.firac && r.firac.i), r: listaFirac(r.firac && r.firac.r), a: listaFirac(r.firac && r.firac.a), c: listaFirac(r.firac && r.firac.c) },
+        objetivo: "", objetivoSec: "", linhaVermelha: "", passos: [], prazos: [],
+        argumentos: [],
+        faltantes: faltantes
+      };
+      novo.nome = nomeDe(novo);
+      novo.historico = [{ versao: "v1", data: hoje, marco: "Importação dos autos (" + file.name + ")", revisor: resp }];
+      this.setState(function (st) {
+        return { dossies: st.dossies.concat([novo]), view: "dossie", selId: novo.id, aba: 0, editAba: 0, importOpen: false, importFase: "espera" };
+      });
+    } catch (e) {
+      this.setState({ importFase: "erro", importErro: (e && e.message) ? e.message : String(e) });
+    }
+  }
+
+  contexto() {
+    const d = this.sel();
+    return "Matéria: " + d.materia + ". Fase: " + d.fase + ". Posição: " + d.partes +
+      ". Resumo: " + (d.resumo || "—") +
+      ". FIRAC — fatos: " + d.firac.f.join(" ") + " | questão: " + d.firac.i.join(" ") +
+      " | regra: " + d.firac.r.join(" ") + " | análise: " + d.firac.a.join(" ") + " | conclusão: " + d.firac.c.join(" ");
+  }
+
+  async sugerir(aba) {
+    const d = this.sel();
+    this.setState(aba === 1 ? { sug1Fase: "carregando", sugErro: "" } : { sug2Fase: "carregando", sugErro: "" });
+    try {
+      const comum = "Você assessora um escritório de advocacia brasileiro. Responda SOMENTE com JSON, em português, sem inventar jurisprudência: quando citar precedente, descreva a tese e escreva 'a conferir' no lugar do número. Contexto do processo: " + this.contexto() + "\n\n";
+      let prompt;
+      if (aba === 1) {
+        prompt = comum + "Devolva {\"objetivo\":\"\",\"passos\":[{\"acao\":\"\",\"responsavel\":\"\",\"proximaData\":\"aaaa-mm-dd\"}],\"riscos\":[\"\"]}: um objetivo processual concreto em uma frase, de 3 a 5 próximos passos executáveis (despacho, diligência, acordo, prova, recurso) com data sugerida a partir de " + HOJE + ", e até 3 riscos a monitorar. Responsável sugerido: " + d.responsavel + ".";
+      } else {
+        prompt = comum + "Devolva {\"argumentos\":[{\"titulo\":\"\",\"fato\":\"\",\"legal\":\"\",\"juris\":\"\",\"doutrina\":\"\"}]}: de 2 a 4 argumentos. 'titulo' é a tese em uma frase; 'fato' é o suporte factual; 'legal' cita artigos de lei aplicáveis; 'juris' descreve a tese jurisprudencial com 'a conferir'; 'doutrina' indica autor e obra reconhecidos do tema.";
+      }
+      const bruto = await window.claude.complete({ model: "claude-sonnet-4-5", max_tokens: 2500, messages: [{ role: "user", content: prompt }] });
+      const i = bruto.indexOf("{"), j = bruto.lastIndexOf("}");
+      const r = JSON.parse(bruto.slice(i, j + 1));
+      if (aba === 1) this.setState({ sug1Fase: "pronto", sug1: r });
+      else this.setState({ sug2Fase: "pronto", sug2: (r.argumentos || []) });
+    } catch (e) {
+      const msg = (e && e.message) ? e.message : String(e);
+      this.setState(aba === 1 ? { sug1Fase: "erro", sugErro: msg } : { sug2Fase: "erro", sugErro: msg });
+    }
+  }
+
+  eventos() {
+    const s = this.state, self = this, out = [];
+    s.dossies.forEach(function (d) {
+      d.passos.forEach(function (p) {
+        if (s.resp !== "Todos" && p.responsavel !== s.resp) return;
+        if (!p.concluido && p.proximaData) {
+          out.push({ iso: p.proximaData, realizada: false, acao: p.acao, dossie: d.caso, dossieId: d.id, responsavel: p.responsavel, resultado: "" });
+        }
+        (p.tentativas || []).forEach(function (t) {
+          out.push({ iso: t.data, realizada: true, acao: p.acao, dossie: d.caso, dossieId: d.id, responsavel: p.responsavel, resultado: t.resultado });
+        });
+      });
+    });
+    return out.map(function (e) {
+      const c = corDe(e.responsavel);
+      return Object.assign({}, e, {
+        dataFmt: fmt(e.iso), cor: c.solida, tinta: c.tinta,
+        abrir: function () { self.setState({ view: "dossie", selId: e.dossieId, aba: 1, editAba: null }); }
+      });
+    });
+  }
+
+  renderVals() {
+    const s = this.state, self = this;
+    const d = this.sel();
+    const ref = parse(s.calRef);
+
+    const nomes = ["Todos", "Millena Frias", "Gabriel Silveira", "Amanda Lopes", "Hermelinda Rabelo", "Geovanna Rabelo", "Ítalo Nascimento"];
+    const responsaveis = nomes.map(function (n) {
+      const on = s.resp === n;
+      return {
+        nome: n === "Todos" ? "Todos" : curto(n),
+        cor: n === "Todos" ? "transparent" : corDe(n).solida,
+        bg: on ? "#C4443F" : "transparent", fg: on ? "#ffffff" : "#3E332D",
+        set: function () { self.setState({ resp: n }); }
+      };
+    });
+    const legenda = ["Millena Frias", "Gabriel Silveira", "Amanda Lopes", "Hermelinda Rabelo", "Geovanna Rabelo", "Ítalo Nascimento"].map(function (n) {
+      return { nome: curto(n), cor: corDe(n).solida };
+    });
+
+    const q = s.busca.trim().toLowerCase();
+    const ultima = function (x) {
+      let m = "";
+      x.passos.forEach(function (p) {
+        if (!p.concluido && p.proximaData && p.proximaData > m) m = p.proximaData;
+        (p.tentativas || []).forEach(function (t) { if (t.data > m) m = t.data; });
+      });
+      return m;
+    };
+    const lista = s.dossies.filter(function (x) {
+      const okResp = s.resp === "Todos" || x.responsavel === s.resp;
+      const hay = (x.nome + " " + x.materia + " " + x.responsavel + " " + x.fase).toLowerCase();
+      return okResp && (q === "" || hay.indexOf(q) !== -1);
+    }).sort(function (a, b) {
+      if (s.ordem === "recente") { const ua = ultima(a), ub = ultima(b); return ua === ub ? 0 : (ua > ub ? -1 : 1); }
+      return a.nome.localeCompare(b.nome, "pt-BR");
+    }).map(function (x) {
+      const abertos = x.passos.filter(function (p) { return !p.concluido && p.proximaData; })
+        .sort(function (a, b) { return a.proximaData < b.proximaData ? -1 : 1; });
+      const prox = abertos[0];
+      return {
+        nome: x.nome,
+        subtitulo: x.responsavel + " · " + x.fase + " · " + x.materia,
+        proximaAcao: prox ? prox.acao : "Nada agendado",
+        proximaDataFmt: prox ? fmt(prox.proximaData) : "—",
+        corData: prox && prox.proximaData < HOJE ? "#A6332F" : "#3E332D",
+        cor: corDe(x.responsavel).solida,
+        abrir: function () { self.setState({ view: "dossie", selId: x.id, aba: 0, editAba: null }); }
+      };
+    });
+
+    const evs = this.eventos();
+    const mesRef = ref.getMonth(), anoRef = ref.getFullYear();
+    const primeiro = new Date(anoRef, mesRef, 1);
+    const desloc = (primeiro.getDay() + 6) % 7;
+    const inicio = new Date(anoRef, mesRef, 1 - desloc);
+    const celulas = [];
+    for (let i = 0; i < 42; i++) {
+      const dt = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate() + i);
+      const key = iso(dt);
+      const inMonth = dt.getMonth() === mesRef;
+      if (i >= 35 && !inMonth) break;
+      celulas.push({
+        dia: String(dt.getDate()),
+        bg: inMonth ? "transparent" : "#F0E9E5",
+        corDia: key === HOJE ? "#C4443F" : (inMonth ? "#3E332D" : "#B3A8A2"),
+        eventos: evs.filter(function (e) { return !e.realizada && e.iso === key; })
+      });
+    }
+
+    const dowRef = (ref.getDay() + 6) % 7;
+    const segunda = new Date(anoRef, mesRef, ref.getDate() - dowRef);
+    const domingo = new Date(anoRef, mesRef, ref.getDate() - dowRef + 6);
+    const semanaIni = iso(segunda), semanaFim = iso(domingo);
+    const noPeriodo = function (e) {
+      return s.calMode === "mes"
+        ? (e.iso.slice(0, 7) === s.calRef.slice(0, 7))
+        : (e.iso >= semanaIni && e.iso <= semanaFim);
+    };
+    const ordena = function (a, b) { return a.iso < b.iso ? -1 : 1; };
+    const realizadas = evs.filter(function (e) { return e.realizada && noPeriodo(e); }).sort(ordena);
+    const abertosSemana = evs.filter(function (e) { return !e.realizada && noPeriodo(e); }).sort(ordena).map(function (e) {
+      return Object.assign({}, e, { corData: e.iso < HOJE ? "#A6332F" : "#3E332D" });
+    });
+
+    const camposGerais = [
+      { label: "Nº do processo", valor: d.proc },
+      { label: "Matéria", valor: d.materia },
+      { label: "Partes", valor: d.partes },
+      { label: "Profissional responsável", valor: d.responsavel },
+      { label: "Comarca / tribunal", valor: d.orgao },
+      { label: "Magistrado", valor: d.juiz },
+      { label: "Fase e rito processual", valor: d.fase },
+      { label: "Valor da causa", valor: d.valor },
+      { label: "Advogado da parte contrária", valor: d.contraria },
+      { label: "Risco / prognóstico", valor: d.risco }
+    ].concat(d.especificos || []);
+
+    const campo = function (label, chave) {
+      return {
+        label: label, valor: d[chave] || "",
+        onChange: function (e) { const v = e.target.value; self.upd(function (x) { x[chave] = v; return x; }); }
+      };
+    };
+    const camposEdit = [
+      campo("Nº do processo", "proc"), campo("Partes", "partes"),
+      campo("Profissional responsável", "responsavel"), campo("Comarca / tribunal", "orgao"),
+      campo("Magistrado", "juiz"), campo("Fase e rito processual", "fase"),
+      campo("Valor da causa", "valor"), campo("Advogado da parte contrária", "contraria"),
+      campo("Risco / prognóstico", "risco"), campo("Marco da atualização", "marco")
+    ];
+
+    const firac = [
+      { letra: "F", titulo: "Fatos", paras: d.firac.f.map(function (t) { return { t: t }; }) },
+      { letra: "I", titulo: "Questão", paras: d.firac.i.map(function (t) { return { t: t }; }) },
+      { letra: "R", titulo: "Regra", paras: d.firac.r.map(function (t) { return { t: t }; }) },
+      { letra: "A", titulo: "Aplicação / análise", paras: d.firac.a.map(function (t) { return { t: t }; }) },
+      { letra: "C", titulo: "Conclusão", paras: d.firac.c.map(function (t) { return { t: t }; }) }
+    ];
+
+    const passos = d.passos.map(function (p, i) {
+      return {
+        acao: p.acao, responsavel: p.responsavel,
+        risco: p.concluido ? "line-through" : "none",
+        bg: p.concluido ? "#F0E9E5" : "transparent",
+        statusRotulo: p.concluido ? "concluída" : "em aberto",
+        rotuloConcluir: p.concluido ? "Reabrir" : "Concluir",
+        proximaDataFmt: p.concluido ? "—" : fmt(p.proximaData),
+        corData: !p.concluido && p.proximaData && p.proximaData < HOJE ? "#A6332F" : "#3E332D",
+        tentativas: (p.tentativas || []).map(function (t) { return { data: fmt(t.data), resultado: t.resultado }; }),
+        cor: corDe(p.responsavel).solida,
+        semTentativas: (p.tentativas || []).length === 0,
+        formAberto: s.tentativaIdx === i,
+        concluir: function () { self.upd(function (x) { x.passos = x.passos.map(function (q, j) { return j === i ? Object.assign({}, q, { concluido: !q.concluido }) : q; }); return x; }); },
+        registrar: function () { self.setState({ tentativaIdx: s.tentativaIdx === i ? null : i, tentData: "", tentResultado: "" }); }
+      };
+    });
+
+    const firacChaves = [["F", "Fatos", "f"], ["I", "Questão", "i"], ["R", "Regra", "r"], ["A", "Aplicação / análise", "a"], ["C", "Conclusão", "c"]];
+    const firacEdit = firacChaves.map(function (k) {
+      return {
+        letra: k[0], titulo: k[1],
+        campos: d.firac[k[2]].map(function (txt, i) {
+          return {
+            valor: txt,
+            onChange: function (e) {
+              const v = e.target.value;
+              self.upd(function (x) {
+                const f = Object.assign({}, x.firac);
+                f[k[2]] = f[k[2]].map(function (o, j) { return j === i ? v : o; });
+                x.firac = f; return x;
+              });
+            }
+          };
+        })
+      };
+    });
+
+    const campoTexto = function (label, chave, rows) {
+      return {
+        label: label, valor: d[chave] || "", rows: rows,
+        onChange: function (e) { const v = e.target.value; self.upd(function (x) { x[chave] = v; return x; }); }
+      };
+    };
+    const estrategiaEdit = [
+      campoTexto("Objetivo", "objetivo", 3),
+      campoTexto("Objetivo secundário", "objetivoSec", 2),
+      campoTexto("Linha vermelha", "linhaVermelha", 2)
+    ];
+
+    const editaPasso = function (i, chave) {
+      return function (e) {
+        const v = e.target.value;
+        self.upd(function (x) {
+          x.passos = x.passos.map(function (q, j) {
+            if (j !== i) return q;
+            const n = Object.assign({}, q); n[chave] = v; return n;
+          });
+          return x;
+        });
+      };
+    };
+    const passosEdit = d.passos.map(function (p, i) {
+      return {
+        acao: p.acao, responsavel: p.responsavel, proximaData: p.proximaData || "",
+        onAcao: editaPasso(i, "acao"), onResp: editaPasso(i, "responsavel"), onData: editaPasso(i, "proximaData"),
+        remover: function () { self.upd(function (x) { x.passos = x.passos.filter(function (q, j) { return j !== i; }); return x; }); }
+      };
+    });
+
+    const editaTimeline = function (i, chave) {
+      return function (e) {
+        const v = e.target.value;
+        self.upd(function (x) {
+          x.timeline = x.timeline.map(function (q, j) {
+            if (j !== i) return q;
+            const n = Object.assign({}, q); n[chave] = v; return n;
+          });
+          return x;
+        });
+      };
+    };
+    const timelineEdit = d.timeline.map(function (t, i) {
+      return {
+        data: t.data, ato: t.ato,
+        onData: editaTimeline(i, "data"), onAto: editaTimeline(i, "ato"),
+        remover: function () { self.upd(function (x) { x.timeline = x.timeline.filter(function (q, j) { return j !== i; }); return x; }); }
+      };
+    });
+
+    const prazoCampo = function (i, chave) {
+      return function (e) {
+        const v = e.target.value;
+        self.upd(function (x) {
+          x.prazos = x.prazos.map(function (q, j) {
+            if (j !== i) return q;
+            const n = Object.assign({}, q); n[chave] = v; return n;
+          });
+          return x;
+        });
+      };
+    };
+    const prazoToggle = function (i, chave) {
+      return function () {
+        self.upd(function (x) {
+          x.prazos = x.prazos.map(function (q, j) {
+            if (j !== i) return q;
+            const n = Object.assign({}, q); n[chave] = !q[chave]; return n;
+          });
+          return x;
+        });
+      };
+    };
+    const prazosLista = d.prazos.map(function (z, i) {
+      const et = function (ok) {
+        return {
+          cor: ok ? "#C4443F" : "#DCD0C7",
+          bg: ok ? "#C4443F" : "transparent",
+          fg: ok ? "#ffffff" : "#3E332D",
+          rotulo: ok ? "Concluída" : "Marcar"
+        };
+      };
+      const a = et(!!z.redacaoOk), b = et(!!z.correcaoOk), c = et(!!z.protocoloOk);
+      return {
+        ato: z.ato, contagem: z.contagem, data: z.data,
+        redacaoLink: z.redacaoLink || "", temLink: !!(z.redacaoLink && z.redacaoLink.trim()),
+        correcaoPor: z.correcaoPor || "", protocoloData: z.protocoloData || "",
+        corRedacao: a.cor, bgRedacao: a.bg, fgRedacao: a.fg, rotuloRedacao: a.rotulo,
+        corCorrecao: b.cor, bgCorrecao: b.bg, fgCorrecao: b.fg, rotuloCorrecao: z.correcaoOk ? "Concluída" : "Marcar",
+        corProtocolo: c.cor, bgProtocolo: c.bg, fgProtocolo: c.fg, rotuloProtocolo: z.protocoloOk ? "Protocolado" : "Marcar",
+        toggleRedacao: prazoToggle(i, "redacaoOk"), toggleCorrecao: prazoToggle(i, "correcaoOk"), toggleProtocolo: prazoToggle(i, "protocoloOk"),
+        setRedacaoLink: prazoCampo(i, "redacaoLink"), setCorrecaoPor: prazoCampo(i, "correcaoPor"), setProtocoloData: prazoCampo(i, "protocoloData")
+      };
+    });
+
+    const editaPrazo = function (i, chave) {
+      return function (e) {
+        const v = e.target.value;
+        self.upd(function (x) {
+          x.prazos = x.prazos.map(function (q, j) {
+            if (j !== i) return q;
+            const n = Object.assign({}, q); n[chave] = v; return n;
+          });
+          return x;
+        });
+      };
+    };
+    const prazosEdit = d.prazos.map(function (z, i) {
+      return {
+        ato: z.ato, contagem: z.contagem, data: z.data,
+        remover: function () { self.upd(function (x) { x.prazos = x.prazos.filter(function (q, j) { return j !== i; }); return x; }); },
+        onAto: editaPrazo(i, "ato"), onContagem: editaPrazo(i, "contagem"), onData: editaPrazo(i, "data")
+      };
+    });
+
+    const editaArg = function (i, chave) {
+      return function (e) {
+        const v = e.target.value;
+        self.upd(function (x) {
+          x.argumentos = x.argumentos.map(function (q, j) {
+            if (j !== i) return q;
+            const n = Object.assign({}, q); n[chave] = v; return n;
+          });
+          return x;
+        });
+      };
+    };
+    const argsEdit = d.argumentos.map(function (g, i) {
+      return {
+        tag: g.tag,
+        remover: function () { self.upd(function (x) { x.argumentos = x.argumentos.filter(function (q, j) { return j !== i; }); return x; }); },
+        campos: [
+          { label: "Título do argumento", valor: g.titulo, rows: 2, onChange: editaArg(i, "titulo") },
+          { label: "Fato", valor: g.fato, rows: 4, onChange: editaArg(i, "fato") },
+          { label: "Previsão legal", valor: g.legal, rows: 2, onChange: editaArg(i, "legal") },
+          { label: "Jurisprudência", valor: g.juris, rows: 3, onChange: editaArg(i, "juris") },
+          { label: "Doutrina", valor: g.doutrina, rows: 2, onChange: editaArg(i, "doutrina") }
+        ]
+      };
+    });
+
+    const editBtn = function (i) {
+      const on = s.editAba === i;
+      return {
+        rotulo: on ? "Concluir edição" : "Editar esta etapa",
+        bg: on ? "#C4443F" : "transparent", fg: on ? "#ffffff" : "#3E332D",
+        toggle: function () {
+          if (on) {
+            const hoje = fmt(HOJE);
+            self.upd(function (x) {
+              x.versao = proxVersao(x.versao);
+              x.atualizacao = hoje;
+              x.historico = [{ versao: x.versao, data: hoje, marco: x.marco + " · revisão de " + ETAPAS[i], revisor: x.revisor }].concat(x.historico || []);
+              return x;
+            });
+          }
+          self.setState({ editAba: on ? null : i, tentativaIdx: null });
+        }
+      };
+    };
+    const e0 = editBtn(0), e1 = editBtn(1), e2 = editBtn(2);
+
+    const abasNomes = ["1 · Gerais e FIRAC", "2 · Estratégia", "3 · Argumentos"];
+    const abas = abasNomes.map(function (r, i) {
+      const on = s.aba === i;
+      return { rotulo: r, cor: on ? "#3E332D" : "#9C8F89", rule: on ? "#C4443F" : "transparent", set: function () { self.setState({ aba: i, tentativaIdx: null }); } };
+    });
+
+    const nomeGerado = (s.novoCliente || "Cliente") + " - " + (s.novoCaso || "Caso") + " - Proc. " + (s.novoProc || "xxxxxxx");
+
+    return {
+      isLista: s.view === "lista", isCalendario: s.view === "calendario", isDossie: s.view === "dossie",
+      irLista: function () { self.setState({ view: "lista", editAba: null }); },
+      irCalendario: function () { self.setState({ view: "calendario" }); },
+      contagem: lista.length + " de " + s.dossies.length + " processos",
+      bgAlfa: s.ordem === "alfabetica" ? "#C4443F" : "transparent", fgAlfa: s.ordem === "alfabetica" ? "#ffffff" : "#3E332D",
+      bgRecente: s.ordem === "recente" ? "#C4443F" : "transparent", fgRecente: s.ordem === "recente" ? "#ffffff" : "#3E332D",
+      ordenarAlfa: function () { self.setState({ ordem: "alfabetica" }); },
+      ordenarRecente: function () { self.setState({ ordem: "recente" }); },
+      legenda: legenda,
+      busca: s.busca, setBusca: function (e) { self.setState({ busca: e.target.value }); },
+      responsaveis: responsaveis, lista: lista, listaVazia: lista.length === 0,
+
+      isMes: s.calMode === "mes", isSemana: s.calMode === "semana",
+      bgMes: s.calMode === "mes" ? "#C4443F" : "transparent", fgMes: s.calMode === "mes" ? "#ffffff" : "#3E332D",
+      bgSemana: s.calMode === "semana" ? "#C4443F" : "transparent", fgSemana: s.calMode === "semana" ? "#ffffff" : "#3E332D",
+      verMes: function () { self.setState({ calMode: "mes" }); }, verSemana: function () { self.setState({ calMode: "semana" }); },
+      calTitulo: s.calMode === "mes"
+        ? MESES[mesRef] + " de " + anoRef
+        : fmt(semanaIni) + " a " + fmt(semanaFim),
+      calAnterior: function () {
+        const n = s.calMode === "mes" ? new Date(anoRef, mesRef - 1, 1) : new Date(anoRef, mesRef, ref.getDate() - 7);
+        self.setState({ calRef: iso(n) });
+      },
+      calProximo: function () {
+        const n = s.calMode === "mes" ? new Date(anoRef, mesRef + 1, 1) : new Date(anoRef, mesRef, ref.getDate() + 7);
+        self.setState({ calRef: iso(n) });
+      },
+      diasSemana: DIAS.map(function (n) { return { nome: n }; }),
+      celulas: celulas, realizadas: realizadas, semRealizadas: realizadas.length === 0,
+      abertosSemana: abertosSemana, semAbertosSemana: abertosSemana.length === 0,
+
+      d: d, abas: abas, aba0: s.aba === 0, aba1: s.aba === 1, aba2: s.aba === 2,
+      tituloCaso: d.cliente + " - " + d.caso, tituloProc: "Proc. " + d.proc,
+      edit0: s.editAba === 0, ler0: s.editAba !== 0,
+      edit1: s.editAba === 1, ler1: s.editAba !== 1,
+      edit2: s.editAba === 2, ler2: s.editAba !== 2,
+      rot0: e0.rotulo, bg0: e0.bg, fg0: e0.fg, toggle0: e0.toggle,
+      rot1: e1.rotulo, bg1: e1.bg, fg1: e1.fg, toggle1: e1.toggle,
+      rot2: e2.rotulo, bg2: e2.bg, fg2: e2.fg, toggle2: e2.toggle,
+      imprimir: function () { window.open("Dossie Processual.dc.html", "_blank"); },
+      setResumo: function (e) { const v = e.target.value; self.upd(function (x) { x.resumo = v; return x; }); },
+      camposGerais: camposGerais, camposEdit: camposEdit, firac: firac, passos: passos,
+      firacEdit: firacEdit, estrategiaEdit: estrategiaEdit, passosEdit: passosEdit, prazosEdit: prazosEdit, argsEdit: argsEdit,
+      prazosLista: prazosLista,
+      timelineEdit: timelineEdit,
+      addTimeline: function () { self.upd(function (x) { x.timeline = x.timeline.concat([{ data: fmt(HOJE), ato: "" }]); return x; }); },
+      addPrazo: function () { self.upd(function (x) { x.prazos = x.prazos.concat([{ ato: "", contagem: "", data: "", redacaoOk: false, redacaoLink: "", correcaoOk: false, correcaoPor: "", protocoloOk: false, protocoloData: "" }]); return x; }); },
+      addArgumento: function () {
+        self.upd(function (x) {
+          x.argumentos = x.argumentos.concat([{ tag: "A" + (x.argumentos.length + 1), titulo: "", fato: "", legal: "", juris: "", doutrina: "" }]);
+          return x;
+        });
+      },
+      historico: d.historico || [], historicoOpen: s.historicoOpen,
+      temFaltantes: !!(d.faltantes && d.faltantes.length),
+      faltantesTexto: d.faltantes && d.faltantes.length ? ("A IA não localizou nos autos: " + d.faltantes.join(", ") + ". Confira campo a campo antes de usar.") : "",
+
+      importOpen: s.importOpen,
+      importEspera: s.importFase === "espera", importLendo: s.importFase === "lendo",
+      importProcessando: s.importFase === "processando", importErroAberto: s.importFase === "erro",
+      importErro: s.importErro, importNome: s.importNome,
+      abrirImport: function () { self.setState({ importOpen: true, importFase: "espera", importErro: "" }); },
+      fecharImport: function () { self.setState({ importOpen: false }); },
+      onArquivo: function (e) { const f = e.target.files && e.target.files[0]; if (f) self.importarAutos(f); },
+
+      sugerirEstrategia: function () { self.sugerir(1); },
+      sug1Carregando: s.sug1Fase === "carregando", sug1Pronto: s.sug1Fase === "pronto" && !!s.sug1,
+      sug1Objetivo: s.sug1 ? (s.sug1.objetivo || "") : "",
+      aplicarObjetivo: function () { const v = s.sug1 ? s.sug1.objetivo : ""; self.upd(function (x) { x.objetivo = v; return x; }); },
+      sug1Passos: (s.sug1 && Array.isArray(s.sug1.passos) ? s.sug1.passos : []).map(function (p) {
+        const data = /^\d{4}-\d{2}-\d{2}$/.test(p.proximaData || "") ? p.proximaData : "";
+        return {
+          acao: p.acao || "", responsavel: p.responsavel || d.responsavel, dataFmt: data ? fmt(data) : "sem data",
+          aplicar: function () {
+            self.upd(function (x) {
+              x.passos = x.passos.concat([{ acao: p.acao || "", responsavel: p.responsavel || d.responsavel, proximaData: data, concluido: false, tentativas: [] }]);
+              return x;
+            });
+          }
+        };
+      }),
+      sug1Riscos: (s.sug1 && Array.isArray(s.sug1.riscos) ? s.sug1.riscos : []).map(function (r) { return { texto: r }; }),
+
+      sugerirArgumentos: function () { self.sugerir(2); },
+      sug2Carregando: s.sug2Fase === "carregando", sug2Pronto: s.sug2Fase === "pronto" && s.sug2.length > 0,
+      sug2Lista: s.sug2.map(function (g) {
+        return {
+          titulo: g.titulo || "", fato: g.fato || "", legal: g.legal || "", juris: g.juris || "", doutrina: g.doutrina || "",
+          aplicar: function () {
+            self.upd(function (x) {
+              x.argumentos = x.argumentos.concat([{ tag: "A" + (x.argumentos.length + 1), titulo: g.titulo || "", fato: g.fato || "", legal: g.legal || "", juris: g.juris || "", doutrina: g.doutrina || "" }]);
+              return x;
+            });
+          }
+        };
+      }),
+      sugErroAberto: !!s.sugErro, sugErro: s.sugErro,
+      toggleHistorico: function () { self.setState({ historicoOpen: !s.historicoOpen }); },
+      dicaHistorico: s.historicoOpen ? "Clique para fechar o histórico" : "Clique para ver o histórico de atualizações",
+
+      demandaOpen: s.demandaOpen,
+      abrirDemanda: function () { self.setState({ demandaOpen: !s.demandaOpen, novaResp: d.responsavel }); },
+      novaAcao: s.novaAcao, novaResp: s.novaResp, novaData: s.novaData,
+      setNovaAcao: function (e) { self.setState({ novaAcao: e.target.value }); },
+      setNovaResp: function (e) { self.setState({ novaResp: e.target.value }); },
+      setNovaData: function (e) { self.setState({ novaData: e.target.value }); },
+      salvarDemanda: function () {
+        if (!s.novaAcao.trim()) return;
+        const nova = { acao: s.novaAcao, responsavel: s.novaResp || d.responsavel, proximaData: s.novaData, concluido: false, tentativas: [] };
+        self.upd(function (x) { x.passos = x.passos.concat([nova]); return x; });
+        self.setState({ demandaOpen: false, novaAcao: "", novaData: "" });
+      },
+      tentData: s.tentData, tentResultado: s.tentResultado,
+      setTentData: function (e) { self.setState({ tentData: e.target.value }); },
+      setTentResultado: function (e) { self.setState({ tentResultado: e.target.value }); },
+      salvarTentativa: function () {
+        const i = s.tentativaIdx;
+        if (i === null || !s.tentData) return;
+        self.upd(function (x) {
+          x.passos = x.passos.map(function (q, j) {
+            return j === i ? Object.assign({}, q, { tentativas: (q.tentativas || []).concat([{ data: s.tentData, resultado: s.tentResultado || "sem resultado registrado" }]) }) : q;
+          });
+          return x;
+        });
+        self.setState({ tentativaIdx: null, tentData: "", tentResultado: "" });
+      },
+
+      novoOpen: s.novoOpen,
+      abrirNovo: function () { self.setState({ novoOpen: true }); },
+      fecharNovo: function () { self.setState({ novoOpen: false }); },
+      novoMateria: s.novoMateria, novoCliente: s.novoCliente, novoCaso: s.novoCaso, novoProc: s.novoProc, novoResp: s.novoResp,
+      setNovoMateria: function (e) { self.setState({ novoMateria: e.target.value }); },
+      setNovoCliente: function (e) { self.setState({ novoCliente: e.target.value }); },
+      setNovoCaso: function (e) { self.setState({ novoCaso: e.target.value }); },
+      setNovoProc: function (e) { self.setState({ novoProc: e.target.value }); },
+      setNovoResp: function (e) { self.setState({ novoResp: e.target.value }); },
+      nomeGerado: nomeGerado,
+      salvarNovo: function () {
+        const camposPorMateria = {
+          "Cível": [{ label: "Objeto do contrato", valor: "" }, { label: "Provisão / risco estimado", valor: "" }],
+          "Trabalhista": [{ label: "Período contratual", valor: "" }, { label: "Provisão / risco estimado", valor: "" }],
+          "Tributário": [{ label: "Tributos discutidos", valor: "" }, { label: "Provisão / risco estimado", valor: "" }],
+          "Empresarial": [{ label: "Participação societária", valor: "" }, { label: "Provisão / risco estimado", valor: "" }],
+          "Família e sucessões": [{ label: "Regime de bens", valor: "" }, { label: "Provisão / risco estimado", valor: "" }],
+          "Consumidor": [{ label: "Produto ou serviço", valor: "" }, { label: "Provisão / risco estimado", valor: "" }]
+        };
+        const hoje = fmt(HOJE);
+        const novo = {
+          id: "n" + Date.now(), cliente: s.novoCliente || "Cliente", caso: s.novoCaso || "Caso", proc: s.novoProc || "a distribuir",
+          materia: s.novoMateria, fase: "A preencher", responsavel: s.novoResp, risco: "A avaliar", valor: "A preencher",
+          orgao: "A preencher", juiz: "A preencher", partes: "A preencher", contraria: "A preencher",
+          atualizacao: hoje, versao: "v1", marco: "Abertura do dossiê", revisor: s.novoResp,
+          resumo: "", especificos: camposPorMateria[s.novoMateria],
+          timeline: [{ data: hoje, ato: "Abertura do dossiê" }],
+          firac: { f: [""], i: [""], r: [""], a: [""], c: [""] },
+          objetivo: "", objetivoSec: "", linhaVermelha: "",
+          passos: [], prazos: [],
+          argumentos: [{ tag: "A1", titulo: "", fato: "", legal: "", juris: "", doutrina: "" }]
+        };
+        novo.nome = nomeDe(novo);
+        self.setState(function (st) {
+          return { dossies: st.dossies.concat([novo]), view: "dossie", selId: novo.id, aba: 0, editAba: 0, novoOpen: false, novoCliente: "", novoCaso: "", novoProc: "" };
+        });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
