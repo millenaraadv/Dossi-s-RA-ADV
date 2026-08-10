@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { DossierFull } from "@/lib/types/dossier";
 import { ETAPAS } from "@/lib/dossier-constants";
-import { fetchDossier, patchDossier, putTimeline, putFirac, putArguments, concludeEdit } from "@/lib/client/dossier-api";
+import { fetchDossier, patchDossier, putTimeline, putFirac, putArguments, concludeEdit, archiveDossier } from "@/lib/client/dossier-api";
 import { AbaGerais } from "@/components/dossier/aba-gerais";
 import { AbaEstrategia } from "@/components/dossier/aba-estrategia";
 import { AbaArgumentos } from "@/components/dossier/aba-argumentos";
@@ -58,14 +58,17 @@ export function DossierView({
   podeEditar,
   podeRegistrarTentativa,
   podeMarcarPrazo,
+  podeArquivar,
 }: {
   dossier: DossierFull;
   membros: Membro[];
   podeEditar: boolean;
   podeRegistrarTentativa: boolean;
   podeMarcarPrazo: boolean;
+  podeArquivar: boolean;
 }) {
   const [dossier, setDossier] = useState(initial);
+  const router = useRouter();
   const searchParams = useSearchParams();
   const abaInicial = searchParams.get("aba");
   const [tab, setTab] = useState<0 | 1 | 2>(
@@ -74,6 +77,7 @@ export function DossierView({
   const [editAba, setEditAba] = useState<0 | 1 | 2 | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [arquivando, setArquivando] = useState(false);
 
   const [geraisForm, setGeraisForm] = useState<GeraisForm>(() => buildGeraisForm(initial));
   const [estrategiaForm, setEstrategiaForm] = useState<EstrategiaForm>(() => buildEstrategiaForm(initial));
@@ -94,6 +98,23 @@ export function DossierView({
 
   async function refresh() {
     setDossier(await fetchDossier(dossier.id));
+  }
+
+  async function arquivar() {
+    const confirmado = window.confirm(
+      `Arquivar "${dossier.cliente} - ${dossier.caso}"? Ele some da lista de dossiês ativos, mas o histórico e a auditoria continuam guardados.`,
+    );
+    if (!confirmado) return;
+
+    setArquivando(true);
+    setErro(null);
+    try {
+      await archiveDossier(dossier.id);
+      router.push("/dossies");
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Não foi possível arquivar.");
+      setArquivando(false);
+    }
   }
 
   async function concluirGerais() {
@@ -176,14 +197,26 @@ export function DossierView({
           </h1>
           <p className="mt-1 text-[15px] tracking-[0.1em] text-acento-escuro">Proc. {dossier.numeroProcesso}</p>
         </div>
-        <a
-          href={`/api/dossiers/${dossier.id}/pdf`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-acento px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-white hover:bg-acento-escuro"
-        >
-          Imprimir
-        </a>
+        <div className="flex items-start gap-2">
+          <a
+            href={`/api/dossiers/${dossier.id}/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-acento px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-white hover:bg-acento-escuro"
+          >
+            Imprimir
+          </a>
+          {podeArquivar && (
+            <button
+              type="button"
+              onClick={arquivar}
+              disabled={arquivando}
+              className="border border-acento-escuro bg-transparent px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-acento-escuro hover:bg-neutro-200 disabled:opacity-60"
+            >
+              {arquivando ? "Arquivando…" : "Arquivar"}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="mt-6 border-y border-acento py-4">

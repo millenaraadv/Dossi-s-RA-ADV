@@ -148,3 +148,7 @@ export async function updateDeadline(
 export async function deleteDeadline(deadlineId: string): Promise<void> {
   await asJsonOrThrow(await fetch(`/api/deadlines/${deadlineId}`, { method: "DELETE" }));
 }
+
+export async function archiveDossier(id: string): Promise<void> {
+  await asJsonOrThrow(await fetch(`/api/dossiers/${id}/archive`, { method: "POST" }));
+}
