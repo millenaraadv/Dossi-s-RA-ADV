@@ -36,6 +36,13 @@
       "when": 1786399000000,
       "tag": "0004_move_unaccent_extension",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786400012965,
+      "tag": "0005_green_speedball",
+      "breakpoints": true
     }
   ]
 }

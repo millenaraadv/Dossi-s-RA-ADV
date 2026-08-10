@@ -27,6 +27,7 @@ export const papelEnum = pgEnum("papel", [
   "advogado",
   "estagiario",
   "admin",
+  "advogado_dev",
 ]);
 
 export const materiaEnum = pgEnum("materia", [

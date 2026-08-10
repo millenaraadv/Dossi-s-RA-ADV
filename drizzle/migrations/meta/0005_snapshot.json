@@ -1,6 +1,6 @@
 {
-  "id": "a483847f-010b-4d07-ae94-723df32b3d19",
-  "prevId": "04684bbd-108b-4a1b-ac8a-5e8ac37a71b7",
+  "id": "5d7a1110-e6a6-4d84-9b5b-8bffd752f042",
+  "prevId": "a483847f-010b-4d07-ae94-723df32b3d19",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1518,7 +1518,8 @@
         "socio",
         "advogado",
         "estagiario",
-        "admin"
+        "admin",
+        "advogado_dev"
       ]
     },
     "public.risco": {

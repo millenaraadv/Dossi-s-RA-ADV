@@ -19,8 +19,12 @@ export type DossierListItem = {
 /**
  * Busca por ILIKE + unaccent() em tempo de consulta (não em coluna gerada —
  * unaccent() é STABLE, não IMMUTABLE). "Próxima demanda" e a ordenação
- * "recente" vêm de LATERAL joins sobre `steps`/`step_attempts`: o calendário e
- * a lista são sempre projeção dessas tabelas, nunca uma cópia.
+ * "recente" vêm de LATERAL join sobre `steps`: o calendário e a lista são
+ * sempre projeção dessa tabela, nunca uma cópia.
+ *
+ * "recente" ordena pela mesma data mostrada no card (a próxima demanda em
+ * aberto), da mais urgente para a mais distante — não pela última tentativa
+ * registrada, que é uma data passada sem relação com o que aparece na tela.
  */
 export async function listDossiers(params: {
   q?: string;
@@ -32,7 +36,7 @@ export async function listDossiers(params: {
 
   const orderBy =
     params.ordem === "recente"
-      ? sql`recente.data_recente DESC NULLS LAST, d.nome COLLATE "pt-BR-x-icu" ASC`
+      ? sql`prox.proxima_data ASC NULLS LAST, d.nome COLLATE "pt-BR-x-icu" ASC`
       : sql`d.nome COLLATE "pt-BR-x-icu" ASC`;
 
   const result = await db.execute<DossierListItem>(sql`
@@ -55,16 +59,6 @@ export async function listDossiers(params: {
       ORDER BY s.proxima_data ASC
       LIMIT 1
     ) prox ON true
-    LEFT JOIN LATERAL (
-      SELECT MAX(x.dt) AS data_recente FROM (
-        SELECT s.proxima_data AS dt FROM steps s
-          WHERE s.dossier_id = d.id AND s.concluido = false AND s.proxima_data IS NOT NULL
-        UNION ALL
-        SELECT sa.data AS dt FROM step_attempts sa
-          JOIN steps s2 ON s2.id = sa.step_id
-          WHERE s2.dossier_id = d.id
-      ) x
-    ) recente ON true
     WHERE d.arquivado = false
       AND (
         ${q}::text IS NULL

@@ -1,21 +1,23 @@
 import "server-only";
 
-export type Papel = "socio" | "advogado" | "estagiario" | "admin";
+export type Papel = "socio" | "advogado" | "estagiario" | "admin" | "advogado_dev";
 
 /**
- * Regras da Parte 2 do README, com um desvio pedido explicitamente pelo
+ * Regras da Parte 2 do README, com desvios pedidos explicitamente pelo
  * escritório: o README define `admin` como só "usuários e configuração, sem
  * acesso a conteúdo de dossiê", mas aqui `admin` tem acesso total, igual a
- * `socio` (inclusive conteúdo de dossiê e arquivamento).
- * - socio/admin: tudo, inclusive arquivar dossiê e gerenciar usuários
+ * `socio` (inclusive conteúdo de dossiê e arquivamento). `advogado_dev` é o
+ * mesmo caso: acesso total, para uma advogada que também mexe no sistema —
+ * não usa o rótulo `socio` porque ela não é sócia do escritório.
+ * - socio/admin/advogado_dev: tudo, inclusive arquivar dossiê e gerenciar usuários
  * - advogado: lê e edita qualquer dossiê (transparência interna)
  * - estagiario: lê tudo; registra tentativa e marca etapas de prazo; NÃO edita
  *   FIRAC, estratégia nem argumentos
  */
 
-/** socio e admin têm acesso equivalente a tudo. */
+/** socio, admin e advogado_dev têm acesso equivalente a tudo. */
 function isSuperRole(papel: Papel): boolean {
-  return papel === "socio" || papel === "admin";
+  return papel === "socio" || papel === "admin" || papel === "advogado_dev";
 }
 
 /** Pode ler dados de processo (dossiês, calendário, etc). */

@@ -11,7 +11,10 @@
  *
  * Papéis confirmados com o escritório:
  *   Ítalo Nascimento, Geovanna Rabelo               → sócios advogados
- *   Gabriel Silveira, Millena Frias, Amanda Lopes    → advogados
+ *   Gabriel Silveira, Amanda Lopes                   → advogados
+ *   Millena Frias                                    → advogada com acesso total
+ *     (papel "advogado_dev" — mesmo nível de socio/admin, sem usar o rótulo
+ *     "sócia", já que ela não é sócia do escritório)
  *   Hermelinda Rabelo                                → administrativo (papel "admin":
  *     usuários/configuração, sem acesso a conteúdo de dossiê — por isso o caso
  *     "Metalúrgica Aurora", que no protótipo original era dela, foi reatribuído
@@ -48,10 +51,10 @@ const admin = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } },
 );
 
-type Papel = "socio" | "advogado" | "estagiario" | "admin";
+type Papel = "socio" | "advogado" | "estagiario" | "admin" | "advogado_dev";
 
 const TEAM: { nome: string; email: string; papel: Papel; cor: string }[] = [
-  { nome: "Millena Frias", email: "millena@rabeloaguiar.adv.br", papel: "advogado", cor: "#C4443F" },
+  { nome: "Millena Frias", email: "millena@rabeloaguiar.adv.br", papel: "advogado_dev", cor: "#C4443F" },
   { nome: "Gabriel Silveira", email: "gabriel@rabeloaguiar.adv.br", papel: "advogado", cor: "#7FA084" },
   { nome: "Amanda Lopes", email: "amanda@rabeloaguiar.adv.br", papel: "advogado", cor: "#D4882F" },
   { nome: "Hermelinda Rabelo", email: "hermelinda@rabeloaguiar.adv.br", papel: "admin", cor: "#8F3226" },
