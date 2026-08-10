@@ -37,4 +37,11 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
+# O output "standalone" só inclui os arquivos que o tracer do Next.js consegue
+# detectar estaticamente; o playwright-core carrega alguns arquivos (como
+# browsers.json) de um jeito que o tracer não enxerga, deixando a copia podada
+# incompleta. Sobrescreve com os pacotes completos do estagio de build.
+COPY --from=builder /app/node_modules/playwright ./node_modules/playwright
+COPY --from=builder /app/node_modules/playwright-core ./node_modules/playwright-core
+
 CMD ["node", "server.js"]
