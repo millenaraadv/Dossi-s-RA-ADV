@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="10 3 68 68" width="68" height="68" role="img" aria-label="Dossiês">
+  <rect x="10" y="3" width="68" height="68" fill="#3E332D" />
+  <g fill="none">
+    <path d="M28.5 19 H41 A18 18 0 0 1 41 55 H28.5" stroke="#D4882F" stroke-width="2.1"></path>
+    <path d="M35 27 H41 A10 10 0 0 1 41 47 H35" stroke="#D4882F" stroke-width="1.8"></path>
+    <circle cx="41" cy="37" r="2.9" fill="#7FA084"></circle>
+  </g>
+</svg>
