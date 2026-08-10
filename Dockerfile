@@ -27,6 +27,10 @@ FROM mcr.microsoft.com/playwright:v1.62.1-jammy AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=10000
+# O Docker define HOSTNAME automaticamente com o nome do container; sem esta
+# linha, o server.js do Next.js usa esse valor em vez de "0.0.0.0" e o proxy
+# do Render não consegue alcançar o processo (502 mesmo com o app "no ar").
+ENV HOSTNAME=0.0.0.0
 EXPOSE 10000
 
 COPY --from=builder /app/public ./public
