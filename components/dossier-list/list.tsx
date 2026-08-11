@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { DossierListItem, OrdemLista } from "@/lib/db/queries/dossier-list";
 import { formatarDataBr, estaAtrasada } from "@/lib/dates";
 import { nomeCurto } from "@/lib/text";
+import { LogoDossies } from "@/components/logo-dossies";
 
 type Membro = { id: string; nome: string; cor: string | null };
 
@@ -53,7 +54,9 @@ export function DossiesList({
   return (
     <main className="mx-auto max-w-[1100px] p-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-[34px] font-light tracking-[0.06em]">Dossiês</h1>
+        <h1>
+          <LogoDossies className="h-9 w-auto" />
+        </h1>
         <div className="flex items-center gap-4">
           <div className="flex">
             <button
