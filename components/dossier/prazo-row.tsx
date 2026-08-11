@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { updateDeadline, deleteDeadline } from "@/lib/client/dossier-api";
 import type { DossierFull } from "@/lib/types/dossier";
+import { normalizarDataDigitada } from "@/lib/dates";
 
 type Prazo = DossierFull["prazos"][number];
 type Membro = { id: string; nome: string; cor: string | null };
@@ -46,6 +47,7 @@ export function PrazoRow({
   const [salvando, setSalvando] = useState(false);
   const [link, setLink] = useState(prazo.redacaoLink ?? "");
   const [protocoloData, setProtocoloData] = useState(prazo.protocoloData ?? "");
+  const [dataTexto, setDataTexto] = useState(prazo.dataTexto ?? "");
 
   async function marcar(patch: Parameters<typeof updateDeadline>[1]) {
     setSalvando(true);
@@ -85,8 +87,15 @@ export function PrazoRow({
           <input
             className={inputClass}
             placeholder="Data"
-            defaultValue={prazo.dataTexto ?? ""}
-            onBlur={(e) => updateDeadline(prazo.id, { dataTexto: e.target.value || null }).then(onChanged)}
+            value={dataTexto}
+            onChange={(e) => setDataTexto(e.target.value)}
+            onBlur={(e) => {
+              const normalizada = normalizarDataDigitada(e.target.value);
+              setDataTexto(normalizada);
+              if (normalizada !== (prazo.dataTexto ?? "")) {
+                updateDeadline(prazo.id, { dataTexto: normalizada || null }).then(onChanged);
+              }
+            }}
           />
           <button
             type="button"

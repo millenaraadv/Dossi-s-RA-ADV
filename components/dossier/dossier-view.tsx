@@ -17,6 +17,8 @@ type Membro = { id: string; nome: string; cor: string | null };
 function buildGeraisForm(d: DossierFull): GeraisForm {
   const byLetra = (l: string) => d.firac.filter((b) => b.letra === l).map((b) => b.paragrafo);
   return {
+    cliente: d.cliente,
+    caso: d.caso,
     materia: d.materia,
     numeroProcesso: d.numeroProcesso,
     fase: d.fase ?? "",
@@ -122,6 +124,8 @@ export function DossierView({
     setErro(null);
     try {
       await patchDossier(dossier.id, {
+        cliente: geraisForm.cliente,
+        caso: geraisForm.caso,
         materia: geraisForm.materia,
         numeroProcesso: geraisForm.numeroProcesso,
         fase: geraisForm.fase,

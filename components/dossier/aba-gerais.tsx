@@ -6,6 +6,8 @@ import type { GeraisForm } from "@/components/dossier/types";
 import type { DossierFull } from "@/lib/types/dossier";
 import { FIRAC_LETRAS, FIRAC_TITULOS, RISCOS, MATERIAS } from "@/lib/dossier-constants";
 import { camposIniciaisPorMateria } from "@/lib/db/materia-fields";
+import { capitalizarNome } from "@/lib/text";
+import { normalizarDataDigitada } from "@/lib/dates";
 
 type Membro = { id: string; nome: string; cor: string | null };
 
@@ -73,6 +75,29 @@ export function AbaGerais({
 
       <div className="grid grid-cols-2 gap-x-8">
         <FieldRow
+          label="Cliente"
+          valor={dossier.cliente}
+          input={
+            isEditing ? (
+              <input
+                className={inputClass}
+                value={form.cliente}
+                onChange={(e) => setForm((f) => ({ ...f, cliente: e.target.value }))}
+                onBlur={(e) => setForm((f) => ({ ...f, cliente: capitalizarNome(e.target.value) }))}
+              />
+            ) : undefined
+          }
+        />
+        <FieldRow
+          label="Caso"
+          valor={dossier.caso}
+          input={
+            isEditing ? (
+              <input className={inputClass} value={form.caso} onChange={(e) => setForm((f) => ({ ...f, caso: e.target.value }))} />
+            ) : undefined
+          }
+        />
+        <FieldRow
           label="Nº do processo"
           valor={dossier.numeroProcesso}
           input={
@@ -120,7 +145,12 @@ export function AbaGerais({
           valor={dossier.partes ?? undefined}
           input={
             isEditing ? (
-              <input className={inputClass} value={form.partes} onChange={(e) => setForm((f) => ({ ...f, partes: e.target.value }))} />
+              <input
+                className={inputClass}
+                value={form.partes}
+                onChange={(e) => setForm((f) => ({ ...f, partes: e.target.value }))}
+                onBlur={(e) => setForm((f) => ({ ...f, partes: capitalizarNome(e.target.value) }))}
+              />
             ) : undefined
           }
         />
@@ -158,7 +188,12 @@ export function AbaGerais({
           valor={dossier.juiz ?? undefined}
           input={
             isEditing ? (
-              <input className={inputClass} value={form.juiz} onChange={(e) => setForm((f) => ({ ...f, juiz: e.target.value }))} />
+              <input
+                className={inputClass}
+                value={form.juiz}
+                onChange={(e) => setForm((f) => ({ ...f, juiz: e.target.value }))}
+                onBlur={(e) => setForm((f) => ({ ...f, juiz: capitalizarNome(e.target.value) }))}
+              />
             ) : undefined
           }
         />
@@ -193,6 +228,7 @@ export function AbaGerais({
                 className={inputClass}
                 value={form.advogadoContrario}
                 onChange={(e) => setForm((f) => ({ ...f, advogadoContrario: e.target.value }))}
+                onBlur={(e) => setForm((f) => ({ ...f, advogadoContrario: capitalizarNome(e.target.value) }))}
               />
             ) : undefined
           }
@@ -250,6 +286,13 @@ export function AbaGerais({
                     setForm((f) => {
                       const next = [...f.timeline];
                       next[i] = { ...next[i], dataTexto: e.target.value };
+                      return { ...f, timeline: next };
+                    })
+                  }
+                  onBlur={(e) =>
+                    setForm((f) => {
+                      const next = [...f.timeline];
+                      next[i] = { ...next[i], dataTexto: normalizarDataDigitada(e.target.value) };
                       return { ...f, timeline: next };
                     })
                   }

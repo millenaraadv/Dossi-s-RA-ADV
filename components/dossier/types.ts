@@ -1,4 +1,6 @@
 export type GeraisForm = {
+  cliente: string;
+  caso: string;
   materia: string;
   numeroProcesso: string;
   fase: string;

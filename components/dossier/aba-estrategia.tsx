@@ -7,6 +7,7 @@ import { PrazoRow } from "@/components/dossier/prazo-row";
 import type { EstrategiaForm } from "@/components/dossier/types";
 import type { DossierFull } from "@/lib/types/dossier";
 import { createStep, createDeadline } from "@/lib/client/dossier-api";
+import { normalizarDataDigitada } from "@/lib/dates";
 
 type Membro = { id: string; nome: string; cor: string | null };
 
@@ -264,6 +265,7 @@ export function AbaEstrategia({
                   placeholder="Data (ex.: 19/08/2026)"
                   value={novoPrazoData}
                   onChange={(e) => setNovoPrazoData(e.target.value)}
+                  onBlur={(e) => setNovoPrazoData(normalizarDataDigitada(e.target.value))}
                   className={inputClass}
                 />
                 <button

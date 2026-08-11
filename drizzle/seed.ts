@@ -57,9 +57,9 @@ const TEAM: { nome: string; email: string; papel: Papel; cor: string }[] = [
   { nome: "Millena Frias", email: "millena@rabeloaguiar.adv.br", papel: "advogado_dev", cor: "#C4443F" },
   { nome: "Gabriel Silveira", email: "gabriel@rabeloaguiar.adv.br", papel: "advogado", cor: "#7FA084" },
   { nome: "Amanda Lopes", email: "amanda@rabeloaguiar.adv.br", papel: "advogado", cor: "#D4882F" },
-  { nome: "Hermelinda Rabelo", email: "hermelinda@rabeloaguiar.adv.br", papel: "admin", cor: "#8F3226" },
+  { nome: "Hermelinda Rabelo", email: "administracao@rabeloaguiar.adv.br", papel: "admin", cor: "#8F3226" },
   { nome: "Geovanna Rabelo", email: "geovanna@rabeloaguiar.adv.br", papel: "socio", cor: "#4E6B57" },
-  { nome: "Ítalo Nascimento", email: "italo@rabeloaguiar.adv.br", papel: "socio", cor: "#9A5F1C" },
+  { nome: "Ítalo Nascimento", email: "italonascimento@inascimentoadv.com.br", papel: "socio", cor: "#9A5F1C" },
 ];
 
 // Senha padrão pedida pelo escritório para todas as contas de seed — trocar

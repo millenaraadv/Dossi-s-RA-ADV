@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MATERIAS } from "@/lib/dossier-constants";
+import { capitalizarNome } from "@/lib/text";
 
 type Membro = { id: string; nome: string; cor: string | null };
 
@@ -86,6 +87,7 @@ export function NovoDossieModal({
             <input
               value={cliente}
               onChange={(e) => setCliente(e.target.value)}
+              onBlur={(e) => setCliente(capitalizarNome(e.target.value))}
               className="border border-borda-campo bg-neutro-100 px-3 py-2 text-[14px] text-texto outline-none"
             />
           </label>
