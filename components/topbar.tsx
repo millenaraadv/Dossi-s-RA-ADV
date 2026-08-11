@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { LogoutButton } from "@/components/logout-button";
-import { LogoDossies } from "@/components/logo-dossies";
 import { NovoDossieLauncher } from "@/components/modals/novo-dossie-launcher";
 import { listActiveUsers } from "@/lib/db/queries/users";
 import { canEditDossierContent, type Papel } from "@/lib/auth/permissions";
@@ -24,7 +23,13 @@ export async function Topbar({ papel }: { papel: Papel }) {
           priority
         />
         <div className="h-8 w-px bg-divisoria-fina" aria-hidden />
-        <LogoDossies className="h-6 w-auto" />
+        <Image
+          src="/assets/dossies-logo.svg"
+          alt="Dossiês"
+          width={1197}
+          height={375}
+          style={{ height: 24, width: "auto" }}
+        />
       </div>
 
       <nav className="flex flex-wrap items-center gap-2">

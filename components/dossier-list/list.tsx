@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import type { DossierListItem, OrdemLista } from "@/lib/db/queries/dossier-list";
 import { formatarDataBr, estaAtrasada } from "@/lib/dates";
 import { nomeCurto } from "@/lib/text";
-import { LogoDossies } from "@/components/logo-dossies";
 
 type Membro = { id: string; nome: string; cor: string | null };
 
@@ -55,7 +55,14 @@ export function DossiesList({
     <main className="mx-auto max-w-[1100px] p-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1>
-          <LogoDossies className="h-9 w-auto" />
+          <Image
+            src="/assets/dossies-logo.svg"
+            alt="Dossiês"
+            width={1197}
+            height={375}
+            style={{ height: 36, width: "auto" }}
+            priority
+          />
         </h1>
         <div className="flex items-center gap-4">
           <div className="flex">
