@@ -76,7 +76,10 @@ export function DossierView({
   const [tab, setTab] = useState<0 | 1 | 2>(
     abaInicial === "1" ? 1 : abaInicial === "2" ? 2 : 0,
   );
-  const [editAba, setEditAba] = useState<0 | 1 | 2 | null>(null);
+  // Dossiê recém-criado por importação de autos: abre direto em edição na
+  // etapa 1, com o aviso de campos não localizados (README 4.1, item 5/6).
+  const naoLocalizados = searchParams.get("naoLocalizados")?.split(",").filter(Boolean) ?? [];
+  const [editAba, setEditAba] = useState<0 | 1 | 2 | null>(() => (naoLocalizados.length > 0 ? 0 : null));
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [arquivando, setArquivando] = useState(false);
@@ -253,6 +256,12 @@ export function DossierView({
           </button>
         ))}
       </div>
+
+      {tab === 0 && naoLocalizados.length > 0 && (
+        <div className="mt-4 border-l-[3px] border-ambar bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">
+          A IA não localizou nos autos: {naoLocalizados.join(", ")}. Confira campo a campo antes de usar.
+        </div>
+      )}
 
       {erro && (
         <div className="mt-4 border-l-[3px] border-acento bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">

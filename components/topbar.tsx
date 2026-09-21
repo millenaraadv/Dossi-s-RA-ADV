@@ -2,8 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { LogoutButton } from "@/components/logout-button";
 import { NovoDossieLauncher } from "@/components/modals/novo-dossie-launcher";
+import { ImportarAutosLauncher } from "@/components/modals/importar-autos-launcher";
 import { listActiveUsers } from "@/lib/db/queries/users";
-import { canEditDossierContent, type Papel } from "@/lib/auth/permissions";
+import { canEditDossierContent, canUseAi, type Papel } from "@/lib/auth/permissions";
 
 const navButton =
   "px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.08em] whitespace-nowrap";
@@ -45,14 +46,7 @@ export async function Topbar({ papel }: { papel: Papel }) {
         >
           Calendário
         </Link>
-        <button
-          type="button"
-          disabled
-          title="Disponível a partir do item 6 da implementação"
-          className={`${navButton} border border-acento bg-transparent text-acento-escuro hover:bg-tinta-clara disabled:cursor-default disabled:opacity-60`}
-        >
-          Importar autos
-        </button>
+        {canUseAi(papel) && <ImportarAutosLauncher />}
         {canEditDossierContent(papel) && <NovoDossieLauncher membros={membros} />}
         <LogoutButton />
       </nav>
