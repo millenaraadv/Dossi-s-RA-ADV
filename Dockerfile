@@ -44,4 +44,12 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/node_modules/playwright ./node_modules/playwright
 COPY --from=builder /app/node_modules/playwright-core ./node_modules/playwright-core
 
+# Mesmo problema com o pdf-parse: ele carrega o binário nativo do
+# @napi-rs/canvas (variante certa por plataforma, ex.: -linux-x64-gnu) de um
+# jeito que o tracer também não enxerga -- sem isso, o import de "pdf-parse"
+# falha com "DOMMatrix is not defined" assim que o módulo é carregado.
+COPY --from=builder /app/node_modules/pdf-parse ./node_modules/pdf-parse
+COPY --from=builder /app/node_modules/pdfjs-dist ./node_modules/pdfjs-dist
+COPY --from=builder /app/node_modules/@napi-rs ./node_modules/@napi-rs
+
 CMD ["node", "server.js"]
