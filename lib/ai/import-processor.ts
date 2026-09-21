@@ -1,4 +1,6 @@
 import "server-only";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { PDFParse } from "pdf-parse";
 import { downloadAuto } from "@/lib/supabase/storage";
 import { getImport, updateImportStatus } from "@/lib/db/queries/imports";
@@ -6,6 +8,15 @@ import { createDossier, updateDossierGeneral, replaceTimeline, replaceFirac } fr
 import { buildImportPrompt } from "@/lib/ai/prompts/import-autos";
 import { gerarJson } from "@/lib/ai/client";
 import { parseImportResult, type ImportResult } from "@/lib/ai/parse";
+
+// pdfjs-dist (usado pelo pdf-parse) carrega seu "worker" resolvendo o caminho
+// a partir do módulo que o chama — no output empacotado do Next.js (Turbopack)
+// isso aponta para dentro de .next/server/chunks em vez do arquivo real em
+// node_modules, e a extração falha com "Setting up fake worker failed". Fixa
+// o caminho explicitamente, direto do node_modules na raiz do projeto/app.
+PDFParse.setWorker(
+  pathToFileURL(path.join(process.cwd(), "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs")).href,
+);
 
 const NAO_LOCALIZADO = "não localizado nos autos";
 
