@@ -141,7 +141,14 @@ export function DossiesList({
                 style={{ borderLeft: `5px solid ${item.responsavelCor ?? FALLBACK_COR}`, cursor: "pointer" }}
               >
                 <div>
-                  <div className="text-[16px] font-semibold leading-[1.3]">{item.nome}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-[16px] font-semibold leading-[1.3]">{item.nome}</div>
+                    {item.geradoPorIa && (
+                      <span className="shrink-0 border border-acento-escuro px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-acento-escuro">
+                        Gerado por IA
+                      </span>
+                    )}
+                  </div>
                   <div className="mt-1 text-[12.5px] text-neutro-700">
                     {item.responsavelNome ?? "Sem responsável"} · {item.fase ?? "—"} · {item.materia}
                   </div>

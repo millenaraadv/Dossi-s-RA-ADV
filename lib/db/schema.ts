@@ -94,6 +94,11 @@ export const dossiers = pgTable(
     versao: text("versao").notNull().default("v1"),
     marco: text("marco"),
     revisorId: uuid("revisor_id").references(() => users.id, { onDelete: "restrict" }),
+    // true só quando criado por processImport (lib/ai/import-processor.ts) —
+    // nunca aceito via API pública (createDossierSchema não tem esse campo).
+    // Enquanto nenhum humano concluir uma edição (revisorId ainda nulo), o
+    // rodapé de versões mostra "Gerado por IA" em vez de "—" nesse lugar.
+    geradoPorIa: boolean("gerado_por_ia").notNull().default(false),
     atualizadoEm: timestamp("atualizado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
     arquivado: boolean("arquivado").notNull().default(false),
     criadoEm: timestamp("criado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),

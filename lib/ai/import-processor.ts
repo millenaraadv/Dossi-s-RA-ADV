@@ -102,6 +102,7 @@ export async function processImport(importId: string, actorId: string): Promise<
         responsavelId: null,
       },
       actorId,
+      { geradoPorIa: true },
     );
 
     await updateDossierGeneral(

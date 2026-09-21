@@ -199,9 +199,16 @@ export function DossierView({
 
       <div className="mt-4 flex items-start justify-between gap-4">
         <div className="w-[62%]">
-          <h1 className="text-[23px] font-light leading-[1.25] tracking-[0.03em] text-balance">
-            {dossier.cliente} - {dossier.caso}
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-[23px] font-light leading-[1.25] tracking-[0.03em] text-balance">
+              {dossier.cliente} - {dossier.caso}
+            </h1>
+            {dossier.geradoPorIa && (
+              <span className="shrink-0 border border-acento-escuro px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-acento-escuro">
+                Gerado por IA
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-[15px] tracking-[0.1em] text-acento-escuro">Proc. {dossier.numeroProcesso}</p>
         </div>
         <div className="flex items-start gap-2">

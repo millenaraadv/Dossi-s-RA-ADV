@@ -33,6 +33,7 @@ export type DossierFull = {
   marco: string | null;
   revisorId: string | null;
   revisor: UsuarioRef;
+  geradoPorIa: boolean;
   atualizadoEm: string;
   arquivado: boolean;
   criadoEm: string;

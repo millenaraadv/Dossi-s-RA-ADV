@@ -1,0 +1,1 @@
+ALTER TABLE "dossiers" ADD COLUMN "gerado_por_ia" boolean DEFAULT false NOT NULL;

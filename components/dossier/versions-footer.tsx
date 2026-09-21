@@ -59,7 +59,9 @@ export function VersionsFooter({ dossier }: { dossier: DossierFull }) {
           <div className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-neutro-700">
             Responsável pela revisão
           </div>
-          <div className="mt-1 text-[13.5px]">{dossier.revisor?.nome ?? "—"}</div>
+          <div className="mt-1 text-[13.5px]">
+            {dossier.revisor?.nome ?? (dossier.geradoPorIa ? "Gerado por IA" : "—")}
+          </div>
         </div>
         <div className="col-span-4 text-[11px] text-acento-escuro">
           Clique para ver o histórico de atualizações

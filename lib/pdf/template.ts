@@ -67,7 +67,7 @@ export function buildFooterTemplate(d: DossierFull): string {
   return `
     <div style="width:100%; font-size:7pt; padding:0 0.7in; font-family:Arial,Helvetica,sans-serif; color:${COR.neutro700};">
       <div style="display:flex; justify-content:space-between;">
-        <span>Atualizado em ${esc(formatarDataLonga(d.atualizadoEm.slice(0, 10)))} · v${esc(d.versao)} — ${esc(d.marco)} · Revisão: ${esc(d.revisor?.nome ?? "—")} · Próxima revisão: ${esc(proximaRevisao(d))}</span>
+        <span>Atualizado em ${esc(formatarDataLonga(d.atualizadoEm.slice(0, 10)))} · v${esc(d.versao)} — ${esc(d.marco)} · Revisão: ${esc(d.revisor?.nome ?? (d.geradoPorIa ? "Gerado por IA" : "—"))} · Próxima revisão: ${esc(proximaRevisao(d))}</span>
         <span class="pageNumber"></span>
       </div>
     </div>`;

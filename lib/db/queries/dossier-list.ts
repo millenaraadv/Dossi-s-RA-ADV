@@ -14,6 +14,7 @@ export type DossierListItem = {
   responsavelCor: string | null;
   proximaAcao: string | null;
   proximaData: string | null;
+  geradoPorIa: boolean;
 };
 
 /**
@@ -48,6 +49,7 @@ export async function listDossiers(params: {
       d.responsavel_id AS "responsavelId",
       u.nome AS "responsavelNome",
       u.cor AS "responsavelCor",
+      d.gerado_por_ia AS "geradoPorIa",
       prox.acao AS "proximaAcao",
       prox.proxima_data::text AS "proximaData"
     FROM dossiers d

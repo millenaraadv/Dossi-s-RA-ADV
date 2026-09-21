@@ -37,8 +37,13 @@ function brDateToIso(texto: string): string | null {
   return `${y}-${mo}-${d}`;
 }
 
-export async function createDossier(input: CreateInput, actorId: string): Promise<{ id: string }> {
+export async function createDossier(
+  input: CreateInput,
+  actorId: string,
+  opcoes?: { geradoPorIa?: boolean },
+): Promise<{ id: string }> {
   return db.transaction(async (tx) => {
+    const geradoPorIa = opcoes?.geradoPorIa ?? false;
     const nome = computeDossierName(input);
     const [dossier] = await tx
       .insert(dossiers)
@@ -49,7 +54,10 @@ export async function createDossier(input: CreateInput, actorId: string): Promis
         nome,
         materia: input.materia,
         responsavelId: input.responsavelId ?? null,
-        revisorId: actorId,
+        // Importado por IA ainda não foi revisado por ninguém — não atribui
+        // quem disparou a importação como se já tivesse revisado o conteúdo.
+        revisorId: geradoPorIa ? null : actorId,
+        geradoPorIa,
         marco: "Abertura do dossiê",
         versao: "v1",
       })
@@ -65,7 +73,7 @@ export async function createDossier(input: CreateInput, actorId: string): Promis
       versao: "v1",
       data: new Date().toISOString().slice(0, 10),
       marco: "Abertura do dossiê",
-      revisorId: actorId,
+      revisorId: geradoPorIa ? null : actorId,
       etapa: null,
     });
 
