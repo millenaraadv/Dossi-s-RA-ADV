@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { LoadingDots } from "@/components/ui/loading-dots";
 
 type Status = "idle" | "enviando" | "lendo" | "processando" | "erro" | "concluido";
 
@@ -106,10 +107,13 @@ export function ImportarAutosModal({ onClose }: { onClose: () => void }) {
         )}
 
         {emAndamento && (
-          <div className="mt-5 border-l-[3px] border-acento bg-neutro-100 px-3 py-3 text-[13.5px] text-texto">
-            {status === "enviando" && `Enviando ${nomeArquivo}…`}
-            {status === "lendo" && `Lendo ${nomeArquivo}…`}
-            {status === "processando" && "Extraindo as informações dos autos…"}
+          <div className="mt-5 flex items-center gap-2 border-l-[3px] border-acento bg-neutro-100 px-3 py-3 text-[13.5px] text-texto">
+            <span>
+              {status === "enviando" && `Enviando ${nomeArquivo}…`}
+              {status === "lendo" && `Lendo ${nomeArquivo}…`}
+              {status === "processando" && "Extraindo as informações dos autos…"}
+            </span>
+            <LoadingDots />
           </div>
         )}
 

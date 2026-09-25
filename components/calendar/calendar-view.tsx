@@ -9,6 +9,7 @@ import { WeekColumns } from "@/components/calendar/week-columns";
 import { EventoModal } from "@/components/calendar/evento-modal";
 import { DayListModal } from "@/components/calendar/day-list-modal";
 import type { CalendarResponse, EventoAberto, EventoRealizado } from "@/components/calendar/types";
+import { LoadingDots } from "@/components/ui/loading-dots";
 
 type Membro = { id: string; nome: string; cor: string | null };
 type Modo = "mes" | "semana";
@@ -174,6 +175,7 @@ export function CalendarView({
             Atrasadas
           </button>
         </div>
+        {carregando && <LoadingDots className="text-acento-escuro" />}
       </div>
 
       <div className={`mt-6 ${carregando ? "opacity-60" : ""}`}>

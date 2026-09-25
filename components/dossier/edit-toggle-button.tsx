@@ -1,5 +1,7 @@
 "use client";
 
+import { LoadingDots } from "@/components/ui/loading-dots";
+
 export function EditToggleButton({
   editing,
   salvando,
@@ -41,7 +43,13 @@ export function EditToggleButton({
         disabled={salvando}
         className="border border-acento bg-acento px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white disabled:opacity-60"
       >
-        {salvando ? "Salvando…" : "Concluir edição"}
+        {salvando ? (
+          <span className="inline-flex items-center gap-2">
+            Salvando <LoadingDots />
+          </span>
+        ) : (
+          "Concluir edição"
+        )}
       </button>
     </div>
   );

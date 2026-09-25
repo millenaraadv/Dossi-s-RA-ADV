@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { LoadingDots } from "@/components/ui/loading-dots";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -116,7 +117,13 @@ export default function LoginPage() {
             disabled={enviando}
             className="mt-2 bg-acento px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-white hover:bg-acento-escuro disabled:opacity-60"
           >
-            {enviando ? "Entrando…" : "Entrar"}
+            {enviando ? (
+              <span className="inline-flex items-center gap-2">
+                Entrando <LoadingDots />
+              </span>
+            ) : (
+              "Entrar"
+            )}
           </button>
         </form>
       </div>

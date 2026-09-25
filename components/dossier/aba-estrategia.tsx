@@ -8,6 +8,7 @@ import type { EstrategiaForm } from "@/components/dossier/types";
 import type { DossierFull } from "@/lib/types/dossier";
 import { createStep, createDeadline } from "@/lib/client/dossier-api";
 import { normalizarDataDigitada } from "@/lib/dates";
+import { LoadingDots } from "@/components/ui/loading-dots";
 
 type Membro = { id: string; nome: string; cor: string | null };
 
@@ -208,9 +209,9 @@ export function AbaEstrategia({
                   type="button"
                   onClick={adicionarPasso}
                   disabled={criando}
-                  className="self-start bg-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-white disabled:opacity-60"
+                  className="inline-flex items-center gap-2 self-start bg-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-white disabled:opacity-60"
                 >
-                  Adicionar
+                  Adicionar {criando && <LoadingDots />}
                 </button>
               </div>
             ) : (
@@ -272,9 +273,9 @@ export function AbaEstrategia({
                   type="button"
                   onClick={adicionarPrazo}
                   disabled={criandoPrazo}
-                  className="self-start bg-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-white disabled:opacity-60"
+                  className="inline-flex items-center gap-2 self-start bg-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-white disabled:opacity-60"
                 >
-                  Adicionar
+                  Adicionar {criandoPrazo && <LoadingDots />}
                 </button>
               </div>
             ) : (

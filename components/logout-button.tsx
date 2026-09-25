@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { LoadingDots } from "@/components/ui/loading-dots";
 
 export function LogoutButton() {
   const router = useRouter();
@@ -21,7 +22,13 @@ export function LogoutButton() {
       disabled={saindo}
       className="border border-acento bg-transparent px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.08em] whitespace-nowrap text-texto hover:bg-neutro-200"
     >
-      {saindo ? "Saindo…" : "Sair"}
+      {saindo ? (
+        <span className="inline-flex items-center gap-2">
+          Saindo <LoadingDots />
+        </span>
+      ) : (
+        "Sair"
+      )}
     </button>
   );
 }

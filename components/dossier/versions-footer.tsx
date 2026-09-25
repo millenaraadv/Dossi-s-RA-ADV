@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { DossierFull } from "@/lib/types/dossier";
 import { formatarDataBr } from "@/lib/dates";
+import { LoadingDots } from "@/components/ui/loading-dots";
 
 type AuditTrailEntry = {
   id: string;
@@ -71,7 +72,9 @@ export function VersionsFooter({ dossier }: { dossier: DossierFull }) {
       {aberto && (
         <div className="mt-2">
           {carregando ? (
-            <p className="py-3 text-[13px] text-neutro-700">Carregando histórico…</p>
+            <p className="flex items-center gap-2 py-3 text-[13px] text-neutro-700">
+              Carregando histórico <LoadingDots />
+            </p>
           ) : !trilha || trilha.length === 0 ? (
             <p className="py-3 text-[13px] text-neutro-700">Nenhuma alteração registrada ainda.</p>
           ) : (

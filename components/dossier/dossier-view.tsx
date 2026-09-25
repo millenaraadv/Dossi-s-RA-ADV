@@ -10,6 +10,7 @@ import { AbaGerais } from "@/components/dossier/aba-gerais";
 import { AbaEstrategia } from "@/components/dossier/aba-estrategia";
 import { AbaArgumentos } from "@/components/dossier/aba-argumentos";
 import { VersionsFooter } from "@/components/dossier/versions-footer";
+import { LoadingDots } from "@/components/ui/loading-dots";
 import type { GeraisForm, EstrategiaForm, ArgumentoForm } from "@/components/dossier/types";
 
 type Membro = { id: string; nome: string; cor: string | null };
@@ -227,7 +228,13 @@ export function DossierView({
               disabled={arquivando}
               className="border border-acento-escuro bg-transparent px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-acento-escuro hover:bg-neutro-200 disabled:opacity-60"
             >
-              {arquivando ? "Arquivando…" : "Arquivar"}
+              {arquivando ? (
+                <span className="inline-flex items-center gap-2">
+                  Arquivando <LoadingDots />
+                </span>
+              ) : (
+                "Arquivar"
+              )}
             </button>
           )}
         </div>

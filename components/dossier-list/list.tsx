@@ -6,6 +6,7 @@ import Image from "next/image";
 import type { DossierListItem, OrdemLista } from "@/lib/db/queries/dossier-list";
 import { formatarDataBr, estaAtrasada } from "@/lib/dates";
 import { nomeCurto } from "@/lib/text";
+import { LoadingDots } from "@/components/ui/loading-dots";
 
 type Membro = { id: string; nome: string; cor: string | null };
 
@@ -85,8 +86,9 @@ export function DossiesList({
               Demanda mais recente
             </button>
           </div>
-          <span className="text-[12px] uppercase text-neutro-700">
+          <span className="flex items-center gap-2 text-[12px] uppercase text-neutro-700">
             {itens.length} de {total} processos
+            {carregando && <LoadingDots />}
           </span>
         </div>
       </div>

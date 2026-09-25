@@ -4,6 +4,7 @@ import { useState } from "react";
 import { formatarDataBr, estaAtrasada } from "@/lib/dates";
 import { updateStep, deleteStep, addAttempt } from "@/lib/client/dossier-api";
 import type { DossierFull } from "@/lib/types/dossier";
+import { LoadingDots } from "@/components/ui/loading-dots";
 
 type Passo = DossierFull["passos"][number];
 type Membro = { id: string; nome: string; cor: string | null };
@@ -95,9 +96,9 @@ export function PassoRow({
           type="button"
           onClick={excluir}
           disabled={salvando}
-          className="border border-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-acento-escuro hover:bg-tinta-clara disabled:opacity-60"
+          className="inline-flex items-center gap-2 border border-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-acento-escuro hover:bg-tinta-clara disabled:opacity-60"
         >
-          Excluir
+          Excluir {salvando && <LoadingDots />}
         </button>
       </div>
     );
@@ -121,9 +122,9 @@ export function PassoRow({
               type="button"
               onClick={alternarConcluido}
               disabled={salvando}
-              className="border border-acento px-2 py-1 text-[10.5px] font-semibold uppercase text-texto hover:bg-neutro-200 disabled:opacity-60"
+              className="inline-flex items-center gap-2 border border-acento px-2 py-1 text-[10.5px] font-semibold uppercase text-texto hover:bg-neutro-200 disabled:opacity-60"
             >
-              {passo.concluido ? "Reabrir" : "Concluir"}
+              {passo.concluido ? "Reabrir" : "Concluir"} {salvando && <LoadingDots />}
             </button>
             <button
               type="button"
@@ -153,9 +154,9 @@ export function PassoRow({
               type="button"
               onClick={registrarTentativa}
               disabled={salvando}
-              className="self-start bg-acento px-3 py-1 text-[11px] font-semibold uppercase text-white disabled:opacity-60"
+              className="inline-flex items-center gap-2 self-start bg-acento px-3 py-1 text-[11px] font-semibold uppercase text-white disabled:opacity-60"
             >
-              Registrar
+              Registrar {salvando && <LoadingDots />}
             </button>
           </div>
         )}

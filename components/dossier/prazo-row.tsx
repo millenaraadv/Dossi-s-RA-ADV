@@ -4,6 +4,7 @@ import { useState } from "react";
 import { updateDeadline, deleteDeadline } from "@/lib/client/dossier-api";
 import type { DossierFull } from "@/lib/types/dossier";
 import { normalizarDataDigitada } from "@/lib/dates";
+import { LoadingDots } from "@/components/ui/loading-dots";
 
 type Prazo = DossierFull["prazos"][number];
 type Membro = { id: string; nome: string; cor: string | null };
@@ -101,9 +102,9 @@ export function PrazoRow({
             type="button"
             onClick={excluir}
             disabled={salvando}
-            className="border border-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-acento-escuro hover:bg-tinta-clara disabled:opacity-60"
+            className="inline-flex items-center gap-2 border border-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-acento-escuro hover:bg-tinta-clara disabled:opacity-60"
           >
-            Excluir
+            Excluir {salvando && <LoadingDots />}
           </button>
         </div>
       </div>
@@ -123,9 +124,9 @@ export function PrazoRow({
               type="button"
               onClick={() => marcar({ redacaoOk: !prazo.redacaoOk })}
               disabled={salvando}
-              className="self-start border border-acento px-2 py-1 text-[10.5px] font-semibold uppercase text-texto hover:bg-neutro-200 disabled:opacity-60"
+              className="inline-flex items-center gap-2 self-start border border-acento px-2 py-1 text-[10.5px] font-semibold uppercase text-texto hover:bg-neutro-200 disabled:opacity-60"
             >
-              {prazo.redacaoOk ? "Concluída" : "Marcar"}
+              {prazo.redacaoOk ? "Concluída" : "Marcar"} {salvando && <LoadingDots />}
             </button>
           )}
           <input
@@ -148,9 +149,9 @@ export function PrazoRow({
               type="button"
               onClick={() => marcar({ correcaoOk: !prazo.correcaoOk })}
               disabled={salvando}
-              className="self-start border border-acento px-2 py-1 text-[10.5px] font-semibold uppercase text-texto hover:bg-neutro-200 disabled:opacity-60"
+              className="inline-flex items-center gap-2 self-start border border-acento px-2 py-1 text-[10.5px] font-semibold uppercase text-texto hover:bg-neutro-200 disabled:opacity-60"
             >
-              {prazo.correcaoOk ? "Concluída" : "Marcar"}
+              {prazo.correcaoOk ? "Concluída" : "Marcar"} {salvando && <LoadingDots />}
             </button>
           )}
           <select
@@ -173,9 +174,9 @@ export function PrazoRow({
               type="button"
               onClick={() => marcar({ protocoloOk: !prazo.protocoloOk })}
               disabled={salvando}
-              className="self-start border border-acento px-2 py-1 text-[10.5px] font-semibold uppercase text-texto hover:bg-neutro-200 disabled:opacity-60"
+              className="inline-flex items-center gap-2 self-start border border-acento px-2 py-1 text-[10.5px] font-semibold uppercase text-texto hover:bg-neutro-200 disabled:opacity-60"
             >
-              {prazo.protocoloOk ? "Protocolado" : "Marcar"}
+              {prazo.protocoloOk ? "Protocolado" : "Marcar"} {salvando && <LoadingDots />}
             </button>
           )}
           <input

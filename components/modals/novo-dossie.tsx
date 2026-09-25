@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MATERIAS } from "@/lib/dossier-constants";
 import { capitalizarNome } from "@/lib/text";
+import { LoadingDots } from "@/components/ui/loading-dots";
 
 type Membro = { id: string; nome: string; cor: string | null };
 
@@ -153,7 +154,13 @@ export function NovoDossieModal({
             disabled={enviando}
             className="bg-acento px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-white hover:bg-acento-escuro disabled:opacity-60"
           >
-            {enviando ? "Criando…" : "Criar e abrir"}
+            {enviando ? (
+              <span className="inline-flex items-center gap-2">
+                Criando <LoadingDots />
+              </span>
+            ) : (
+              "Criar e abrir"
+            )}
           </button>
         </div>
       </div>
