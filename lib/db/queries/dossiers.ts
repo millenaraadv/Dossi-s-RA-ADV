@@ -84,6 +84,7 @@ export async function createDossier(
       entidadeId: dossier.id,
       acao: "criar",
       depois: { cliente: input.cliente, caso: input.caso, numeroProcesso: input.numeroProcesso, materia: input.materia },
+      viaIa: geradoPorIa,
     });
 
     return { id: dossier.id };
@@ -122,7 +123,12 @@ async function getDossierOrThrow(id: string) {
   return row;
 }
 
-export async function updateDossierGeneral(id: string, patch: PatchInput, actorId: string): Promise<void> {
+export async function updateDossierGeneral(
+  id: string,
+  patch: PatchInput,
+  actorId: string,
+  opcoes?: { viaIa?: boolean },
+): Promise<void> {
   await db.transaction(async (tx) => {
     const [antes] = await tx.select().from(dossiers).where(eq(dossiers.id, id)).limit(1);
     if (!antes) throw new NotFoundError("Dossiê não encontrado.");
@@ -181,11 +187,17 @@ export async function updateDossierGeneral(id: string, patch: PatchInput, actorI
       acao: "atualizar-gerais",
       antes,
       depois,
+      viaIa: opcoes?.viaIa ?? false,
     });
   });
 }
 
-export async function replaceTimeline(id: string, entries: TimelineInput, actorId: string): Promise<void> {
+export async function replaceTimeline(
+  id: string,
+  entries: TimelineInput,
+  actorId: string,
+  opcoes?: { viaIa?: boolean },
+): Promise<void> {
   await db.transaction(async (tx) => {
     await getDossierOrThrow(id);
     const antes = await tx.select().from(timelineEntries).where(eq(timelineEntries.dossierId, id));
@@ -211,11 +223,17 @@ export async function replaceTimeline(id: string, entries: TimelineInput, actorI
       acao: "substituir",
       antes,
       depois: entries,
+      viaIa: opcoes?.viaIa ?? false,
     });
   });
 }
 
-export async function replaceFirac(id: string, firac: FiracInput, actorId: string): Promise<void> {
+export async function replaceFirac(
+  id: string,
+  firac: FiracInput,
+  actorId: string,
+  opcoes?: { viaIa?: boolean },
+): Promise<void> {
   await db.transaction(async (tx) => {
     await getDossierOrThrow(id);
     const antes = await tx.select().from(firacBlocks).where(eq(firacBlocks.dossierId, id));
@@ -238,6 +256,7 @@ export async function replaceFirac(id: string, firac: FiracInput, actorId: strin
       acao: "substituir",
       antes,
       depois: firac,
+      viaIa: opcoes?.viaIa ?? false,
     });
   });
 }

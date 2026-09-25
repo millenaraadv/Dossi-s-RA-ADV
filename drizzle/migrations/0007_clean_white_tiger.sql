@@ -1,0 +1,1 @@
+ALTER TABLE "audit_log" ADD COLUMN "via_ia" boolean DEFAULT false NOT NULL;

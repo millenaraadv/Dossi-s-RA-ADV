@@ -15,6 +15,9 @@ type AuditEntry = {
   acao: string;
   antes?: unknown;
   depois?: unknown;
+  // true quando a mutação veio de processImport (importação de autos com
+  // IA), nunca de uma edição manual do usuário.
+  viaIa?: boolean;
 };
 
 /**
@@ -30,5 +33,6 @@ export async function audit(executor: Executor, entry: AuditEntry): Promise<void
     acao: entry.acao,
     antes: entry.antes ?? null,
     depois: entry.depois ?? null,
+    viaIa: entry.viaIa ?? false,
   });
 }

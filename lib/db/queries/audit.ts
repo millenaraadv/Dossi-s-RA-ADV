@@ -23,6 +23,7 @@ export async function getDossierAuditTrail(dossierId: string): Promise<AuditTrai
       depois: auditLog.depois,
       criadoEm: auditLog.criadoEm,
       autor: users.nome,
+      viaIa: auditLog.viaIa,
     })
     .from(auditLog)
     .leftJoin(users, eq(users.id, auditLog.userId))
@@ -33,7 +34,7 @@ export async function getDossierAuditTrail(dossierId: string): Promise<AuditTrai
     id: r.id,
     entidade: r.entidade,
     acao: r.acao,
-    autor: r.autor,
+    autor: r.autor && r.viaIa ? `${r.autor} (IA)` : r.autor,
     criadoEm: r.criadoEm,
     descricao: describeAuditEntry(r),
   }));

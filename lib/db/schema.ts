@@ -272,6 +272,10 @@ export const auditLog = pgTable(
     acao: text("acao").notNull(),
     antes: jsonb("antes"),
     depois: jsonb("depois"),
+    // true só quando a mutação foi feita por processImport (importação de
+    // autos com IA), nunca por uma edição manual — mostrado como "(IA)" ao
+    // lado do autor no histórico (README 4.1, item 6).
+    viaIa: boolean("via_ia").notNull().default(false),
     criadoEm: timestamp("criado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
   },
   (t) => [

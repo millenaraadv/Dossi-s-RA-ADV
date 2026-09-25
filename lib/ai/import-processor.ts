@@ -102,11 +102,12 @@ export async function processImport(importId: string, actorId: string): Promise<
         resumo: resultado.resumo,
       },
       actorId,
+      { viaIa: true },
     );
 
     const timeline = resultado.timeline.filter((t) => t.dataTexto.trim() && t.ato.trim());
     if (timeline.length > 0) {
-      await replaceTimeline(dossierId, timeline, actorId);
+      await replaceTimeline(dossierId, timeline, actorId, { viaIa: true });
     }
 
     const firacNaoVazio = {
@@ -116,7 +117,7 @@ export async function processImport(importId: string, actorId: string): Promise<
       a: resultado.firac.a.filter((p) => p.trim()),
       c: resultado.firac.c.filter((p) => p.trim()),
     };
-    await replaceFirac(dossierId, firacNaoVazio, actorId);
+    await replaceFirac(dossierId, firacNaoVazio, actorId, { viaIa: true });
 
     await updateImportStatus(importId, {
       status: "concluido",
