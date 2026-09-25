@@ -141,6 +141,15 @@ export function ImportarAutosModal({ onClose }: { onClose: () => void }) {
               Importar
             </button>
           )}
+          {status === "enviando" && (
+            <button
+              type="button"
+              disabled
+              className="inline-flex items-center gap-2 bg-acento px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-white disabled:opacity-60"
+            >
+              Carregando arquivo <LoadingDots />
+            </button>
+          )}
         </div>
       </div>
     </div>
