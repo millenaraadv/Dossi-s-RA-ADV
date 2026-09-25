@@ -24,8 +24,49 @@ const MODEL = "gemini-flash-latest";
 const TENTATIVAS = 3;
 const ESPERA_BASE_MS = 2000;
 
+// A mensagem do ApiError é o corpo bruto da resposta HTTP, stringificado
+// (ver node_modules/@google/genai/dist/index.mjs, throwErrorIfNotOK) — nunca
+// texto pensado para aparecer para o usuário final.
+function corpoDoErro(err: ApiError): { message?: string; status?: string } | null {
+  try {
+    return JSON.parse(err.message)?.error ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// 429 cobre dois casos bem diferentes: limite de requisições por minuto (vale
+// tentar de novo em segundos) e cota diária gratuita esgotada
+// (RESOURCE_EXHAUSTED) — essa última não se resolve dentro da mesma
+// requisição, então repetir só atrasa um erro que já é certo.
+function ehLimiteDeCotaEsgotada(err: unknown): boolean {
+  if (!(err instanceof ApiError) || err.status !== 429) return false;
+  return corpoDoErro(err)?.status === "RESOURCE_EXHAUSTED";
+}
+
 function ehErroTransitorio(err: unknown): boolean {
-  return err instanceof ApiError && (err.status === 503 || err.status === 429);
+  if (!(err instanceof ApiError)) return false;
+  if (err.status === 503) return true;
+  return err.status === 429 && !ehLimiteDeCotaEsgotada(err);
+}
+
+// Converte o erro do provedor numa mensagem em português que faça sentido
+// pra quem está usando o sistema — sem isso, o usuário via o JSON bruto da
+// API do Gemini na tela (código, links de documentação, etc.).
+function mensagemAmigavel(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (ehLimiteDeCotaEsgotada(err)) {
+      return "Limite gratuito diário do Gemini foi atingido. Tente novamente mais tarde — a cota é renovada a cada 24h.";
+    }
+    if (err.status === 503) {
+      return "O Gemini está temporariamente sobrecarregado (alta demanda). Tente novamente em alguns minutos.";
+    }
+    if (err.status === 429) {
+      return "Limite de requisições por minuto do Gemini atingido. Tente novamente em instantes.";
+    }
+    return corpoDoErro(err)?.message ?? "Não foi possível obter resposta da IA.";
+  }
+  return err instanceof Error ? err.message : "Erro desconhecido ao chamar a IA.";
 }
 
 function esperar(ms: number): Promise<void> {
@@ -62,7 +103,7 @@ export async function gerarJson(prompt: string): Promise<string> {
       return texto;
     } catch (err) {
       const ultimaTentativa = tentativa === TENTATIVAS;
-      if (!ehErroTransitorio(err) || ultimaTentativa) throw err;
+      if (!ehErroTransitorio(err) || ultimaTentativa) throw new Error(mensagemAmigavel(err));
       await esperar(ESPERA_BASE_MS * tentativa);
     }
   }
