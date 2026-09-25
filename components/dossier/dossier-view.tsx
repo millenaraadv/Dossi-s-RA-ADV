@@ -317,6 +317,7 @@ export function DossierView({
             onConcluir={concluirEstrategia}
             onPassosChanged={refresh}
             onPrazosChanged={refresh}
+            onDossierChanged={refresh}
           />
         )}
         {tab === 2 && (

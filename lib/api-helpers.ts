@@ -2,7 +2,7 @@ import "server-only";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { ForbiddenError } from "@/lib/auth/permissions";
-import { NotFoundError } from "@/lib/errors";
+import { NotFoundError, AiError } from "@/lib/errors";
 
 export function handleRouteError(err: unknown): NextResponse {
   if (err instanceof ZodError) {
@@ -13,6 +13,9 @@ export function handleRouteError(err: unknown): NextResponse {
   }
   if (err instanceof NotFoundError) {
     return NextResponse.json({ erro: err.message }, { status: 404 });
+  }
+  if (err instanceof AiError) {
+    return NextResponse.json({ erro: err.message }, { status: 503 });
   }
   console.error(err);
   return NextResponse.json({ erro: "Erro interno." }, { status: 500 });

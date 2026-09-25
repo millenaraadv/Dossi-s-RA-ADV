@@ -152,3 +152,37 @@ export async function deleteDeadline(deadlineId: string): Promise<void> {
 export async function archiveDossier(id: string): Promise<void> {
   await asJsonOrThrow(await fetch(`/api/dossiers/${id}/archive`, { method: "POST" }));
 }
+
+export type SugestaoEstrategia = {
+  objetivo: string;
+  passos: { acao: string; proximaData: string }[];
+  riscos: string[];
+};
+
+export type SugestaoArgumento = {
+  titulo: string;
+  fato: string;
+  previsaoLegal: string;
+  jurisprudencia: string;
+  doutrina: string;
+};
+
+export async function suggestEstrategia(dossierId: string): Promise<SugestaoEstrategia> {
+  return asJsonOrThrow(
+    await fetch(`/api/dossiers/${dossierId}/suggest`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ etapa: 1 }),
+    }),
+  );
+}
+
+export async function suggestArgumentos(dossierId: string): Promise<{ argumentos: SugestaoArgumento[] }> {
+  return asJsonOrThrow(
+    await fetch(`/api/dossiers/${dossierId}/suggest`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ etapa: 2 }),
+    }),
+  );
+}

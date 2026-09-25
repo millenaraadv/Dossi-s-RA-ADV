@@ -62,3 +62,7 @@ export const argumentsReplaceSchema = z.array(
 export const concludeEditSchema = z.object({
   etapa: z.union([z.literal(0), z.literal(1), z.literal(2)]),
 });
+
+export const suggestRequestSchema = z.object({
+  etapa: z.union([z.literal(1), z.literal(2)]),
+});

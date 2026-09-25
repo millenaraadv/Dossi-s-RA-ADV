@@ -1,5 +1,6 @@
 import "server-only";
 import { GoogleGenAI, ApiError } from "@google/genai";
+import { AiError } from "@/lib/errors";
 
 let client: GoogleGenAI | null = null;
 
@@ -103,10 +104,10 @@ export async function gerarJson(prompt: string): Promise<string> {
       return texto;
     } catch (err) {
       const ultimaTentativa = tentativa === TENTATIVAS;
-      if (!ehErroTransitorio(err) || ultimaTentativa) throw new Error(mensagemAmigavel(err));
+      if (!ehErroTransitorio(err) || ultimaTentativa) throw new AiError(mensagemAmigavel(err));
       await esperar(ESPERA_BASE_MS * tentativa);
     }
   }
 
-  throw new Error("Não foi possível obter resposta da IA.");
+  throw new AiError("Não foi possível obter resposta da IA.");
 }

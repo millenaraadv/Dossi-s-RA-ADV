@@ -1,9 +1,11 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { EditToggleButton } from "@/components/dossier/edit-toggle-button";
 import type { ArgumentoForm } from "@/components/dossier/types";
 import type { DossierFull } from "@/lib/types/dossier";
+import { suggestArgumentos, type SugestaoArgumento } from "@/lib/client/dossier-api";
+import { LoadingDots } from "@/components/ui/loading-dots";
 
 const inputClass = "w-full border border-borda-campo bg-neutro-100 p-2 text-[13.5px] text-texto outline-none";
 
@@ -28,6 +30,10 @@ export function AbaArgumentos({
   onCancel: () => void;
   onConcluir: () => void;
 }) {
+  const [sugestoes, setSugestoes] = useState<SugestaoArgumento[] | null>(null);
+  const [carregandoSugestao, setCarregandoSugestao] = useState(false);
+  const [erroSugestao, setErroSugestao] = useState<string | null>(null);
+
   function atualizar(i: number, campo: keyof ArgumentoForm, valor: string) {
     setForm((atual) => {
       const next = [...atual];
@@ -36,19 +42,47 @@ export function AbaArgumentos({
     });
   }
 
+  async function pedirSugestao() {
+    setCarregandoSugestao(true);
+    setErroSugestao(null);
+    try {
+      setSugestoes((await suggestArgumentos(dossier.id)).argumentos);
+    } catch (e) {
+      setErroSugestao(e instanceof Error ? e.message : "Não foi possível obter sugestões da IA.");
+    } finally {
+      setCarregandoSugestao(false);
+    }
+  }
+
+  function adicionarSugestao(indice: number) {
+    const sugestao = sugestoes?.[indice];
+    if (!sugestao) return;
+    if (!isEditing) onStartEdit();
+    setForm((atual) => [...atual, { ...sugestao }]);
+    setSugestoes((atual) => (atual ? atual.filter((_, i) => i !== indice) : atual));
+  }
+
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-[15px] font-normal">Argumentos e embasamento</h2>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            disabled
-            title="Disponível a partir do item 7 da implementação"
-            className="border border-ambar bg-transparent px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ambar disabled:opacity-60"
-          >
-            Sugestões da IA
-          </button>
+          {podeEditar && (
+            <button
+              type="button"
+              onClick={pedirSugestao}
+              disabled={carregandoSugestao}
+              className="inline-flex items-center gap-2 border border-ambar bg-transparent px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ambar hover:bg-tinta-clara disabled:opacity-60"
+            >
+              {carregandoSugestao ? (
+                <>
+                  Lendo o dossiê e redigindo sugestões <LoadingDots />
+                </>
+              ) : (
+                "Sugestões da IA"
+              )}
+            </button>
+          )}
           {podeEditar && (
             <EditToggleButton
               editing={isEditing}
@@ -64,6 +98,43 @@ export function AbaArgumentos({
       <div className="border-l-[3px] border-acento bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">
         Jurisprudência e doutrina precisam ser conferidas antes do protocolo.
       </div>
+
+      {erroSugestao && (
+        <div className="mt-4 border-l-[3px] border-acento bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">
+          {erroSugestao}
+        </div>
+      )}
+
+      {sugestoes && sugestoes.length > 0 && (
+        <div className="mt-4 flex flex-col gap-4 border-l-[3px] border-ambar bg-tinta-clara p-4">
+          {sugestoes.map((s, i) => (
+            <div key={i} className="flex items-start justify-between gap-4 border-t border-acento pt-3 first:border-t-0 first:pt-0">
+              <div className="max-w-[70ch]">
+                <h3 className="text-[14.5px] font-normal">{s.titulo}</h3>
+                {s.fato && <p className="mt-1 text-[13px] text-texto">{s.fato}</p>}
+                <div className="mt-2 flex flex-col gap-1 text-[12.5px]">
+                  <span>
+                    <strong className="font-semibold">Previsão legal:</strong> {s.previsaoLegal || "—"}
+                  </span>
+                  <span>
+                    <strong className="font-semibold">Jurisprudência:</strong> {s.jurisprudencia || "—"}
+                  </span>
+                  <span>
+                    <strong className="font-semibold">Doutrina:</strong> {s.doutrina || "—"}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => adicionarSugestao(i)}
+                className="inline-flex shrink-0 items-center gap-2 border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200"
+              >
+                + Adicionar
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {isEditing ? (
         <div className="mt-6 flex flex-col gap-6">

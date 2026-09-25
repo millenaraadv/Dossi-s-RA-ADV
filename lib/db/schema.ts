@@ -56,6 +56,8 @@ export const importStatusEnum = pgEnum("import_status", [
   "erro",
 ]);
 
+export const etapaSugestaoEnum = pgEnum("etapa_sugestao", ["estrategia", "argumentos"]);
+
 export const users = pgTable("users", {
   id: uuid("id")
     .primaryKey()
@@ -257,6 +259,22 @@ export const imports = pgTable(
     criadoEm: timestamp("criado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
   },
   (t) => [index("imports_dossier_idx").on(t.dossierId)],
+).enableRLS();
+
+// Sugestões da IA para as etapas 2/3 (README 4.2/4.3) — nunca gravadas
+// direto no dossiê, só a resposta bruta fica aqui (auditoria) e a contagem
+// por usuário serve de rate limit, mesmo padrão de `imports`.
+export const aiSuggestions = pgTable(
+  "ai_suggestions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    dossierId: uuid("dossier_id").notNull().references(() => dossiers.id, { onDelete: "cascade" }),
+    etapa: etapaSugestaoEnum("etapa").notNull(),
+    respostaBruta: jsonb("resposta_bruta"),
+    criadoPorId: uuid("criado_por_id").references(() => users.id, { onDelete: "restrict" }),
+    criadoEm: timestamp("criado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
+  },
+  (t) => [index("ai_suggestions_dossier_idx").on(t.dossierId)],
 ).enableRLS();
 
 export const auditLog = pgTable(

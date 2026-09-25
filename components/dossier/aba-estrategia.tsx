@@ -6,8 +6,14 @@ import { PassoRow } from "@/components/dossier/passo-row";
 import { PrazoRow } from "@/components/dossier/prazo-row";
 import type { EstrategiaForm } from "@/components/dossier/types";
 import type { DossierFull } from "@/lib/types/dossier";
-import { createStep, createDeadline } from "@/lib/client/dossier-api";
-import { normalizarDataDigitada } from "@/lib/dates";
+import {
+  createStep,
+  createDeadline,
+  patchDossier,
+  suggestEstrategia,
+  type SugestaoEstrategia,
+} from "@/lib/client/dossier-api";
+import { normalizarDataDigitada, formatarDataBr } from "@/lib/dates";
 import { LoadingDots } from "@/components/ui/loading-dots";
 
 type Membro = { id: string; nome: string; cor: string | null };
@@ -29,6 +35,7 @@ export function AbaEstrategia({
   onConcluir,
   onPassosChanged,
   onPrazosChanged,
+  onDossierChanged,
 }: {
   dossier: DossierFull;
   isEditing: boolean;
@@ -44,6 +51,7 @@ export function AbaEstrategia({
   onConcluir: () => void;
   onPassosChanged: () => Promise<void>;
   onPrazosChanged: () => Promise<void>;
+  onDossierChanged: () => Promise<void>;
 }) {
   const [novaAberta, setNovaAberta] = useState(false);
   const [novaAcao, setNovaAcao] = useState("");
@@ -56,6 +64,48 @@ export function AbaEstrategia({
   const [novoPrazoContagem, setNovoPrazoContagem] = useState("");
   const [novoPrazoData, setNovoPrazoData] = useState("");
   const [criandoPrazo, setCriandoPrazo] = useState(false);
+
+  const [sugestao, setSugestao] = useState<SugestaoEstrategia | null>(null);
+  const [carregandoSugestao, setCarregandoSugestao] = useState(false);
+  const [erroSugestao, setErroSugestao] = useState<string | null>(null);
+  const [aplicandoObjetivo, setAplicandoObjetivo] = useState(false);
+  const [aplicandoPasso, setAplicandoPasso] = useState<number | null>(null);
+
+  async function pedirSugestao() {
+    setCarregandoSugestao(true);
+    setErroSugestao(null);
+    try {
+      setSugestao(await suggestEstrategia(dossier.id));
+    } catch (e) {
+      setErroSugestao(e instanceof Error ? e.message : "Não foi possível obter sugestões da IA.");
+    } finally {
+      setCarregandoSugestao(false);
+    }
+  }
+
+  async function substituirObjetivoSugerido() {
+    if (!sugestao) return;
+    setAplicandoObjetivo(true);
+    try {
+      await patchDossier(dossier.id, { objetivo: sugestao.objetivo });
+      await onDossierChanged();
+    } finally {
+      setAplicandoObjetivo(false);
+    }
+  }
+
+  async function adicionarPassoSugerido(indice: number) {
+    if (!sugestao) return;
+    const passo = sugestao.passos[indice];
+    setAplicandoPasso(indice);
+    try {
+      await createStep(dossier.id, { acao: passo.acao, responsavelId: null, proximaData: passo.proximaData || null });
+      await onDossierChanged();
+      setSugestao((atual) => (atual ? { ...atual, passos: atual.passos.filter((_, i) => i !== indice) } : atual));
+    } finally {
+      setAplicandoPasso(null);
+    }
+  }
 
   async function adicionarPasso() {
     if (!novaAcao.trim()) return;
@@ -99,14 +149,22 @@ export function AbaEstrategia({
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-[15px] font-normal">Estratégia</h2>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            disabled
-            title="Disponível a partir do item 7 da implementação"
-            className="border border-ambar bg-transparent px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ambar disabled:opacity-60"
-          >
-            Sugestões da IA
-          </button>
+          {podeEditar && (
+            <button
+              type="button"
+              onClick={pedirSugestao}
+              disabled={carregandoSugestao}
+              className="inline-flex items-center gap-2 border border-ambar bg-transparent px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ambar hover:bg-tinta-clara disabled:opacity-60"
+            >
+              {carregandoSugestao ? (
+                <>
+                  Lendo o dossiê e redigindo sugestões <LoadingDots />
+                </>
+              ) : (
+                "Sugestões da IA"
+              )}
+            </button>
+          )}
           {podeEditar && (
             <EditToggleButton
               editing={isEditing}
@@ -118,6 +176,71 @@ export function AbaEstrategia({
           )}
         </div>
       </div>
+
+      {erroSugestao && (
+        <div className="mb-4 border-l-[3px] border-acento bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">
+          {erroSugestao}
+        </div>
+      )}
+
+      {sugestao && (
+        <div className="mb-6 border-l-[3px] border-ambar bg-tinta-clara p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                Sugestão de objetivo
+              </div>
+              <p className="mt-1 max-w-[60ch] text-[14px] text-texto">{sugestao.objetivo}</p>
+            </div>
+            <button
+              type="button"
+              onClick={substituirObjetivoSugerido}
+              disabled={aplicandoObjetivo}
+              className="inline-flex shrink-0 items-center gap-2 border border-acento bg-transparent px-3 py-1.5 text-[11px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200 disabled:opacity-60"
+            >
+              Substituir objetivo {aplicandoObjetivo && <LoadingDots />}
+            </button>
+          </div>
+
+          {sugestao.passos.length > 0 && (
+            <div className="mt-4 border-t border-acento pt-3">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                Passos sugeridos
+              </div>
+              <div className="mt-2 flex flex-col gap-2">
+                {sugestao.passos.map((p, i) => (
+                  <div key={i} className="flex items-center justify-between gap-4">
+                    <div className="text-[13.5px]">
+                      {p.acao} <span className="text-neutro-700">· {formatarDataBr(p.proximaData)}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => adicionarPassoSugerido(i)}
+                      disabled={aplicandoPasso === i}
+                      className="inline-flex shrink-0 items-center gap-2 border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200 disabled:opacity-60"
+                    >
+                      + Adicionar {aplicandoPasso === i && <LoadingDots />}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {sugestao.riscos.length > 0 && (
+            <div className="mt-4 border-t border-acento pt-3">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                Riscos apontados
+              </div>
+              <ul className="mt-2 list-disc pl-4 text-[13.5px] text-texto">
+                {sugestao.riscos.map((r, i) => (
+                  <li key={i}>{r}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
 
       {isEditing ? (
         <label className="flex flex-col gap-1">
