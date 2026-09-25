@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { DossierFull } from "@/lib/types/dossier";
-import { ETAPAS } from "@/lib/dossier-constants";
+import { ETAPAS, camposNaoLocalizados } from "@/lib/dossier-constants";
 import { fetchDossier, patchDossier, putTimeline, putFirac, putArguments, concludeEdit, archiveDossier } from "@/lib/client/dossier-api";
 import { AbaGerais } from "@/components/dossier/aba-gerais";
 import { AbaEstrategia } from "@/components/dossier/aba-estrategia";
@@ -78,9 +78,12 @@ export function DossierView({
     abaInicial === "1" ? 1 : abaInicial === "2" ? 2 : 0,
   );
   // Dossiê recém-criado por importação de autos: abre direto em edição na
-  // etapa 1, com o aviso de campos não localizados (README 4.1, item 5/6).
-  const naoLocalizados = searchParams.get("naoLocalizados")?.split(",").filter(Boolean) ?? [];
-  const [editAba, setEditAba] = useState<0 | 1 | 2 | null>(() => (naoLocalizados.length > 0 ? 0 : null));
+  // etapa 1 (README 4.1, item 5/6). O aviso em si (abaixo) é recalculado a
+  // cada render a partir do dossiê atual, não deste parâmetro — senão ele
+  // nunca some depois que o usuário corrige o campo e salva.
+  const vemDeImportacao = (searchParams.get("naoLocalizados")?.length ?? 0) > 0;
+  const [editAba, setEditAba] = useState<0 | 1 | 2 | null>(() => (vemDeImportacao ? 0 : null));
+  const camposAindaNaoLocalizados = camposNaoLocalizados(dossier);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [arquivando, setArquivando] = useState(false);
@@ -271,9 +274,9 @@ export function DossierView({
         ))}
       </div>
 
-      {tab === 0 && naoLocalizados.length > 0 && (
+      {tab === 0 && camposAindaNaoLocalizados.length > 0 && (
         <div className="mt-4 border-l-[3px] border-ambar bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">
-          A IA não localizou nos autos: {naoLocalizados.join(", ")}. Confira campo a campo antes de usar.
+          A IA não localizou nos autos: {camposAindaNaoLocalizados.join(", ")}. Confira campo a campo antes de usar.
         </div>
       )}
 

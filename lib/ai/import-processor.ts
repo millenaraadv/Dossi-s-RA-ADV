@@ -7,7 +7,8 @@ import { getImport, updateImportStatus } from "@/lib/db/queries/imports";
 import { createDossier, updateDossierGeneral, replaceTimeline, replaceFirac } from "@/lib/db/queries/dossiers";
 import { buildImportPrompt } from "@/lib/ai/prompts/import-autos";
 import { gerarJson } from "@/lib/ai/client";
-import { parseImportResult, type ImportResult } from "@/lib/ai/parse";
+import { parseImportResult } from "@/lib/ai/parse";
+import { NAO_LOCALIZADO, ROTULOS_CAMPOS_IMPORTADOS as ROTULOS } from "@/lib/dossier-constants";
 
 // pdfjs-dist (usado pelo pdf-parse) carrega seu "worker" resolvendo o caminho
 // a partir do módulo que o chama — no output empacotado do Next.js (Turbopack)
@@ -17,22 +18,6 @@ import { parseImportResult, type ImportResult } from "@/lib/ai/parse";
 PDFParse.setWorker(
   pathToFileURL(path.join(process.cwd(), "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs")).href,
 );
-
-const NAO_LOCALIZADO = "não localizado nos autos";
-
-// Rótulos em português para o aviso "a IA não localizou nos autos: X, Y"
-// (README 4.1, item 5).
-const ROTULOS = {
-  cliente: "Cliente",
-  caso: "Caso",
-  numeroProcesso: "Nº do processo",
-  fase: "Fase",
-  orgao: "Comarca/tribunal",
-  juiz: "Magistrado",
-  partes: "Partes",
-  advogadoContrario: "Advogado contrário",
-  valorCausa: "Valor da causa",
-} as const satisfies Partial<Record<keyof ImportResult, string>>;
 
 // Limite defensivo de tamanho do texto enviado à IA — autos muito volumosos
 // (milhares de páginas) precisam do caminho por peça/RAG do item 9, não de
