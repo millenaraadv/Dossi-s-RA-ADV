@@ -38,8 +38,16 @@ function getClient(): GoogleGenAI {
 const MODELO_PRINCIPAL = "gemini-3.6-flash";
 const MODELO_RESERVA = "gemini-3.1-flash-lite";
 
-const TENTATIVAS = 3;
-const ESPERA_BASE_MS = 2000;
+const TENTATIVAS_POR_MODELO = 2;
+const ESPERA_ENTRE_TENTATIVAS_MS = 1000;
+
+// Sem um timeout explícito por chamada, uma chamada "pendurada" no provedor
+// consumiria sozinha o tempo do proxy do Render (que devolve um 502 cru,
+// sem a mensagem amigável, se a rota demorar demais pra responder) — pior do
+// que simplesmente ela falhar rápido e a gente cair pro próximo modelo. Quem
+// chama pode alargar isso (ver processImport, que roda em segundo plano e
+// não tem esse limite de proxy).
+const TIMEOUT_PADRAO_MS = 15_000;
 
 // A mensagem do ApiError é o corpo bruto da resposta HTTP, stringificado
 // (ver node_modules/@google/genai/dist/index.mjs, throwErrorIfNotOK) — nunca
@@ -62,7 +70,18 @@ function ehLimiteDeCotaEsgotada(err: unknown): boolean {
   return corpoDoErro(err)?.status === "RESOURCE_EXHAUSTED";
 }
 
+// Estourar o `httpOptions.timeout` não gera um ApiError — o fetch interno do
+// SDK aborta via AbortController e rejeita com um DOMException genérico
+// ("This operation was aborted"), sem status HTTP nenhum. Testado na
+// prática: sem tratar isso à parte, um timeout escapava por baixo de todo
+// mundo (ApiError, err.status) e nunca contava como transitório — nem
+// repetia no mesmo modelo, nem caía pro modelo reserva.
+function ehTimeout(err: unknown): boolean {
+  return err instanceof DOMException && err.name === "AbortError";
+}
+
 function ehErroTransitorio(err: unknown): boolean {
+  if (ehTimeout(err)) return true;
   if (!(err instanceof ApiError)) return false;
   if (err.status === 503) return true;
   return err.status === 429 && !ehLimiteDeCotaEsgotada(err);
@@ -79,6 +98,9 @@ function valeTentarReserva(err: unknown): boolean {
 // pra quem está usando o sistema — sem isso, o usuário via o JSON bruto da
 // API do Gemini na tela (código, links de documentação, etc.).
 function mensagemAmigavel(err: unknown): string {
+  if (ehTimeout(err)) {
+    return "O Gemini demorou demais para responder. Tente novamente em instantes.";
+  }
   if (err instanceof ApiError) {
     if (ehLimiteDeCotaEsgotada(err)) {
       return "Limite gratuito diário do Gemini foi atingido. Tente novamente mais tarde — a cota é renovada a cada 24h.";
@@ -99,13 +121,13 @@ function esperar(ms: number): Promise<void> {
 }
 
 /**
- * Chama um modelo específico, repetindo (com espera crescente) só em erro
+ * Chama um modelo específico, repetindo (com espera curta) só em erro
  * transitório (503 / 429 de limite de taxa) — cota esgotada (429
  * RESOURCE_EXHAUSTED) já falha na primeira tentativa, já que repetir no
  * mesmo modelo não resolveria.
  */
-async function chamarModelo(ai: GoogleGenAI, model: string, prompt: string): Promise<string> {
-  for (let tentativa = 1; tentativa <= TENTATIVAS; tentativa++) {
+async function chamarModelo(ai: GoogleGenAI, model: string, prompt: string, timeoutMs: number): Promise<string> {
+  for (let tentativa = 1; tentativa <= TENTATIVAS_POR_MODELO; tentativa++) {
     try {
       const response = await ai.models.generateContent({
         model,
@@ -113,6 +135,7 @@ async function chamarModelo(ai: GoogleGenAI, model: string, prompt: string): Pro
         config: {
           responseMimeType: "application/json",
           temperature: 0.1,
+          httpOptions: { timeout: timeoutMs },
         },
       });
 
@@ -120,9 +143,9 @@ async function chamarModelo(ai: GoogleGenAI, model: string, prompt: string): Pro
       if (!texto) throw new Error("A IA não retornou conteúdo.");
       return texto;
     } catch (err) {
-      const ultimaTentativa = tentativa === TENTATIVAS;
+      const ultimaTentativa = tentativa === TENTATIVAS_POR_MODELO;
       if (!ehErroTransitorio(err) || ultimaTentativa) throw err;
-      await esperar(ESPERA_BASE_MS * tentativa);
+      await esperar(ESPERA_ENTRE_TENTATIVAS_MS);
     }
   }
 
@@ -138,18 +161,23 @@ async function chamarModelo(ai: GoogleGenAI, model: string, prompt: string): Pro
  * Tenta o modelo principal (com repetições em erro transitório); se ainda
  * assim falhar por sobrecarga ou cota esgotada, cai para o modelo reserva
  * antes de desistir de vez.
+ *
+ * `timeoutMs` limita cada chamada individual (padrão 15s, pensado pra rota
+ * síncrona de sugestões, que precisa responder bem antes do proxy do Render
+ * cortar a conexão). processImport roda em segundo plano — sem esse limite
+ * de proxy — e por isso passa um valor maior.
  */
-export async function gerarJson(prompt: string): Promise<string> {
+export async function gerarJson(prompt: string, timeoutMs = TIMEOUT_PADRAO_MS): Promise<string> {
   const ai = getClient();
 
   try {
-    return await chamarModelo(ai, MODELO_PRINCIPAL, prompt);
+    return await chamarModelo(ai, MODELO_PRINCIPAL, prompt, timeoutMs);
   } catch (erroPrincipal) {
     if (!valeTentarReserva(erroPrincipal)) {
       throw new AiError(mensagemAmigavel(erroPrincipal));
     }
     try {
-      return await chamarModelo(ai, MODELO_RESERVA, prompt);
+      return await chamarModelo(ai, MODELO_RESERVA, prompt, timeoutMs);
     } catch (erroReserva) {
       throw new AiError(mensagemAmigavel(erroReserva));
     }

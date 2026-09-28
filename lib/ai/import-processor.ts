@@ -60,8 +60,11 @@ export async function processImport(importId: string, actorId: string): Promise<
 
     await updateImportStatus(importId, { status: "processando", paginasLidas: paginas });
 
+    // Roda em segundo plano (sem await na rota que a chamou) — não tem o
+    // limite de proxy do Render que a rota síncrona de sugestões tem, então
+    // pode esperar mais por um documento grande.
     const prompt = buildImportPrompt(texto.slice(0, LIMITE_CARACTERES));
-    const respostaTexto = await gerarJson(prompt);
+    const respostaTexto = await gerarJson(prompt, 60_000);
     const resultado = parseImportResult(respostaTexto);
 
     // Campo vazio (a IA não achou no texto) vira o texto padrão da revisão
