@@ -29,6 +29,7 @@ Executado por .github/workflows/backup-dossies-drive.yml.
 
 import json
 import os
+import time
 
 import requests
 from google.oauth2 import service_account
@@ -38,37 +39,69 @@ from googleapiclient.http import MediaFileUpload
 APP_BASE = "https://dossies.rabeloaguiar.adv.br"
 DRIVE_ID = "0AMpqu1jxy2HcUk9PVA"  # Drive compartilhado "Dossiês — Backup"
 
+# O app roda no plano Free do Render, que "dorme" após um tempo ocioso — a
+# primeira requisição depois disso (quase sempre a deste backup semanal, que
+# não tem por que rodar mais vezes) pode demorar bem mais que o normal para
+# responder enquanto o servidor "acorda". Timeout folgado + novas tentativas
+# nas chamadas ao app evitam falhar por causa disso.
+TENTATIVAS = 3
+ESPERA_BASE_S = 20
+
+
+def com_retentativas(descricao: str, chamada):
+    for tentativa in range(1, TENTATIVAS + 1):
+        try:
+            return chamada()
+        except requests.exceptions.RequestException as erro:
+            if tentativa == TENTATIVAS:
+                raise
+            espera = ESPERA_BASE_S * tentativa
+            print(f"  {descricao} falhou ({erro}); tentativa {tentativa}/{TENTATIVAS}, de novo em {espera}s…")
+            time.sleep(espera)
+
 
 def login() -> requests.Session:
-    sessao = requests.Session()
-    resposta = sessao.post(
-        f"{APP_BASE}/api/auth/login",
-        json={
-            "email": os.environ["BACKUP_APP_EMAIL"],
-            "senha": os.environ["BACKUP_APP_PASSWORD"],
-        },
-        timeout=30,
-    )
-    resposta.raise_for_status()
-    return sessao
+    def tentar():
+        sessao = requests.Session()
+        resposta = sessao.post(
+            f"{APP_BASE}/api/auth/login",
+            json={
+                "email": os.environ["BACKUP_APP_EMAIL"],
+                "senha": os.environ["BACKUP_APP_PASSWORD"],
+            },
+            timeout=90,
+        )
+        resposta.raise_for_status()
+        return sessao
+
+    return com_retentativas("Login", tentar)
 
 
 def listar_dossies(sessao: requests.Session) -> list[dict]:
-    resposta = sessao.get(f"{APP_BASE}/api/dossiers", timeout=30)
-    resposta.raise_for_status()
-    return resposta.json()["itens"]
+    def tentar():
+        resposta = sessao.get(f"{APP_BASE}/api/dossiers", timeout=60)
+        resposta.raise_for_status()
+        return resposta.json()["itens"]
+
+    return com_retentativas("Listar dossiês", tentar)
 
 
 def buscar_dossier(sessao: requests.Session, dossier_id: str) -> dict:
-    resposta = sessao.get(f"{APP_BASE}/api/dossiers/{dossier_id}", timeout=30)
-    resposta.raise_for_status()
-    return resposta.json()
+    def tentar():
+        resposta = sessao.get(f"{APP_BASE}/api/dossiers/{dossier_id}", timeout=60)
+        resposta.raise_for_status()
+        return resposta.json()
+
+    return com_retentativas(f"Buscar dossiê {dossier_id}", tentar)
 
 
 def baixar_pdf(sessao: requests.Session, dossier_id: str) -> bytes:
-    resposta = sessao.get(f"{APP_BASE}/api/dossiers/{dossier_id}/pdf", timeout=60)
-    resposta.raise_for_status()
-    return resposta.content
+    def tentar():
+        resposta = sessao.get(f"{APP_BASE}/api/dossiers/{dossier_id}/pdf", timeout=90)
+        resposta.raise_for_status()
+        return resposta.content
+
+    return com_retentativas(f"Baixar PDF {dossier_id}", tentar)
 
 
 def montar_servico_drive():
