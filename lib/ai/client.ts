@@ -14,13 +14,29 @@ function getClient(): GoogleGenAI {
   return client;
 }
 
-// "gemini-flash-latest" é o apelido que o próprio Google mantém sempre
-// apontando para o modelo "flash" vigente (cota gratuita generosa, contexto
-// grande o bastante para autos processuais) — evita ter que atualizar esta
-// constante toda vez que um modelo específico (ex.: "gemini-3.6-flash") sai
-// de linha. Se mesmo assim algum dia parar de funcionar, veja o catálogo
-// atual em GET https://generativelanguage.googleapis.com/v1beta/models.
-const MODEL = "gemini-flash-latest";
+// A disputa por capacidade na cota gratuita do Gemini agora é generalizada
+// (testado na prática: até modelos "lite" tomam 503 de vez em quando) — não
+// existe modelo que nunca sofra com isso. O apelido "-latest" piora a
+// situação porque aponta pro modelo mais novo do catálogo, justamente pra
+// onde a cota gratuita do mundo inteiro migra assim que ele sai (todo mundo
+// disputando o mesmo modelo). Por isso os dois nomes abaixo são versões
+// específicas, escolhidas testando o sucesso real de várias chamadas
+// seguidas contra esta chave (não o que o catálogo lista como "disponível" —
+// modelos mais antigos como a série 2.5 aparecem no catálogo mas retornam
+// 404 "no longer available to new users" nesta conta).
+//
+// Modelo reserva entra só quando o principal falha por sobrecarga (503) ou
+// cota diária esgotada (429 RESOURCE_EXHAUSTED) — a cota gratuita é contada
+// por modelo, então um modelo diferente tem cota própria, intacta, e por ser
+// um modelo diferente tem uma chance real de não estar sofrendo a mesma
+// sobrecarga no mesmo instante. É a variante "lite": mais barata, e dá conta
+// bem do formato JSON estruturado que pedimos (extração/sugestão).
+//
+// Ver o catálogo atual em GET https://generativelanguage.googleapis.com/v1beta/models
+// se algum dia um dos dois sair de linha — e testar de verdade antes de
+// trocar, não só conferir se aparece na lista.
+const MODELO_PRINCIPAL = "gemini-3.6-flash";
+const MODELO_RESERVA = "gemini-3.1-flash-lite";
 
 const TENTATIVAS = 3;
 const ESPERA_BASE_MS = 2000;
@@ -39,7 +55,8 @@ function corpoDoErro(err: ApiError): { message?: string; status?: string } | nul
 // 429 cobre dois casos bem diferentes: limite de requisições por minuto (vale
 // tentar de novo em segundos) e cota diária gratuita esgotada
 // (RESOURCE_EXHAUSTED) — essa última não se resolve dentro da mesma
-// requisição, então repetir só atrasa um erro que já é certo.
+// requisição/modelo, então repetir só atrasa um erro que já é certo (mas
+// trocar de MODELO ainda pode funcionar — cada modelo tem cota própria).
 function ehLimiteDeCotaEsgotada(err: unknown): boolean {
   if (!(err instanceof ApiError) || err.status !== 429) return false;
   return corpoDoErro(err)?.status === "RESOURCE_EXHAUSTED";
@@ -49,6 +66,13 @@ function ehErroTransitorio(err: unknown): boolean {
   if (!(err instanceof ApiError)) return false;
   if (err.status === 503) return true;
   return err.status === 429 && !ehLimiteDeCotaEsgotada(err);
+}
+
+// Sobrecarga ou cota esgotada do modelo principal justificam tentar o modelo
+// reserva; qualquer outro erro (chave inválida, prompt malformado etc.)
+// falharia do mesmo jeito no reserva, então não vale a pena tentar de novo.
+function valeTentarReserva(err: unknown): boolean {
+  return ehErroTransitorio(err) || ehLimiteDeCotaEsgotada(err);
 }
 
 // Converte o erro do provedor numa mensagem em português que faça sentido
@@ -75,23 +99,16 @@ function esperar(ms: number): Promise<void> {
 }
 
 /**
- * Chama o Gemini pedindo saída em JSON (responseMimeType), reduzindo o risco
- * de a resposta vir com texto/markdown ao redor. Ainda assim, quem chama deve
- * tratar a resposta como não confiável e validar (ver lib/ai/parse.ts) — o
- * modo JSON do Gemini ajuda, mas não garante aderência ao formato pedido.
- *
- * Repete a chamada (com espera crescente) em erro transitório do provedor
- * (503 "sobrecarregado" / 429 "limite de taxa") — comuns em modelos novos ou
- * na cota gratuita. Outros erros (ex.: chave inválida, modelo inexistente)
- * não são repetidos, já que tentar de novo não resolveria.
+ * Chama um modelo específico, repetindo (com espera crescente) só em erro
+ * transitório (503 / 429 de limite de taxa) — cota esgotada (429
+ * RESOURCE_EXHAUSTED) já falha na primeira tentativa, já que repetir no
+ * mesmo modelo não resolveria.
  */
-export async function gerarJson(prompt: string): Promise<string> {
-  const ai = getClient();
-
+async function chamarModelo(ai: GoogleGenAI, model: string, prompt: string): Promise<string> {
   for (let tentativa = 1; tentativa <= TENTATIVAS; tentativa++) {
     try {
       const response = await ai.models.generateContent({
-        model: MODEL,
+        model,
         contents: prompt,
         config: {
           responseMimeType: "application/json",
@@ -104,10 +121,37 @@ export async function gerarJson(prompt: string): Promise<string> {
       return texto;
     } catch (err) {
       const ultimaTentativa = tentativa === TENTATIVAS;
-      if (!ehErroTransitorio(err) || ultimaTentativa) throw new AiError(mensagemAmigavel(err));
+      if (!ehErroTransitorio(err) || ultimaTentativa) throw err;
       await esperar(ESPERA_BASE_MS * tentativa);
     }
   }
 
-  throw new AiError("Não foi possível obter resposta da IA.");
+  throw new Error("Não foi possível obter resposta da IA.");
+}
+
+/**
+ * Chama o Gemini pedindo saída em JSON (responseMimeType), reduzindo o risco
+ * de a resposta vir com texto/markdown ao redor. Ainda assim, quem chama deve
+ * tratar a resposta como não confiável e validar (ver lib/ai/parse.ts) — o
+ * modo JSON do Gemini ajuda, mas não garante aderência ao formato pedido.
+ *
+ * Tenta o modelo principal (com repetições em erro transitório); se ainda
+ * assim falhar por sobrecarga ou cota esgotada, cai para o modelo reserva
+ * antes de desistir de vez.
+ */
+export async function gerarJson(prompt: string): Promise<string> {
+  const ai = getClient();
+
+  try {
+    return await chamarModelo(ai, MODELO_PRINCIPAL, prompt);
+  } catch (erroPrincipal) {
+    if (!valeTentarReserva(erroPrincipal)) {
+      throw new AiError(mensagemAmigavel(erroPrincipal));
+    }
+    try {
+      return await chamarModelo(ai, MODELO_RESERVA, prompt);
+    } catch (erroReserva) {
+      throw new AiError(mensagemAmigavel(erroReserva));
+    }
+  }
 }
