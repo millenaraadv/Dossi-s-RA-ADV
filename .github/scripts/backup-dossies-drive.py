@@ -3,8 +3,13 @@ Backup semanal dos dossiês ativos para o Google Drive.
 
 Loga no sistema com a conta de serviço "Backup automático" (papel
 estagiario — só leitura, nunca edita nada), baixa o PDF de cada dossiê
-ativo e sobe/atualiza cada um na pasta do Drive. Atualiza (não duplica)
-quando já existe um arquivo com o mesmo nome na pasta.
+ativo e sobe/atualiza cada um no Drive compartilhado. Atualiza (não
+duplica) quando já existe um arquivo com o mesmo nome.
+
+Precisa ser um Drive COMPARTILHADO (não uma pasta comum do "Meu Drive"):
+contas de serviço do Google não têm cota de armazenamento própria e não
+conseguem criar arquivo novo fora de um Drive compartilhado (erro
+"Service Accounts do not have storage quota").
 
 Executado por .github/workflows/backup-dossies-drive.yml.
 """
@@ -18,7 +23,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
 APP_BASE = "https://dossies.rabeloaguiar.adv.br"
-FOLDER_ID = "11BDZ0m85C_MQJ82AH3HszYqEgp-QJL-_"
+DRIVE_ID = "0AMpqu1jxy2HcUk9PVA"  # Drive compartilhado "Dossiês — Backup"
 
 
 def login() -> requests.Session:
@@ -62,8 +67,19 @@ def nome_arquivo(nome_dossie: str) -> str:
 
 def encontrar_existente(drive, nome: str) -> str | None:
     nome_escapado = nome.replace("'", "\\'")
-    query = f"'{FOLDER_ID}' in parents and name = '{nome_escapado}' and trashed = false"
-    resultado = drive.files().list(q=query, fields="files(id)").execute()
+    query = f"'{DRIVE_ID}' in parents and name = '{nome_escapado}' and trashed = false"
+    resultado = (
+        drive.files()
+        .list(
+            q=query,
+            fields="files(id)",
+            corpora="drive",
+            driveId=DRIVE_ID,
+            includeItemsFromAllDrives=True,
+            supportsAllDrives=True,
+        )
+        .execute()
+    )
     arquivos = resultado.get("files", [])
     return arquivos[0]["id"] if arquivos else None
 
@@ -87,12 +103,15 @@ def main() -> None:
         existente_id = encontrar_existente(drive, nome)
 
         if existente_id:
-            drive.files().update(fileId=existente_id, media_body=media).execute()
+            drive.files().update(
+                fileId=existente_id, media_body=media, supportsAllDrives=True
+            ).execute()
             print(f"Atualizado: {nome}")
         else:
             drive.files().create(
-                body={"name": nome, "parents": [FOLDER_ID]},
+                body={"name": nome, "parents": [DRIVE_ID]},
                 media_body=media,
+                supportsAllDrives=True,
             ).execute()
             print(f"Criado: {nome}")
 
