@@ -1,0 +1,33 @@
+name: Supabase keep-alive
+
+# O plano Free do Supabase pausa o projeto automaticamente após 7 dias sem
+# nenhuma consulta ao banco/API — o que derrubaria o sistema em produção.
+# Este workflow faz uma leitura trivial e somente-leitura todo dia, bem
+# abaixo do limite de 7 dias, só para manter o projeto ativo.
+on:
+  schedule:
+    - cron: "17 5 * * *" # todo dia às 05:17 UTC (02:17 horário de Brasília)
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consultar a API do Supabase (mantém o projeto ativo)
+        env:
+          # Chave "anon" pública do Supabase — a mesma que já vai embutida no
+          # bundle do cliente do app (NEXT_PUBLIC_SUPABASE_ANON_KEY), protegida
+          # por Row Level Security. Não é segredo, por isso não precisa de um
+          # secret do repositório.
+          SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFocW5jc2h3Ymdncm5laHh2dXpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNjc5MDQsImV4cCI6MjEwMTk0MzkwNH0.XTHRBLgl2FNm7UV5eCPxDNEBVN_BvO1nlq01kcCeLJA"
+        run: |
+          STATUS=$(curl -s -o /tmp/resposta.json -w "%{http_code}" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "https://ahqncshwbggrnehxvuzl.supabase.co/rest/v1/users?select=id&limit=1")
+          echo "HTTP status: ${STATUS}"
+          cat /tmp/resposta.json
+          if [ "${STATUS}" -lt 200 ] || [ "${STATUS}" -ge 300 ]; then
+            echo "::error::Keep-alive falhou com HTTP ${STATUS} — o projeto Supabase pode estar pausado ou inacessível."
+            exit 1
+          fi
