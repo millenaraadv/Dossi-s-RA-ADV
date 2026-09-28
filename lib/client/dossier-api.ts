@@ -155,7 +155,10 @@ export async function archiveDossier(id: string): Promise<void> {
 
 export type SugestaoEstrategia = {
   objetivo: string;
+  objetivoSecundario: string;
+  linhaVermelha: string;
   passos: { acao: string; proximaData: string }[];
+  prazos: { ato: string; contagem: string; dataTexto: string }[];
   riscos: string[];
 };
 

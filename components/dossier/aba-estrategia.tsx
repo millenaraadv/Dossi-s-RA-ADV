@@ -13,7 +13,7 @@ import {
   suggestEstrategia,
   type SugestaoEstrategia,
 } from "@/lib/client/dossier-api";
-import { normalizarDataDigitada, formatarDataBr } from "@/lib/dates";
+import { normalizarDataDigitada } from "@/lib/dates";
 import { LoadingDots } from "@/components/ui/loading-dots";
 
 type Membro = { id: string; nome: string; cor: string | null };
@@ -69,7 +69,10 @@ export function AbaEstrategia({
   const [carregandoSugestao, setCarregandoSugestao] = useState(false);
   const [erroSugestao, setErroSugestao] = useState<string | null>(null);
   const [aplicandoObjetivo, setAplicandoObjetivo] = useState(false);
+  const [aplicandoObjetivoSecundario, setAplicandoObjetivoSecundario] = useState(false);
+  const [aplicandoLinhaVermelha, setAplicandoLinhaVermelha] = useState(false);
   const [aplicandoPasso, setAplicandoPasso] = useState<number | null>(null);
+  const [aplicandoPrazo, setAplicandoPrazo] = useState<number | null>(null);
 
   async function pedirSugestao() {
     setCarregandoSugestao(true);
@@ -94,6 +97,28 @@ export function AbaEstrategia({
     }
   }
 
+  async function substituirObjetivoSecundarioSugerido() {
+    if (!sugestao) return;
+    setAplicandoObjetivoSecundario(true);
+    try {
+      await patchDossier(dossier.id, { objetivoSecundario: sugestao.objetivoSecundario });
+      await onDossierChanged();
+    } finally {
+      setAplicandoObjetivoSecundario(false);
+    }
+  }
+
+  async function substituirLinhaVermelhaSugerida() {
+    if (!sugestao) return;
+    setAplicandoLinhaVermelha(true);
+    try {
+      await patchDossier(dossier.id, { linhaVermelha: sugestao.linhaVermelha });
+      await onDossierChanged();
+    } finally {
+      setAplicandoLinhaVermelha(false);
+    }
+  }
+
   async function adicionarPassoSugerido(indice: number) {
     if (!sugestao) return;
     const passo = sugestao.passos[indice];
@@ -104,6 +129,23 @@ export function AbaEstrategia({
       setSugestao((atual) => (atual ? { ...atual, passos: atual.passos.filter((_, i) => i !== indice) } : atual));
     } finally {
       setAplicandoPasso(null);
+    }
+  }
+
+  async function adicionarPrazoSugerido(indice: number) {
+    if (!sugestao) return;
+    const prazo = sugestao.prazos[indice];
+    setAplicandoPrazo(indice);
+    try {
+      await createDeadline(dossier.id, {
+        ato: prazo.ato,
+        contagem: prazo.contagem || null,
+        dataTexto: prazo.dataTexto || null,
+      });
+      await onPrazosChanged();
+      setSugestao((atual) => (atual ? { ...atual, prazos: atual.prazos.filter((_, i) => i !== indice) } : atual));
+    } finally {
+      setAplicandoPrazo(null);
     }
   }
 
@@ -186,11 +228,18 @@ export function AbaEstrategia({
       {sugestao && (
         <div className="mb-6 border-l-[3px] border-ambar bg-tinta-clara p-4">
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="flex-1">
               <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
-                Sugestão de objetivo
+                Sugestão de objetivo <span className="normal-case tracking-normal text-neutro-700">(editável)</span>
               </div>
-              <p className="mt-1 max-w-[60ch] text-[14px] text-texto">{sugestao.objetivo}</p>
+              <textarea
+                rows={2}
+                value={sugestao.objetivo}
+                onChange={(e) =>
+                  setSugestao((atual) => (atual ? { ...atual, objetivo: e.target.value } : atual))
+                }
+                className="mt-1 w-full max-w-[60ch] border border-borda-campo bg-neutro-100 p-2 text-[14px] text-texto outline-none"
+              />
             </div>
             <button
               type="button"
@@ -202,17 +251,98 @@ export function AbaEstrategia({
             </button>
           </div>
 
+          {(sugestao.objetivoSecundario || sugestao.linhaVermelha) && (
+            <div className="mt-4 grid grid-cols-2 gap-4 border-t border-acento pt-3">
+              {sugestao.objetivoSecundario && (
+                <div>
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                    Objetivo secundário <span className="normal-case tracking-normal text-neutro-700">(editável)</span>
+                  </div>
+                  <textarea
+                    rows={2}
+                    value={sugestao.objetivoSecundario}
+                    onChange={(e) =>
+                      setSugestao((atual) => (atual ? { ...atual, objetivoSecundario: e.target.value } : atual))
+                    }
+                    className="mt-1 w-full border border-borda-campo bg-neutro-100 p-2 text-[13.5px] text-texto outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={substituirObjetivoSecundarioSugerido}
+                    disabled={aplicandoObjetivoSecundario}
+                    className="mt-1.5 inline-flex items-center gap-2 border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200 disabled:opacity-60"
+                  >
+                    Substituir {aplicandoObjetivoSecundario && <LoadingDots />}
+                  </button>
+                </div>
+              )}
+              {sugestao.linhaVermelha && (
+                <div>
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                    Linha vermelha <span className="normal-case tracking-normal text-neutro-700">(editável)</span>
+                  </div>
+                  <textarea
+                    rows={2}
+                    value={sugestao.linhaVermelha}
+                    onChange={(e) =>
+                      setSugestao((atual) => (atual ? { ...atual, linhaVermelha: e.target.value } : atual))
+                    }
+                    className="mt-1 w-full border border-borda-campo bg-neutro-100 p-2 text-[13.5px] text-texto outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={substituirLinhaVermelhaSugerida}
+                    disabled={aplicandoLinhaVermelha}
+                    className="mt-1.5 inline-flex items-center gap-2 border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200 disabled:opacity-60"
+                  >
+                    Substituir {aplicandoLinhaVermelha && <LoadingDots />}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {sugestao.passos.length > 0 && (
             <div className="mt-4 border-t border-acento pt-3">
               <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
-                Passos sugeridos
+                Passos sugeridos <span className="normal-case tracking-normal text-neutro-700">(editáveis)</span>
               </div>
               <div className="mt-2 flex flex-col gap-2">
                 {sugestao.passos.map((p, i) => (
-                  <div key={i} className="flex items-center justify-between gap-4">
-                    <div className="text-[13.5px]">
-                      {p.acao} <span className="text-neutro-700">· {formatarDataBr(p.proximaData)}</span>
-                    </div>
+                  <div key={i} className="flex items-center gap-2">
+                    <input
+                      value={p.acao}
+                      onChange={(e) =>
+                        setSugestao((atual) =>
+                          atual
+                            ? {
+                                ...atual,
+                                passos: atual.passos.map((passo, j) =>
+                                  j === i ? { ...passo, acao: e.target.value } : passo,
+                                ),
+                              }
+                            : atual,
+                        )
+                      }
+                      className="flex-1 border border-borda-campo bg-neutro-100 px-2 py-1 text-[13.5px] text-texto outline-none"
+                    />
+                    <input
+                      type="date"
+                      value={p.proximaData}
+                      onChange={(e) =>
+                        setSugestao((atual) =>
+                          atual
+                            ? {
+                                ...atual,
+                                passos: atual.passos.map((passo, j) =>
+                                  j === i ? { ...passo, proximaData: e.target.value } : passo,
+                                ),
+                              }
+                            : atual,
+                        )
+                      }
+                      className="w-[140px] shrink-0 border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none"
+                    />
                     <button
                       type="button"
                       onClick={() => adicionarPassoSugerido(i)}
@@ -220,6 +350,91 @@ export function AbaEstrategia({
                       className="inline-flex shrink-0 items-center gap-2 border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200 disabled:opacity-60"
                     >
                       + Adicionar {aplicandoPasso === i && <LoadingDots />}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {sugestao.prazos.length > 0 && (
+            <div className="mt-4 border-t border-acento pt-3">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                Prazos sugeridos <span className="normal-case tracking-normal text-neutro-700">(editáveis)</span>
+              </div>
+              <div className="mt-2 flex flex-col gap-2">
+                {sugestao.prazos.map((p, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <input
+                      value={p.ato}
+                      onChange={(e) =>
+                        setSugestao((atual) =>
+                          atual
+                            ? {
+                                ...atual,
+                                prazos: atual.prazos.map((prazo, j) =>
+                                  j === i ? { ...prazo, ato: e.target.value } : prazo,
+                                ),
+                              }
+                            : atual,
+                        )
+                      }
+                      placeholder="Ato"
+                      className="flex-1 border border-borda-campo bg-neutro-100 px-2 py-1 text-[13.5px] text-texto outline-none"
+                    />
+                    <input
+                      value={p.contagem}
+                      onChange={(e) =>
+                        setSugestao((atual) =>
+                          atual
+                            ? {
+                                ...atual,
+                                prazos: atual.prazos.map((prazo, j) =>
+                                  j === i ? { ...prazo, contagem: e.target.value } : prazo,
+                                ),
+                              }
+                            : atual,
+                        )
+                      }
+                      placeholder="Contagem"
+                      className="w-[140px] shrink-0 border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none"
+                    />
+                    <input
+                      value={p.dataTexto}
+                      onChange={(e) =>
+                        setSugestao((atual) =>
+                          atual
+                            ? {
+                                ...atual,
+                                prazos: atual.prazos.map((prazo, j) =>
+                                  j === i ? { ...prazo, dataTexto: e.target.value } : prazo,
+                                ),
+                              }
+                            : atual,
+                        )
+                      }
+                      onBlur={(e) =>
+                        setSugestao((atual) =>
+                          atual
+                            ? {
+                                ...atual,
+                                prazos: atual.prazos.map((prazo, j) =>
+                                  j === i ? { ...prazo, dataTexto: normalizarDataDigitada(e.target.value) } : prazo,
+                                ),
+                              }
+                            : atual,
+                        )
+                      }
+                      placeholder="Data (ex.: 19/08/2026)"
+                      className="w-[140px] shrink-0 border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => adicionarPrazoSugerido(i)}
+                      disabled={aplicandoPrazo === i}
+                      className="inline-flex shrink-0 items-center gap-2 border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200 disabled:opacity-60"
+                    >
+                      + Adicionar {aplicandoPrazo === i && <LoadingDots />}
                     </button>
                   </div>
                 ))}

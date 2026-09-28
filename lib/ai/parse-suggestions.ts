@@ -4,7 +4,10 @@ import { extrairJson } from "@/lib/ai/parse";
 
 export const sugestaoEstrategiaSchema = z.object({
   objetivo: z.string(),
+  objetivoSecundario: z.string(),
+  linhaVermelha: z.string(),
   passos: z.array(z.object({ acao: z.string(), proximaData: z.string() })),
+  prazos: z.array(z.object({ ato: z.string(), contagem: z.string(), dataTexto: z.string() })),
   riscos: z.array(z.string()),
 });
 export type SugestaoEstrategia = z.infer<typeof sugestaoEstrategiaSchema>;

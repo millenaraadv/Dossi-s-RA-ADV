@@ -42,6 +42,12 @@ export function AbaArgumentos({
     });
   }
 
+  function atualizarSugestao(i: number, campo: keyof SugestaoArgumento, valor: string) {
+    setSugestoes((atual) =>
+      atual ? atual.map((s, j) => (j === i ? { ...s, [campo]: valor } : s)) : atual,
+    );
+  }
+
   async function pedirSugestao() {
     setCarregandoSugestao(true);
     setErroSugestao(null);
@@ -107,22 +113,50 @@ export function AbaArgumentos({
 
       {sugestoes && sugestoes.length > 0 && (
         <div className="mt-4 flex flex-col gap-4 border-l-[3px] border-ambar bg-tinta-clara p-4">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+            Argumentos sugeridos <span className="normal-case tracking-normal text-neutro-700">(editáveis)</span>
+          </div>
           {sugestoes.map((s, i) => (
             <div key={i} className="flex items-start justify-between gap-4 border-t border-acento pt-3 first:border-t-0 first:pt-0">
-              <div className="max-w-[70ch]">
-                <h3 className="text-[14.5px] font-normal">{s.titulo}</h3>
-                {s.fato && <p className="mt-1 text-[13px] text-texto">{s.fato}</p>}
-                <div className="mt-2 flex flex-col gap-1 text-[12.5px]">
-                  <span>
-                    <strong className="font-semibold">Previsão legal:</strong> {s.previsaoLegal || "—"}
-                  </span>
-                  <span>
-                    <strong className="font-semibold">Jurisprudência:</strong> {s.jurisprudencia || "—"}
-                  </span>
-                  <span>
-                    <strong className="font-semibold">Doutrina:</strong> {s.doutrina || "—"}
-                  </span>
-                </div>
+              <div className="flex max-w-[70ch] flex-1 flex-col gap-2">
+                <input
+                  value={s.titulo}
+                  onChange={(e) => atualizarSugestao(i, "titulo", e.target.value)}
+                  className="border border-borda-campo bg-neutro-100 px-2 py-1 text-[14.5px] text-texto outline-none"
+                />
+                <textarea
+                  rows={2}
+                  value={s.fato}
+                  onChange={(e) => atualizarSugestao(i, "fato", e.target.value)}
+                  placeholder="Fato"
+                  className="border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none"
+                />
+                <label className="flex flex-col gap-0.5 text-[12.5px]">
+                  <span className="font-semibold">Previsão legal</span>
+                  <input
+                    value={s.previsaoLegal}
+                    onChange={(e) => atualizarSugestao(i, "previsaoLegal", e.target.value)}
+                    className="border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none"
+                  />
+                </label>
+                <label className="flex flex-col gap-0.5 text-[12.5px]">
+                  <span className="font-semibold">Jurisprudência</span>
+                  <textarea
+                    rows={2}
+                    value={s.jurisprudencia}
+                    onChange={(e) => atualizarSugestao(i, "jurisprudencia", e.target.value)}
+                    className="border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none"
+                  />
+                </label>
+                <label className="flex flex-col gap-0.5 text-[12.5px]">
+                  <span className="font-semibold">Doutrina</span>
+                  <textarea
+                    rows={2}
+                    value={s.doutrina}
+                    onChange={(e) => atualizarSugestao(i, "doutrina", e.target.value)}
+                    className="border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none"
+                  />
+                </label>
               </div>
               <button
                 type="button"
