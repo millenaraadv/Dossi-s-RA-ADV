@@ -1,0 +1,30 @@
+name: Backup semanal dos dossiês no Drive
+
+# Faz backup em PDF de todos os dossiês ativos na pasta "Dossiês — Backup"
+# do Google Drive do escritório, uma vez por semana. Login usa uma conta de
+# serviço dedicada (papel "estagiario", só leitura) — nunca a senha de uma
+# pessoa da equipe.
+on:
+  schedule:
+    - cron: "23 6 * * 1" # toda segunda às 06:23 UTC (03:23 no horário de Brasília)
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependências
+        run: pip install requests google-auth google-api-python-client
+
+      - name: Rodar backup dos dossiês para o Drive
+        env:
+          BACKUP_APP_EMAIL: "backup-automatico@rabeloaguiar.adv.br"
+          BACKUP_APP_PASSWORD: ${{ secrets.BACKUP_APP_PASSWORD }}
+          GDRIVE_SA_KEY_JSON: ${{ secrets.GDRIVE_SA_KEY_JSON }}
+        run: python .github/scripts/backup-dossies-drive.py
