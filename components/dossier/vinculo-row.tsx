@@ -24,7 +24,45 @@ type Vinculo = DossierFull["vinculos"][number];
 type ArgumentoForm = { titulo: string; fato: string; previsaoLegal: string; jurisprudencia: string; doutrina: string };
 type FiracForm = { f: string[]; i: string[]; r: string[]; a: string[]; c: string[] };
 
+type GeraisForm = {
+  tipo: (typeof TIPOS_VINCULO_PROCESSUAL)[number];
+  numeroProcesso: string;
+  tribunalInstancia: string;
+  status: string;
+  prazoContagem: string;
+  prazoDataTexto: string;
+  resumo: string;
+  resultado: string;
+  partes: string;
+  juiz: string;
+  fase: string;
+  valorCausa: string;
+  objetivo: string;
+  objetivoSecundario: string;
+  linhaVermelha: string;
+};
+
 const inputClass = "w-full border border-borda-campo bg-neutro-100 px-2 py-1 text-[12.5px] text-texto outline-none";
+
+function buildGeraisForm(vinculo: Vinculo): GeraisForm {
+  return {
+    tipo: vinculo.tipo as (typeof TIPOS_VINCULO_PROCESSUAL)[number],
+    numeroProcesso: vinculo.numeroProcesso ?? "",
+    tribunalInstancia: vinculo.tribunalInstancia ?? "",
+    status: vinculo.status ?? "",
+    prazoContagem: vinculo.prazoContagem ?? "",
+    prazoDataTexto: vinculo.prazoDataTexto ?? "",
+    resumo: vinculo.resumo ?? "",
+    resultado: vinculo.resultado ?? "",
+    partes: vinculo.partes ?? "",
+    juiz: vinculo.juiz ?? "",
+    fase: vinculo.fase ?? "",
+    valorCausa: vinculo.valorCausa ?? "",
+    objetivo: vinculo.objetivo ?? "",
+    objetivoSecundario: vinculo.objetivoSecundario ?? "",
+    linhaVermelha: vinculo.linhaVermelha ?? "",
+  };
+}
 
 function buildFiracForm(vinculo: Vinculo): FiracForm {
   const byLetra = (l: string) => vinculo.firac.filter((b) => b.letra === l).map((b) => b.paragrafo);
@@ -50,8 +88,9 @@ export function VinculoRow({
   podeEditar: boolean;
   onChanged: () => Promise<void>;
 }) {
+  const [geraisForm, setGeraisForm] = useState<GeraisForm>(() => buildGeraisForm(vinculo));
   const [salvando, setSalvando] = useState(false);
-  const [prazoDataTexto, setPrazoDataTexto] = useState(vinculo.prazoDataTexto ?? "");
+  const [excluindo, setExcluindo] = useState(false);
   const [expandido, setExpandido] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -64,12 +103,46 @@ export function VinculoRow({
   const [argumentosForm, setArgumentosForm] = useState<ArgumentoForm[]>(() => buildArgumentosForm(vinculo));
   const [argumentosSalvando, setArgumentosSalvando] = useState(false);
 
+  // Ajusta o formulário quando o vínculo muda por fora desta linha (ex.: um
+  // import de PDF que terminou em segundo plano) — comparação feita durante a
+  // própria renderização (padrão recomendado pelo React para "resetar estado
+  // derivado quando uma prop muda"), não num efeito: um efeito rodaria só
+  // depois de já ter pintado a tela com dado velho, e remontar o componente
+  // (via key) perderia o "expandido" e outros estados só desta linha.
+  const [atualizadoEmSincronizado, setAtualizadoEmSincronizado] = useState(vinculo.atualizadoEm);
+  if (vinculo.atualizadoEm !== atualizadoEmSincronizado) {
+    setAtualizadoEmSincronizado(vinculo.atualizadoEm);
+    setGeraisForm(buildGeraisForm(vinculo));
+    setFiracForm(buildFiracForm(vinculo));
+    setArgumentosForm(buildArgumentosForm(vinculo));
+  }
+
   const naoLocalizados = camposVinculoNaoLocalizados(vinculo);
 
-  async function salvar(patch: Parameters<typeof updateProcessLink>[1]) {
+  function campo<K extends keyof GeraisForm>(chave: K, valor: GeraisForm[K]) {
+    setGeraisForm((f) => ({ ...f, [chave]: valor }));
+  }
+
+  async function salvarAlteracoes() {
     setSalvando(true);
     try {
-      await updateProcessLink(vinculo.id, patch);
+      await updateProcessLink(vinculo.id, {
+        tipo: geraisForm.tipo,
+        numeroProcesso: geraisForm.numeroProcesso || null,
+        tribunalInstancia: geraisForm.tribunalInstancia || null,
+        status: geraisForm.status || null,
+        prazoContagem: geraisForm.prazoContagem || null,
+        prazoDataTexto: normalizarDataDigitada(geraisForm.prazoDataTexto) || null,
+        resumo: geraisForm.resumo || null,
+        resultado: geraisForm.resultado || null,
+        partes: geraisForm.partes || null,
+        juiz: geraisForm.juiz || null,
+        fase: geraisForm.fase || null,
+        valorCausa: geraisForm.valorCausa || null,
+        objetivo: geraisForm.objetivo || null,
+        objetivoSecundario: geraisForm.objetivoSecundario || null,
+        linhaVermelha: geraisForm.linhaVermelha || null,
+      });
       await onChanged();
     } finally {
       setSalvando(false);
@@ -77,20 +150,16 @@ export function VinculoRow({
   }
 
   async function excluir() {
-    setSalvando(true);
+    setExcluindo(true);
     try {
       await deleteProcessLink(vinculo.id);
       await onChanged();
     } finally {
-      setSalvando(false);
+      setExcluindo(false);
     }
   }
 
   function expandir() {
-    if (!expandido) {
-      setFiracForm(buildFiracForm(vinculo));
-      setArgumentosForm(buildArgumentosForm(vinculo));
-    }
     setExpandido((v) => !v);
   }
 
@@ -187,6 +256,25 @@ export function VinculoRow({
             {vinculo.valorCausa && <div>Valor da causa: {vinculo.valorCausa}</div>}
           </div>
         )}
+        {(vinculo.objetivo || vinculo.objetivoSecundario || vinculo.linhaVermelha) && (
+          <div className="mt-2 flex flex-col gap-1 text-[13px]">
+            {vinculo.objetivo && (
+              <div>
+                <span className="font-semibold text-neutro-700">Objetivo:</span> {vinculo.objetivo}
+              </div>
+            )}
+            {vinculo.objetivoSecundario && (
+              <div>
+                <span className="font-semibold text-neutro-700">Objetivo secundário:</span> {vinculo.objetivoSecundario}
+              </div>
+            )}
+            {vinculo.linhaVermelha && (
+              <div>
+                <span className="font-semibold text-neutro-700">Linha vermelha:</span> {vinculo.linhaVermelha}
+              </div>
+            )}
+          </div>
+        )}
         {vinculo.argumentos.length > 0 && (
           <div className="mt-2 flex flex-col gap-1">
             {vinculo.argumentos.map((a) => (
@@ -203,11 +291,7 @@ export function VinculoRow({
   return (
     <div className="border-b border-divisoria-fina py-3">
       <div className="grid grid-cols-[180px_1fr_1fr_auto] items-start gap-2">
-        <select
-          className={inputClass}
-          defaultValue={vinculo.tipo}
-          onChange={(e) => salvar({ tipo: e.target.value as (typeof TIPOS_VINCULO_PROCESSUAL)[number] })}
-        >
+        <select className={inputClass} value={geraisForm.tipo} onChange={(e) => campo("tipo", e.target.value as GeraisForm["tipo"])}>
           {TIPOS_VINCULO_PROCESSUAL.map((t) => (
             <option key={t} value={t}>
               {VINCULO_TIPO_LABEL[t]}
@@ -217,27 +301,22 @@ export function VinculoRow({
         <input
           className={inputClass}
           placeholder="Nº do processo"
-          defaultValue={vinculo.numeroProcesso ?? ""}
-          onBlur={(e) =>
-            e.target.value !== (vinculo.numeroProcesso ?? "") && salvar({ numeroProcesso: e.target.value || null })
-          }
+          value={geraisForm.numeroProcesso}
+          onChange={(e) => campo("numeroProcesso", e.target.value)}
         />
         <input
           className={inputClass}
           placeholder="Tribunal/instância"
-          defaultValue={vinculo.tribunalInstancia ?? ""}
-          onBlur={(e) =>
-            e.target.value !== (vinculo.tribunalInstancia ?? "") &&
-            salvar({ tribunalInstancia: e.target.value || null })
-          }
+          value={geraisForm.tribunalInstancia}
+          onChange={(e) => campo("tribunalInstancia", e.target.value)}
         />
         <button
           type="button"
           onClick={excluir}
-          disabled={salvando}
+          disabled={excluindo}
           className="inline-flex items-center gap-2 border border-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-acento-escuro hover:bg-tinta-clara disabled:opacity-60"
         >
-          Excluir {salvando && <LoadingDots />}
+          Excluir {excluindo && <LoadingDots />}
         </button>
       </div>
 
@@ -245,28 +324,22 @@ export function VinculoRow({
         <input
           className={inputClass}
           placeholder="Status (ex.: Em trâmite)"
-          defaultValue={vinculo.status ?? ""}
-          onBlur={(e) => e.target.value !== (vinculo.status ?? "") && salvar({ status: e.target.value || null })}
+          value={geraisForm.status}
+          onChange={(e) => campo("status", e.target.value)}
         />
         <div className="grid grid-cols-2 gap-2">
           <input
             className={inputClass}
             placeholder="Contagem do prazo"
-            defaultValue={vinculo.prazoContagem ?? ""}
-            onBlur={(e) =>
-              e.target.value !== (vinculo.prazoContagem ?? "") && salvar({ prazoContagem: e.target.value || null })
-            }
+            value={geraisForm.prazoContagem}
+            onChange={(e) => campo("prazoContagem", e.target.value)}
           />
           <input
             className={inputClass}
             placeholder="Data (ex.: 19/08/2026)"
-            value={prazoDataTexto}
-            onChange={(e) => setPrazoDataTexto(e.target.value)}
-            onBlur={(e) => {
-              const normalizada = normalizarDataDigitada(e.target.value);
-              setPrazoDataTexto(normalizada);
-              if (normalizada !== (vinculo.prazoDataTexto ?? "")) salvar({ prazoDataTexto: normalizada || null });
-            }}
+            value={geraisForm.prazoDataTexto}
+            onChange={(e) => campo("prazoDataTexto", e.target.value)}
+            onBlur={(e) => campo("prazoDataTexto", normalizarDataDigitada(e.target.value))}
           />
         </div>
       </div>
@@ -275,18 +348,26 @@ export function VinculoRow({
         rows={2}
         className={`mt-2 ${inputClass}`}
         placeholder="Resumo/objeto"
-        defaultValue={vinculo.resumo ?? ""}
-        onBlur={(e) => e.target.value !== (vinculo.resumo ?? "") && salvar({ resumo: e.target.value || null })}
+        value={geraisForm.resumo}
+        onChange={(e) => campo("resumo", e.target.value)}
       />
       <textarea
         rows={2}
         className={`mt-2 ${inputClass}`}
         placeholder="Resultado/decisão (quando houver)"
-        defaultValue={vinculo.resultado ?? ""}
-        onBlur={(e) => e.target.value !== (vinculo.resultado ?? "") && salvar({ resultado: e.target.value || null })}
+        value={geraisForm.resultado}
+        onChange={(e) => campo("resultado", e.target.value)}
       />
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={salvarAlteracoes}
+          disabled={salvando}
+          className="inline-flex items-center gap-2 bg-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-white disabled:opacity-60"
+        >
+          Salvar alterações {salvando && <LoadingDots />}
+        </button>
         <input ref={fileInputRef} type="file" accept=".pdf,.txt" className="hidden" onChange={importarPdf} />
         <button
           type="button"
@@ -330,32 +411,68 @@ export function VinculoRow({
             <input
               className={inputClass}
               placeholder="Partes"
-              defaultValue={vinculo.partes ?? ""}
-              onBlur={(e) => e.target.value !== (vinculo.partes ?? "") && salvar({ partes: e.target.value || null })}
+              value={geraisForm.partes}
+              onChange={(e) => campo("partes", e.target.value)}
             />
             <input
               className={inputClass}
               placeholder="Magistrado"
-              defaultValue={vinculo.juiz ?? ""}
-              onBlur={(e) => e.target.value !== (vinculo.juiz ?? "") && salvar({ juiz: e.target.value || null })}
+              value={geraisForm.juiz}
+              onChange={(e) => campo("juiz", e.target.value)}
             />
             <input
               className={inputClass}
               placeholder="Fase e rito"
-              defaultValue={vinculo.fase ?? ""}
-              onBlur={(e) => e.target.value !== (vinculo.fase ?? "") && salvar({ fase: e.target.value || null })}
+              value={geraisForm.fase}
+              onChange={(e) => campo("fase", e.target.value)}
             />
             <input
               className={inputClass}
               placeholder="Valor da causa"
-              defaultValue={vinculo.valorCausa ?? ""}
-              onBlur={(e) =>
-                e.target.value !== (vinculo.valorCausa ?? "") && salvar({ valorCausa: e.target.value || null })
-              }
+              value={geraisForm.valorCausa}
+              onChange={(e) => campo("valorCausa", e.target.value)}
             />
           </div>
 
           <div className="mt-4 text-[10px] font-semibold uppercase tracking-[0.1em] text-neutro-700">
+            Estratégia deste processo
+          </div>
+          <div className="mt-2 flex flex-col gap-2">
+            <textarea
+              rows={2}
+              className={inputClass}
+              placeholder="Objetivo"
+              value={geraisForm.objetivo}
+              onChange={(e) => campo("objetivo", e.target.value)}
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <textarea
+                rows={2}
+                className={inputClass}
+                placeholder="Objetivo secundário"
+                value={geraisForm.objetivoSecundario}
+                onChange={(e) => campo("objetivoSecundario", e.target.value)}
+              />
+              <textarea
+                rows={2}
+                className={inputClass}
+                placeholder="Linha vermelha"
+                value={geraisForm.linhaVermelha}
+                onChange={(e) => campo("linhaVermelha", e.target.value)}
+              />
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={salvarAlteracoes}
+            disabled={salvando}
+            className="mt-3 inline-flex items-center gap-2 bg-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-white disabled:opacity-60"
+          >
+            Salvar alterações {salvando && <LoadingDots />}
+          </button>
+
+          <div className="mt-5 text-[10px] font-semibold uppercase tracking-[0.1em] text-neutro-700">
             FIRAC deste processo
           </div>
           <div className="mt-2 flex flex-col gap-3">

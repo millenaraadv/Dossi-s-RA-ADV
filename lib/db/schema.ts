@@ -262,6 +262,12 @@ export const processLinks = pgTable(
     juiz: text("juiz"),
     fase: text("fase"),
     valorCausa: text("valor_causa"),
+    // Estratégia deste processo (mesmo trio da aba Estratégia do dossiê
+    // principal) — pra dar pra entender a tese e o limite negociado neste
+    // outro processo sem precisar abrir o dossiê/autos dele.
+    objetivo: text("objetivo"),
+    objetivoSecundario: text("objetivo_secundario"),
+    linhaVermelha: text("linha_vermelha"),
     ordem: integer("ordem").notNull().default(0),
     criadoEm: timestamp("criado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
     atualizadoEm: timestamp("atualizado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),

@@ -173,6 +173,9 @@ export type ProcessLinkInput = {
   juiz: string | null;
   fase: string | null;
   valorCausa: string | null;
+  objetivo: string | null;
+  objetivoSecundario: string | null;
+  linhaVermelha: string | null;
 };
 
 export async function createProcessLink(

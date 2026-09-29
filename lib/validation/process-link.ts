@@ -16,6 +16,9 @@ export const createProcessLinkSchema = z.object({
   juiz: z.string().nullable().optional(),
   fase: z.string().nullable().optional(),
   valorCausa: z.string().nullable().optional(),
+  objetivo: z.string().nullable().optional(),
+  objetivoSecundario: z.string().nullable().optional(),
+  linhaVermelha: z.string().nullable().optional(),
 });
 
 export const patchProcessLinkSchema = z.object({
@@ -31,4 +34,7 @@ export const patchProcessLinkSchema = z.object({
   juiz: z.string().nullable().optional(),
   fase: z.string().nullable().optional(),
   valorCausa: z.string().nullable().optional(),
+  objetivo: z.string().nullable().optional(),
+  objetivoSecundario: z.string().nullable().optional(),
+  linhaVermelha: z.string().nullable().optional(),
 });

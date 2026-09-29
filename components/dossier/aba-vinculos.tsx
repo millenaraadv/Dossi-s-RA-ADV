@@ -40,6 +40,9 @@ export function AbaVinculos({
         juiz: null,
         fase: null,
         valorCausa: null,
+        objetivo: null,
+        objetivoSecundario: null,
+        linhaVermelha: null,
       });
       setNovoAberto(false);
       setTipo("conexao");

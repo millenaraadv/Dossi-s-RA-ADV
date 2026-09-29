@@ -46,6 +46,9 @@ export async function createProcessLink(
         juiz: input.juiz ?? null,
         fase: input.fase ?? null,
         valorCausa: input.valorCausa ?? null,
+        objetivo: input.objetivo ?? null,
+        objetivoSecundario: input.objetivoSecundario ?? null,
+        linhaVermelha: input.linhaVermelha ?? null,
         ordem: proximaOrdem,
       })
       .returning();
