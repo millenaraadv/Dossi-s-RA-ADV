@@ -4,7 +4,7 @@ import { useState, type Dispatch, type SetStateAction } from "react";
 import { EditToggleButton } from "@/components/dossier/edit-toggle-button";
 import type { ArgumentoForm } from "@/components/dossier/types";
 import type { DossierFull } from "@/lib/types/dossier";
-import { suggestArgumentos, type SugestaoArgumento } from "@/lib/client/dossier-api";
+import { suggestArgumentos, type SugestaoArgumento, type FonteConsultada } from "@/lib/client/dossier-api";
 import { LoadingDots } from "@/components/ui/loading-dots";
 
 const inputClass = "w-full border border-borda-campo bg-neutro-100 p-2 text-[13.5px] text-texto outline-none";
@@ -31,6 +31,7 @@ export function AbaArgumentos({
   onConcluir: () => void;
 }) {
   const [sugestoes, setSugestoes] = useState<SugestaoArgumento[] | null>(null);
+  const [fontes, setFontes] = useState<FonteConsultada[]>([]);
   const [carregandoSugestao, setCarregandoSugestao] = useState(false);
   const [erroSugestao, setErroSugestao] = useState<string | null>(null);
 
@@ -52,7 +53,9 @@ export function AbaArgumentos({
     setCarregandoSugestao(true);
     setErroSugestao(null);
     try {
-      setSugestoes((await suggestArgumentos(dossier.id)).argumentos);
+      const resultado = await suggestArgumentos(dossier.id);
+      setSugestoes(resultado.argumentos);
+      setFontes(resultado.fontes);
     } catch (e) {
       setErroSugestao(e instanceof Error ? e.message : "Não foi possível obter sugestões da IA.");
     } finally {
@@ -167,6 +170,23 @@ export function AbaArgumentos({
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {fontes.length > 0 && (
+        <div className="mt-3 border-l-[3px] border-acento bg-tinta-clara p-3 text-[12.5px]">
+          <div className="font-semibold uppercase tracking-[0.08em] text-acento-profundo">
+            Fontes consultadas pela IA na busca <span className="normal-case font-normal">(confira antes de citar em peça)</span>
+          </div>
+          <ul className="mt-2 flex flex-col gap-1">
+            {fontes.map((f, i) => (
+              <li key={i}>
+                <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-acento-escuro underline">
+                  {f.titulo}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

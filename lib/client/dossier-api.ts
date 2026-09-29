@@ -226,7 +226,11 @@ export async function suggestEstrategia(dossierId: string): Promise<SugestaoEstr
   );
 }
 
-export async function suggestArgumentos(dossierId: string): Promise<{ argumentos: SugestaoArgumento[] }> {
+export type FonteConsultada = { titulo: string; url: string };
+
+export async function suggestArgumentos(
+  dossierId: string,
+): Promise<{ argumentos: SugestaoArgumento[]; fontes: FonteConsultada[] }> {
   return asJsonOrThrow(
     await fetch(`/api/dossiers/${dossierId}/suggest`, {
       method: "POST",

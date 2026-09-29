@@ -121,27 +121,25 @@ function esperar(ms: number): Promise<void> {
 }
 
 /**
- * Chama um modelo específico, repetindo (com espera curta) só em erro
- * transitório (503 / 429 de limite de taxa) — cota esgotada (429
- * RESOURCE_EXHAUSTED) já falha na primeira tentativa, já que repetir no
- * mesmo modelo não resolveria.
+ * Chama um modelo específico com uma config arbitrária, repetindo (com
+ * espera curta) só em erro transitório (503 / 429 de limite de taxa) — cota
+ * esgotada (429 RESOURCE_EXHAUSTED) já falha na primeira tentativa, já que
+ * repetir no mesmo modelo não resolveria.
  */
-async function chamarModelo(ai: GoogleGenAI, model: string, prompt: string, timeoutMs: number): Promise<string> {
+async function chamarModeloBruto(
+  ai: GoogleGenAI,
+  model: string,
+  prompt: string,
+  config: Record<string, unknown>,
+  timeoutMs: number,
+) {
   for (let tentativa = 1; tentativa <= TENTATIVAS_POR_MODELO; tentativa++) {
     try {
-      const response = await ai.models.generateContent({
+      return await ai.models.generateContent({
         model,
         contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          temperature: 0.1,
-          httpOptions: { timeout: timeoutMs },
-        },
+        config: { ...config, httpOptions: { timeout: timeoutMs } },
       });
-
-      const texto = response.text;
-      if (!texto) throw new Error("A IA não retornou conteúdo.");
-      return texto;
     } catch (err) {
       const ultimaTentativa = tentativa === TENTATIVAS_POR_MODELO;
       if (!ehErroTransitorio(err) || ultimaTentativa) throw err;
@@ -150,6 +148,47 @@ async function chamarModelo(ai: GoogleGenAI, model: string, prompt: string, time
   }
 
   throw new Error("Não foi possível obter resposta da IA.");
+}
+
+async function chamarModelo(ai: GoogleGenAI, model: string, prompt: string, timeoutMs: number): Promise<string> {
+  const response = await chamarModeloBruto(ai, model, prompt, { responseMimeType: "application/json", temperature: 0.1 }, timeoutMs);
+  const texto = response.text;
+  if (!texto) throw new Error("A IA não retornou conteúdo.");
+  return texto;
+}
+
+export type Fonte = { titulo: string; url: string };
+export type RespostaComFontes = { texto: string; fontes: Fonte[] };
+
+// Não pede responseMimeType "application/json" junto com a busca: a
+// documentação do Gemini não deixa claro se JSON mode e a ferramenta de
+// busca (grounding) são compatíveis na mesma chamada, e testar ao vivo não
+// deu (cota diária esgotada durante o desenvolvimento). Mais seguro pedir
+// JSON só via instrução no prompt e extrair de forma tolerante (ver
+// lib/ai/parse.ts) do que arriscar um erro 400 por combinação não suportada.
+async function chamarModeloComBusca(
+  ai: GoogleGenAI,
+  model: string,
+  prompt: string,
+  timeoutMs: number,
+): Promise<RespostaComFontes> {
+  const response = await chamarModeloBruto(
+    ai,
+    model,
+    prompt,
+    { temperature: 0.1, tools: [{ googleSearch: {} }] },
+    timeoutMs,
+  );
+  const texto = response.text;
+  if (!texto) throw new Error("A IA não retornou conteúdo.");
+
+  const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks ?? [];
+  const fontes: Fonte[] = chunks
+    .map((c) => c.web)
+    .filter((w): w is NonNullable<typeof w> => !!w?.uri)
+    .map((w) => ({ titulo: w.title || w.uri!, url: w.uri! }));
+
+  return { texto, fontes };
 }
 
 /**
@@ -178,6 +217,32 @@ export async function gerarJson(prompt: string, timeoutMs = TIMEOUT_PADRAO_MS): 
     }
     try {
       return await chamarModelo(ai, MODELO_RESERVA, prompt, timeoutMs);
+    } catch (erroReserva) {
+      throw new AiError(mensagemAmigavel(erroReserva));
+    }
+  }
+}
+
+/**
+ * Mesma lógica de `gerarJson` (modelo principal com fallback pro reserva em
+ * sobrecarga/cota esgotada), mas habilitando a ferramenta de busca do Google
+ * — usada quando a resposta precisa citar algo verificável (jurisprudência,
+ * doutrina) em vez de só descrever uma tese genérica. Devolve as fontes
+ * usadas pela busca junto com o texto, para o usuário poder conferir antes
+ * de usar em peça — a IA pode errar mesmo com busca, então a fonte com link
+ * é o que torna a conferência possível.
+ */
+export async function gerarComBusca(prompt: string, timeoutMs = TIMEOUT_PADRAO_MS): Promise<RespostaComFontes> {
+  const ai = getClient();
+
+  try {
+    return await chamarModeloComBusca(ai, MODELO_PRINCIPAL, prompt, timeoutMs);
+  } catch (erroPrincipal) {
+    if (!valeTentarReserva(erroPrincipal)) {
+      throw new AiError(mensagemAmigavel(erroPrincipal));
+    }
+    try {
+      return await chamarModeloComBusca(ai, MODELO_RESERVA, prompt, timeoutMs);
     } catch (erroReserva) {
       throw new AiError(mensagemAmigavel(erroReserva));
     }

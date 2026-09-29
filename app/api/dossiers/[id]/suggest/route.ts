@@ -6,7 +6,7 @@ import { NotFoundError } from "@/lib/errors";
 import { suggestRequestSchema } from "@/lib/validation/dossier";
 import { getDossierFull } from "@/lib/db/queries/dossiers";
 import { countRecentSuggestions, createSuggestionRecord } from "@/lib/db/queries/suggestions";
-import { gerarJson } from "@/lib/ai/client";
+import { gerarJson, gerarComBusca } from "@/lib/ai/client";
 import { buildSuggestEstrategiaPrompt } from "@/lib/ai/prompts/suggest-estrategia";
 import { buildSuggestArgumentosPrompt } from "@/lib/ai/prompts/suggest-argumentos";
 import { parseSugestaoEstrategia, parseSugestaoArgumentos } from "@/lib/ai/parse-suggestions";
@@ -42,8 +42,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json(resultado);
     }
 
-    const respostaTexto = await gerarJson(buildSuggestArgumentosPrompt(dossier));
-    const resultado = parseSugestaoArgumentos(respostaTexto);
+    const { texto: respostaTexto, fontes } = await gerarComBusca(buildSuggestArgumentosPrompt(dossier));
+    const resultado = parseSugestaoArgumentos(respostaTexto, fontes);
     await createSuggestionRecord({ dossierId: id, etapa: "argumentos", criadoPorId: user.id, respostaBruta: resultado });
     return NextResponse.json(resultado);
   } catch (err) {
