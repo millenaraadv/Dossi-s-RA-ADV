@@ -318,7 +318,7 @@ export function AbaEstrategia({
               <div className="mt-2 flex flex-col gap-2">
                 {sugestao.passos.map((p, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <input
+                    <textarea
                       value={p.acao}
                       onChange={(e) =>
                         setSugestao((atual) =>
@@ -332,7 +332,9 @@ export function AbaEstrategia({
                             : atual,
                         )
                       }
-                      className="flex-1 border border-borda-campo bg-neutro-100 px-2 py-1 text-[13.5px] text-texto outline-none"
+                      rows={1}
+                      wrap="off"
+                      className="flex-1 resize-none overflow-x-auto whitespace-pre border border-borda-campo bg-neutro-100 px-2 py-1 text-[13.5px] text-texto outline-none"
                     />
                     <input
                       type="date"
