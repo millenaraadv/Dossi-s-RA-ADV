@@ -103,7 +103,13 @@ export async function getDossierFull(id: string): Promise<DossierFull | undefine
       },
       prazos: { orderBy: (t, { asc }) => [asc(t.ordem)] },
       argumentos: { orderBy: (t, { asc }) => [asc(t.ordem)] },
-      vinculos: { orderBy: (t, { asc }) => [asc(t.ordem)] },
+      vinculos: {
+        orderBy: (t, { asc }) => [asc(t.ordem)],
+        with: {
+          firac: { orderBy: (t, { asc }) => [asc(t.ordem)] },
+          argumentos: { orderBy: (t, { asc }) => [asc(t.ordem)] },
+        },
+      },
       versoes: { orderBy: (t, { desc }) => [desc(t.data)], with: { revisor: true } },
     },
   });

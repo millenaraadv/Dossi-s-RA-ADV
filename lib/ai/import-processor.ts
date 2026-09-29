@@ -1,7 +1,4 @@
 import "server-only";
-import path from "node:path";
-import { pathToFileURL } from "node:url";
-import { PDFParse } from "pdf-parse";
 import { downloadAuto } from "@/lib/supabase/storage";
 import { getImport, updateImportStatus } from "@/lib/db/queries/imports";
 import { createDossier, updateDossierGeneral, replaceTimeline, replaceFirac } from "@/lib/db/queries/dossiers";
@@ -9,16 +6,8 @@ import { createProcessLink } from "@/lib/db/queries/process-links";
 import { buildImportPrompt } from "@/lib/ai/prompts/import-autos";
 import { gerarJson } from "@/lib/ai/client";
 import { parseImportResult } from "@/lib/ai/parse";
+import { extrairTextoDoArquivo } from "@/lib/ai/extract-text";
 import { NAO_LOCALIZADO, ROTULOS_CAMPOS_IMPORTADOS as ROTULOS } from "@/lib/dossier-constants";
-
-// pdfjs-dist (usado pelo pdf-parse) carrega seu "worker" resolvendo o caminho
-// a partir do módulo que o chama — no output empacotado do Next.js (Turbopack)
-// isso aponta para dentro de .next/server/chunks em vez do arquivo real em
-// node_modules, e a extração falha com "Setting up fake worker failed". Fixa
-// o caminho explicitamente, direto do node_modules na raiz do projeto/app.
-PDFParse.setWorker(
-  pathToFileURL(path.join(process.cwd(), "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs")).href,
-);
 
 // Limite defensivo de tamanho do texto enviado à IA — autos muito volumosos
 // (milhares de páginas) precisam do caminho por peça/RAG do item 9, não de
@@ -37,21 +26,7 @@ export async function processImport(importId: string, actorId: string): Promise<
     const registro = await getImport(importId);
 
     const bytes = await downloadAuto(registro.arquivoStorageKey);
-    let texto: string;
-    let paginas: number | null = null;
-
-    if (registro.arquivoNome.toLowerCase().endsWith(".pdf")) {
-      const parser = new PDFParse({ data: bytes });
-      try {
-        const resultado = await parser.getText();
-        texto = resultado.text;
-        paginas = resultado.total;
-      } finally {
-        await parser.destroy();
-      }
-    } else {
-      texto = bytes.toString("utf-8");
-    }
+    const { texto, paginas } = await extrairTextoDoArquivo(registro.arquivoNome, bytes);
 
     if (!texto.trim()) {
       throw new Error(

@@ -1,15 +1,18 @@
 import "server-only";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { processLinks, dossiers } from "@/lib/db/schema";
+import { processLinks, processLinkFirac, processLinkArguments, dossiers } from "@/lib/db/schema";
 import { audit } from "@/lib/audit";
 import { brDataParaIso } from "@/lib/dates";
 import { NotFoundError } from "@/lib/errors";
 import type { z } from "zod";
 import type { createProcessLinkSchema, patchProcessLinkSchema } from "@/lib/validation/process-link";
+import type { firacReplaceSchema, argumentsReplaceSchema } from "@/lib/validation/dossier";
 
 type CreateInput = z.infer<typeof createProcessLinkSchema>;
 type PatchInput = z.infer<typeof patchProcessLinkSchema>;
+type FiracInput = z.infer<typeof firacReplaceSchema>;
+type ArgumentsInput = z.infer<typeof argumentsReplaceSchema>;
 
 export async function createProcessLink(
   dossierId: string,
@@ -39,6 +42,10 @@ export async function createProcessLink(
         prazoContagem: input.prazoContagem ?? null,
         prazoDataTexto: input.prazoDataTexto ?? null,
         prazoData: input.prazoDataTexto ? brDataParaIso(input.prazoDataTexto) : null,
+        partes: input.partes ?? null,
+        juiz: input.juiz ?? null,
+        fase: input.fase ?? null,
+        valorCausa: input.valorCausa ?? null,
         ordem: proximaOrdem,
       })
       .returning();
@@ -63,7 +70,12 @@ async function getProcessLinkOrThrow(tx: Pick<typeof db, "select">, id: string) 
   return row;
 }
 
-export async function updateProcessLink(id: string, patch: PatchInput, actorId: string) {
+export async function updateProcessLink(
+  id: string,
+  patch: PatchInput,
+  actorId: string,
+  opcoes?: { viaIa?: boolean },
+) {
   return db.transaction(async (tx) => {
     const antes = await getProcessLinkOrThrow(tx, id);
 
@@ -84,6 +96,7 @@ export async function updateProcessLink(id: string, patch: PatchInput, actorId: 
       acao: "atualizar",
       antes,
       depois,
+      viaIa: opcoes?.viaIa ?? false,
     });
 
     return depois;
@@ -102,6 +115,86 @@ export async function deleteProcessLink(id: string, actorId: string): Promise<vo
       entidadeId: id,
       acao: "excluir",
       antes,
+    });
+  });
+}
+
+export async function replaceProcessLinkFirac(
+  processLinkId: string,
+  firac: FiracInput,
+  actorId: string,
+  opcoes?: { viaIa?: boolean },
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    const vinculo = await getProcessLinkOrThrow(tx, processLinkId);
+    const antes = await tx.select().from(processLinkFirac).where(eq(processLinkFirac.processLinkId, processLinkId));
+
+    await tx.delete(processLinkFirac).where(eq(processLinkFirac.processLinkId, processLinkId));
+
+    const rows: { processLinkId: string; letra: "F" | "I" | "R" | "A" | "C"; paragrafo: string; ordem: number }[] = [];
+    (["f", "i", "r", "a", "c"] as const).forEach((letra) => {
+      firac[letra].forEach((paragrafo, i) =>
+        rows.push({
+          processLinkId,
+          letra: letra.toUpperCase() as "F" | "I" | "R" | "A" | "C",
+          paragrafo,
+          ordem: i,
+        }),
+      );
+    });
+    if (rows.length > 0) await tx.insert(processLinkFirac).values(rows);
+
+    await audit(tx, {
+      userId: actorId,
+      dossierId: vinculo.dossierId,
+      entidade: "process_link_firac",
+      entidadeId: processLinkId,
+      acao: "substituir",
+      antes,
+      depois: firac,
+      viaIa: opcoes?.viaIa ?? false,
+    });
+  });
+}
+
+export async function replaceProcessLinkArguments(
+  processLinkId: string,
+  args: ArgumentsInput,
+  actorId: string,
+  opcoes?: { viaIa?: boolean },
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    const vinculo = await getProcessLinkOrThrow(tx, processLinkId);
+    const antes = await tx
+      .select()
+      .from(processLinkArguments)
+      .where(eq(processLinkArguments.processLinkId, processLinkId));
+
+    await tx.delete(processLinkArguments).where(eq(processLinkArguments.processLinkId, processLinkId));
+    if (args.length > 0) {
+      await tx.insert(processLinkArguments).values(
+        args.map((a, i) => ({
+          processLinkId,
+          tag: `A${i + 1}`,
+          titulo: a.titulo,
+          fato: a.fato ?? null,
+          previsaoLegal: a.previsaoLegal ?? null,
+          jurisprudencia: a.jurisprudencia ?? null,
+          doutrina: a.doutrina ?? null,
+          ordem: i,
+        })),
+      );
+    }
+
+    await audit(tx, {
+      userId: actorId,
+      dossierId: vinculo.dossierId,
+      entidade: "process_link_arguments",
+      entidadeId: processLinkId,
+      acao: "substituir",
+      antes,
+      depois: args,
+      viaIa: opcoes?.viaIa ?? false,
     });
   });
 }

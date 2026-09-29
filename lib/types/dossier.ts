@@ -82,7 +82,22 @@ export type DossierFull = {
     resultado: string | null;
     prazoContagem: string | null;
     prazoDataTexto: string | null;
+    partes: string | null;
+    juiz: string | null;
+    fase: string | null;
+    valorCausa: string | null;
     ordem: number;
+    firac: { id: string; letra: "F" | "I" | "R" | "A" | "C"; paragrafo: string; ordem: number }[];
+    argumentos: {
+      id: string;
+      tag: string;
+      titulo: string;
+      fato: string | null;
+      previsaoLegal: string | null;
+      jurisprudencia: string | null;
+      doutrina: string | null;
+      ordem: number;
+    }[];
   }[];
   versoes: { id: string; versao: string; data: string; marco: string | null; etapa: string | null; revisor: UsuarioRef }[];
 };

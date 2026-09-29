@@ -255,11 +255,68 @@ export const processLinks = pgTable(
     prazoContagem: text("prazo_contagem"),
     prazoDataTexto: text("prazo_data_texto"),
     prazoData: date("prazo_data"),
+    // Campos de "mini-dossiê" — é outro processo, com suas próprias partes,
+    // juízo e argumentação, preenchíveis à mão ou por importação de PDF
+    // (ver processLinkImports abaixo), mesmas regras de nunca inventar dado.
+    partes: text("partes"),
+    juiz: text("juiz"),
+    fase: text("fase"),
+    valorCausa: text("valor_causa"),
     ordem: integer("ordem").notNull().default(0),
     criadoEm: timestamp("criado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
     atualizadoEm: timestamp("atualizado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
   },
   (t) => [index("process_links_dossier_idx").on(t.dossierId)],
+).enableRLS();
+
+export const processLinkFirac = pgTable(
+  "process_link_firac",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    processLinkId: uuid("process_link_id").notNull().references(() => processLinks.id, { onDelete: "cascade" }),
+    letra: firacLetraEnum("letra").notNull(),
+    paragrafo: text("paragrafo").notNull(),
+    ordem: integer("ordem").notNull().default(0),
+  },
+  (t) => [index("process_link_firac_process_link_idx").on(t.processLinkId)],
+).enableRLS();
+
+export const processLinkArguments = pgTable(
+  "process_link_arguments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    processLinkId: uuid("process_link_id").notNull().references(() => processLinks.id, { onDelete: "cascade" }),
+    tag: text("tag").notNull(),
+    titulo: text("titulo").notNull(),
+    fato: text("fato"),
+    previsaoLegal: text("previsao_legal"),
+    jurisprudencia: text("jurisprudencia"),
+    doutrina: text("doutrina"),
+    ordem: integer("ordem").notNull().default(0),
+  },
+  (t) => [index("process_link_arguments_process_link_idx").on(t.processLinkId)],
+).enableRLS();
+
+// Mesmo padrão de `imports`, mas alvo é um process_link já existente (criado
+// à mão antes) em vez de um dossiê novo — a importação aqui enriquece os
+// campos de "mini-dossiê" do vínculo (partes/juiz/fase/valor da causa/FIRAC/
+// argumentos), nunca cria um vínculo novo.
+export const processLinkImports = pgTable(
+  "process_link_imports",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    processLinkId: uuid("process_link_id").references(() => processLinks.id, { onDelete: "set null" }),
+    arquivoNome: text("arquivo_nome").notNull(),
+    arquivoStorageKey: text("arquivo_storage_key").notNull(),
+    paginasLidas: integer("paginas_lidas"),
+    status: importStatusEnum("status").notNull().default("lendo"),
+    erro: text("erro"),
+    camposFaltantes: jsonb("campos_faltantes").notNull().default(sql`'[]'::jsonb`),
+    respostaBruta: jsonb("resposta_bruta"),
+    criadoPorId: uuid("criado_por_id").references(() => users.id, { onDelete: "restrict" }),
+    criadoEm: timestamp("criado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
+  },
+  (t) => [index("process_link_imports_process_link_idx").on(t.processLinkId)],
 ).enableRLS();
 
 export const dossierVersions = pgTable(
@@ -396,8 +453,22 @@ export const argumentsTableRelations = relations(argumentsTable, ({ one }) => ({
   dossier: one(dossiers, { fields: [argumentsTable.dossierId], references: [dossiers.id] }),
 }));
 
-export const processLinksRelations = relations(processLinks, ({ one }) => ({
+export const processLinksRelations = relations(processLinks, ({ one, many }) => ({
   dossier: one(dossiers, { fields: [processLinks.dossierId], references: [dossiers.id] }),
+  firac: many(processLinkFirac),
+  argumentos: many(processLinkArguments),
+}));
+
+export const processLinkFiracRelations = relations(processLinkFirac, ({ one }) => ({
+  processLink: one(processLinks, { fields: [processLinkFirac.processLinkId], references: [processLinks.id] }),
+}));
+
+export const processLinkArgumentsRelations = relations(processLinkArguments, ({ one }) => ({
+  processLink: one(processLinks, { fields: [processLinkArguments.processLinkId], references: [processLinks.id] }),
+}));
+
+export const processLinkImportsRelations = relations(processLinkImports, ({ one }) => ({
+  processLink: one(processLinks, { fields: [processLinkImports.processLinkId], references: [processLinks.id] }),
 }));
 
 export const dossierVersionsRelations = relations(dossierVersions, ({ one }) => ({

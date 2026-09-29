@@ -1,15 +1,45 @@
 "use client";
 
-import { useState } from "react";
-import { updateProcessLink, deleteProcessLink } from "@/lib/client/dossier-api";
+import { useRef, useState } from "react";
+import {
+  updateProcessLink,
+  deleteProcessLink,
+  putProcessLinkFirac,
+  putProcessLinkArguments,
+  importProcessLinkPdf,
+  getProcessLinkImportStatus,
+} from "@/lib/client/dossier-api";
 import { normalizarDataDigitada } from "@/lib/dates";
-import { TIPOS_VINCULO_PROCESSUAL, VINCULO_TIPO_LABEL } from "@/lib/dossier-constants";
+import {
+  TIPOS_VINCULO_PROCESSUAL,
+  VINCULO_TIPO_LABEL,
+  FIRAC_LETRAS,
+  FIRAC_TITULOS,
+  camposVinculoNaoLocalizados,
+} from "@/lib/dossier-constants";
 import type { DossierFull } from "@/lib/types/dossier";
 import { LoadingDots } from "@/components/ui/loading-dots";
 
 type Vinculo = DossierFull["vinculos"][number];
+type ArgumentoForm = { titulo: string; fato: string; previsaoLegal: string; jurisprudencia: string; doutrina: string };
+type FiracForm = { f: string[]; i: string[]; r: string[]; a: string[]; c: string[] };
 
 const inputClass = "w-full border border-borda-campo bg-neutro-100 px-2 py-1 text-[12.5px] text-texto outline-none";
+
+function buildFiracForm(vinculo: Vinculo): FiracForm {
+  const byLetra = (l: string) => vinculo.firac.filter((b) => b.letra === l).map((b) => b.paragrafo);
+  return { f: byLetra("F"), i: byLetra("I"), r: byLetra("R"), a: byLetra("A"), c: byLetra("C") };
+}
+
+function buildArgumentosForm(vinculo: Vinculo): ArgumentoForm[] {
+  return vinculo.argumentos.map((a) => ({
+    titulo: a.titulo,
+    fato: a.fato ?? "",
+    previsaoLegal: a.previsaoLegal ?? "",
+    jurisprudencia: a.jurisprudencia ?? "",
+    doutrina: a.doutrina ?? "",
+  }));
+}
 
 export function VinculoRow({
   vinculo,
@@ -22,6 +52,19 @@ export function VinculoRow({
 }) {
   const [salvando, setSalvando] = useState(false);
   const [prazoDataTexto, setPrazoDataTexto] = useState(vinculo.prazoDataTexto ?? "");
+  const [expandido, setExpandido] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importando, setImportando] = useState(false);
+  const [progressoImport, setProgressoImport] = useState<string | null>(null);
+  const [erroImport, setErroImport] = useState<string | null>(null);
+
+  const [firacForm, setFiracForm] = useState<FiracForm>(() => buildFiracForm(vinculo));
+  const [firacSalvando, setFiracSalvando] = useState(false);
+  const [argumentosForm, setArgumentosForm] = useState<ArgumentoForm[]>(() => buildArgumentosForm(vinculo));
+  const [argumentosSalvando, setArgumentosSalvando] = useState(false);
+
+  const naoLocalizados = camposVinculoNaoLocalizados(vinculo);
 
   async function salvar(patch: Parameters<typeof updateProcessLink>[1]) {
     setSalvando(true);
@@ -43,8 +86,84 @@ export function VinculoRow({
     }
   }
 
+  function expandir() {
+    if (!expandido) {
+      setFiracForm(buildFiracForm(vinculo));
+      setArgumentosForm(buildArgumentosForm(vinculo));
+    }
+    setExpandido((v) => !v);
+  }
+
+  async function acompanharImportacao(importId: string) {
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 1500));
+      let data;
+      try {
+        data = await getProcessLinkImportStatus(importId);
+      } catch {
+        setErroImport("Não foi possível verificar o andamento da importação.");
+        setImportando(false);
+        return;
+      }
+      if (data.status === "erro") {
+        setErroImport(data.erro ?? "Não foi possível processar o PDF.");
+        setImportando(false);
+        return;
+      }
+      if (data.status === "concluido") {
+        setImportando(false);
+        setProgressoImport(null);
+        await onChanged();
+        return;
+      }
+      setProgressoImport(data.status === "processando" ? "Extraindo as informações do PDF…" : "Lendo o arquivo…");
+    }
+  }
+
+  async function importarPdf() {
+    const arquivo = fileInputRef.current?.files?.[0];
+    if (!arquivo) return;
+    setErroImport(null);
+    setImportando(true);
+    setProgressoImport(`Enviando ${arquivo.name}…`);
+    try {
+      const { id } = await importProcessLinkPdf(vinculo.id, arquivo);
+      setProgressoImport("Lendo o arquivo…");
+      await acompanharImportacao(id);
+    } catch (e) {
+      setErroImport(e instanceof Error ? e.message : "Falha ao enviar o arquivo.");
+      setImportando(false);
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  async function salvarFirac() {
+    setFiracSalvando(true);
+    try {
+      await putProcessLinkFirac(vinculo.id, firacForm);
+      await onChanged();
+    } finally {
+      setFiracSalvando(false);
+    }
+  }
+
+  async function salvarArgumentos() {
+    setArgumentosSalvando(true);
+    try {
+      await putProcessLinkArguments(
+        vinculo.id,
+        argumentosForm.filter((a) => a.titulo.trim()),
+      );
+      await onChanged();
+    } finally {
+      setArgumentosSalvando(false);
+    }
+  }
+
+  const rotulo = VINCULO_TIPO_LABEL[vinculo.tipo as keyof typeof VINCULO_TIPO_LABEL] ?? vinculo.tipo;
+
   if (!podeEditar) {
-    const rotulo = VINCULO_TIPO_LABEL[vinculo.tipo as keyof typeof VINCULO_TIPO_LABEL] ?? vinculo.tipo;
     return (
       <div className="border-b border-divisoria-fina py-4">
         <div className="text-[13.5px]">
@@ -60,6 +179,23 @@ export function VinculoRow({
           </div>
         )}
         {vinculo.resultado && <div className="mt-1 text-[13px] text-neutro-700">Resultado: {vinculo.resultado}</div>}
+        {(vinculo.partes || vinculo.juiz || vinculo.fase || vinculo.valorCausa) && (
+          <div className="mt-2 grid grid-cols-2 gap-2 text-[13px] text-neutro-700">
+            {vinculo.partes && <div>Partes: {vinculo.partes}</div>}
+            {vinculo.juiz && <div>Magistrado: {vinculo.juiz}</div>}
+            {vinculo.fase && <div>Fase: {vinculo.fase}</div>}
+            {vinculo.valorCausa && <div>Valor da causa: {vinculo.valorCausa}</div>}
+          </div>
+        )}
+        {vinculo.argumentos.length > 0 && (
+          <div className="mt-2 flex flex-col gap-1">
+            {vinculo.argumentos.map((a) => (
+              <div key={a.id} className="text-[13px]">
+                <span className="text-acento">{a.tag}</span> {a.titulo}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -149,6 +285,219 @@ export function VinculoRow({
         defaultValue={vinculo.resultado ?? ""}
         onBlur={(e) => e.target.value !== (vinculo.resultado ?? "") && salvar({ resultado: e.target.value || null })}
       />
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <input ref={fileInputRef} type="file" accept=".pdf,.txt" className="hidden" onChange={importarPdf} />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={importando}
+          className="inline-flex items-center gap-2 border border-ambar bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-ambar hover:bg-tinta-clara disabled:opacity-60"
+        >
+          Anexar PDF do processo {importando && <LoadingDots />}
+        </button>
+        <button
+          type="button"
+          onClick={expandir}
+          className="border border-acento px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-tinta-clara"
+        >
+          {expandido ? "Ocultar detalhes completos" : "Ver/editar detalhes completos"}
+        </button>
+      </div>
+
+      {progressoImport && (
+        <div className="mt-2 flex items-center gap-2 border-l-[3px] border-ambar bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">
+          {progressoImport} <LoadingDots />
+        </div>
+      )}
+      {erroImport && (
+        <div className="mt-2 border-l-[3px] border-acento bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">
+          {erroImport}
+        </div>
+      )}
+      {naoLocalizados.length > 0 && (
+        <div className="mt-2 border-l-[3px] border-ambar bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">
+          A IA não localizou no PDF: {naoLocalizados.join(", ")}. Confira antes de usar.
+        </div>
+      )}
+
+      {expandido && (
+        <div className="mt-3 border-l-[3px] border-divisoria-fina bg-neutro-100 p-3">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutro-700">
+            Dados gerais deste processo
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <input
+              className={inputClass}
+              placeholder="Partes"
+              defaultValue={vinculo.partes ?? ""}
+              onBlur={(e) => e.target.value !== (vinculo.partes ?? "") && salvar({ partes: e.target.value || null })}
+            />
+            <input
+              className={inputClass}
+              placeholder="Magistrado"
+              defaultValue={vinculo.juiz ?? ""}
+              onBlur={(e) => e.target.value !== (vinculo.juiz ?? "") && salvar({ juiz: e.target.value || null })}
+            />
+            <input
+              className={inputClass}
+              placeholder="Fase e rito"
+              defaultValue={vinculo.fase ?? ""}
+              onBlur={(e) => e.target.value !== (vinculo.fase ?? "") && salvar({ fase: e.target.value || null })}
+            />
+            <input
+              className={inputClass}
+              placeholder="Valor da causa"
+              defaultValue={vinculo.valorCausa ?? ""}
+              onBlur={(e) =>
+                e.target.value !== (vinculo.valorCausa ?? "") && salvar({ valorCausa: e.target.value || null })
+              }
+            />
+          </div>
+
+          <div className="mt-4 text-[10px] font-semibold uppercase tracking-[0.1em] text-neutro-700">
+            FIRAC deste processo
+          </div>
+          <div className="mt-2 flex flex-col gap-3">
+            {FIRAC_LETRAS.map((letra) => {
+              const key = letra.toLowerCase() as "f" | "i" | "r" | "a" | "c";
+              return (
+                <div key={letra} className="flex gap-2">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center bg-acento text-[13px] text-white">
+                    {letra}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[10px] uppercase tracking-[0.08em] text-neutro-700">{FIRAC_TITULOS[letra]}</div>
+                    <div className="mt-1 flex flex-col gap-1">
+                      {firacForm[key].map((p, i) => (
+                        <textarea
+                          key={i}
+                          rows={2}
+                          value={p}
+                          onChange={(e) =>
+                            setFiracForm((f) => {
+                              const next = [...f[key]];
+                              next[i] = e.target.value;
+                              return { ...f, [key]: next };
+                            })
+                          }
+                          className={inputClass}
+                        />
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setFiracForm((f) => ({ ...f, [key]: [...f[key], ""] }))}
+                        className="self-start border border-acento px-2 py-0.5 text-[10px] font-semibold uppercase text-acento-escuro hover:bg-tinta-clara"
+                      >
+                        + Parágrafo
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            <button
+              type="button"
+              onClick={salvarFirac}
+              disabled={firacSalvando}
+              className="inline-flex items-center gap-2 self-start bg-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-white disabled:opacity-60"
+            >
+              Salvar FIRAC {firacSalvando && <LoadingDots />}
+            </button>
+          </div>
+
+          <div className="mt-4 text-[10px] font-semibold uppercase tracking-[0.1em] text-neutro-700">
+            Argumentos deste processo
+          </div>
+          <div className="mt-2 flex flex-col gap-3">
+            {argumentosForm.map((a, i) => (
+              <div key={i} className="border-t border-divisoria-fina pt-2 first:border-t-0 first:pt-0">
+                <div className="mb-1 flex items-center justify-between">
+                  <span className="text-[11px] text-acento">A{i + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => setArgumentosForm((atual) => atual.filter((_, j) => j !== i))}
+                    className="border border-acento px-2 py-0.5 text-[10px] font-semibold uppercase text-acento-escuro hover:bg-tinta-clara"
+                  >
+                    Excluir
+                  </button>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <input
+                    className={inputClass}
+                    placeholder="Título"
+                    value={a.titulo}
+                    onChange={(e) =>
+                      setArgumentosForm((atual) => atual.map((x, j) => (j === i ? { ...x, titulo: e.target.value } : x)))
+                    }
+                  />
+                  <textarea
+                    rows={2}
+                    className={inputClass}
+                    placeholder="Fato"
+                    value={a.fato}
+                    onChange={(e) =>
+                      setArgumentosForm((atual) => atual.map((x, j) => (j === i ? { ...x, fato: e.target.value } : x)))
+                    }
+                  />
+                  <input
+                    className={inputClass}
+                    placeholder="Previsão legal"
+                    value={a.previsaoLegal}
+                    onChange={(e) =>
+                      setArgumentosForm((atual) =>
+                        atual.map((x, j) => (j === i ? { ...x, previsaoLegal: e.target.value } : x)),
+                      )
+                    }
+                  />
+                  <textarea
+                    rows={2}
+                    className={inputClass}
+                    placeholder="Jurisprudência"
+                    value={a.jurisprudencia}
+                    onChange={(e) =>
+                      setArgumentosForm((atual) =>
+                        atual.map((x, j) => (j === i ? { ...x, jurisprudencia: e.target.value } : x)),
+                      )
+                    }
+                  />
+                  <textarea
+                    rows={2}
+                    className={inputClass}
+                    placeholder="Doutrina"
+                    value={a.doutrina}
+                    onChange={(e) =>
+                      setArgumentosForm((atual) => atual.map((x, j) => (j === i ? { ...x, doutrina: e.target.value } : x)))
+                    }
+                  />
+                </div>
+              </div>
+            ))}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setArgumentosForm((atual) => [
+                    ...atual,
+                    { titulo: "", fato: "", previsaoLegal: "", jurisprudencia: "", doutrina: "" },
+                  ])
+                }
+                className="border border-acento px-3 py-1 text-[11px] font-semibold uppercase text-acento-escuro hover:bg-tinta-clara"
+              >
+                + Novo argumento
+              </button>
+              <button
+                type="button"
+                onClick={salvarArgumentos}
+                disabled={argumentosSalvando}
+                className="inline-flex items-center gap-2 bg-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-white disabled:opacity-60"
+              >
+                Salvar argumentos {argumentosSalvando && <LoadingDots />}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

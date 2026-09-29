@@ -12,6 +12,10 @@ export const createProcessLinkSchema = z.object({
   resultado: z.string().nullable().optional(),
   prazoContagem: z.string().nullable().optional(),
   prazoDataTexto: z.string().nullable().optional(),
+  partes: z.string().nullable().optional(),
+  juiz: z.string().nullable().optional(),
+  fase: z.string().nullable().optional(),
+  valorCausa: z.string().nullable().optional(),
 });
 
 export const patchProcessLinkSchema = z.object({
@@ -23,4 +27,8 @@ export const patchProcessLinkSchema = z.object({
   resultado: z.string().nullable().optional(),
   prazoContagem: z.string().nullable().optional(),
   prazoDataTexto: z.string().nullable().optional(),
+  partes: z.string().nullable().optional(),
+  juiz: z.string().nullable().optional(),
+  fase: z.string().nullable().optional(),
+  valorCausa: z.string().nullable().optional(),
 });

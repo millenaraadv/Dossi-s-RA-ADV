@@ -237,6 +237,10 @@ export function describeAuditEntry(entry: {
       return descreverPrazo(acao, antes as Registro, depois as Registro);
     case "process_links":
       return descreverVinculo(acao, antes as Registro, depois as Registro);
+    case "process_link_firac":
+      return `${descreverFirac((antes as Registro[]) ?? [], depois as Registro)} (processo vinculado)`;
+    case "process_link_arguments":
+      return `${descreverArgumentos((antes as Registro[]) ?? [], (depois as Registro[]) ?? [])} (processo vinculado)`;
     default:
       return `${acao} em ${entidade}`;
   }

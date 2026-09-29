@@ -91,3 +91,20 @@ export function camposNaoLocalizados(
     .filter((campo) => dossier[campo] === NAO_LOCALIZADO)
     .map((campo) => ROTULOS_CAMPOS_IMPORTADOS[campo]);
 }
+
+// Mesmo padrão acima, para os campos de "mini-dossiê" de um processo
+// vinculado preenchidos por processVinculoImport (lib/ai/import-processor-vinculo.ts).
+export const ROTULOS_CAMPOS_VINCULO = {
+  partes: "Partes",
+  juiz: "Magistrado",
+  fase: "Fase",
+  valorCausa: "Valor da causa",
+} as const;
+
+export function camposVinculoNaoLocalizados(
+  vinculo: Partial<Record<keyof typeof ROTULOS_CAMPOS_VINCULO, string | null | undefined>>,
+): string[] {
+  return (Object.keys(ROTULOS_CAMPOS_VINCULO) as (keyof typeof ROTULOS_CAMPOS_VINCULO)[])
+    .filter((campo) => vinculo[campo] === NAO_LOCALIZADO)
+    .map((campo) => ROTULOS_CAMPOS_VINCULO[campo]);
+}

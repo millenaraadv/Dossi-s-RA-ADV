@@ -1,0 +1,24 @@
+import { NextResponse } from "next/server";
+import { requireUser } from "@/lib/auth/session";
+import { canEditDossierContent, assertPermission } from "@/lib/auth/permissions";
+import { argumentsReplaceSchema } from "@/lib/validation/dossier";
+import { replaceProcessLinkArguments } from "@/lib/db/queries/process-links";
+import { handleRouteError } from "@/lib/api-helpers";
+
+export const runtime = "nodejs";
+
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const user = await requireUser();
+    assertPermission(canEditDossierContent(user.papel), "Seu papel não permite editar os argumentos.");
+
+    const { id } = await params;
+    const body = await request.json();
+    const args = argumentsReplaceSchema.parse(body?.args);
+    await replaceProcessLinkArguments(id, args, user.id, { viaIa: body?.viaIa === true });
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    return handleRouteError(err);
+  }
+}

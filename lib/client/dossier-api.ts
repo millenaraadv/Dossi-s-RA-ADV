@@ -169,6 +169,10 @@ export type ProcessLinkInput = {
   resultado: string | null;
   prazoContagem: string | null;
   prazoDataTexto: string | null;
+  partes: string | null;
+  juiz: string | null;
+  fase: string | null;
+  valorCausa: string | null;
 };
 
 export async function createProcessLink(
@@ -197,6 +201,54 @@ export async function updateProcessLink(id: string, patch: Partial<ProcessLinkIn
 
 export async function deleteProcessLink(id: string): Promise<void> {
   await asJsonOrThrow(await fetch(`/api/process-links/${id}`, { method: "DELETE" }));
+}
+
+export async function putProcessLinkFirac(
+  id: string,
+  firac: { f: string[]; i: string[]; r: string[]; a: string[]; c: string[] },
+): Promise<void> {
+  await asJsonOrThrow(
+    await fetch(`/api/process-links/${id}/firac`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(firac),
+    }),
+  );
+}
+
+export async function putProcessLinkArguments(
+  id: string,
+  args: { titulo: string; fato: string; previsaoLegal: string; jurisprudencia: string; doutrina: string }[],
+): Promise<void> {
+  await asJsonOrThrow(
+    await fetch(`/api/process-links/${id}/arguments`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ args }),
+    }),
+  );
+}
+
+export type ProcessLinkImportStatusResponse = {
+  status: "lendo" | "processando" | "concluido" | "erro";
+  erro: string | null;
+  camposFaltantes: string[];
+  processLinkId: string | null;
+};
+
+export async function importProcessLinkPdf(processLinkId: string, arquivo: File): Promise<{ id: string }> {
+  const formData = new FormData();
+  formData.append("arquivo", arquivo);
+  const res = await fetch(`/api/process-links/${processLinkId}/import`, { method: "POST", body: formData });
+  if (res.status !== 202) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.erro ?? "Não foi possível iniciar a importação.");
+  }
+  return res.json();
+}
+
+export async function getProcessLinkImportStatus(importId: string): Promise<ProcessLinkImportStatusResponse> {
+  return asJsonOrThrow(await fetch(`/api/process-link-imports/${importId}`));
 }
 
 export type SugestaoEstrategia = {

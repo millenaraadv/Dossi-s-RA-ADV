@@ -36,6 +36,10 @@ export function AbaVinculos({
         resultado: null,
         prazoContagem: null,
         prazoDataTexto: null,
+        partes: null,
+        juiz: null,
+        fase: null,
+        valorCausa: null,
       });
       setNovoAberto(false);
       setTipo("conexao");
