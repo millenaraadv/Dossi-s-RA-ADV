@@ -17,9 +17,11 @@ ${buildContextoDossie(dossier)}
 
 Hoje é ${hojeIso}.
 
+ATENÇÃO — DE QUE LADO VOCÊ ESTÁ: o "Cliente do escritório" indicado no contexto acima é quem contratou o escritório — é o lado que toda sugestão abaixo deve defender. Antes de escrever qualquer campo, identifique pela descrição de "Partes" e pelo resumo/FIRAC se o cliente é autor/requerente ou réu/requerido/executado neste processo. Se o cliente for o réu, o objetivo normalmente é afastar, reduzir ou extinguir a pretensão da parte contrária (ex.: improcedência do pedido, extinção sem resolução de mérito, redução de multa/indenização) — NUNCA sugira "condenar" ou prejudicar o próprio cliente. Se o cliente for o autor, o objetivo é o inverso (obter a condenação/tutela pretendida pelo cliente).
+
 O QUE PREENCHER EM CADA CAMPO:
 
-1. "objetivo": o resultado final que se busca com este processo, em uma frase objetiva e concreta (ex.: "Obter a condenação da ré ao pagamento de X, com preservação do prazo recursal").
+1. "objetivo": o resultado final que o CLIENTE busca com este processo, em uma frase objetiva e concreta — pode ser tanto "obter algo" (se o cliente for autor) quanto "afastar/reduzir a pretensão contrária" (se o cliente for réu). Nunca descreva o objetivo da parte contrária.
 
 2. "objetivoSecundario": um objetivo alternativo ou complementar — algo que vale conquistar mesmo que não seja o resultado principal, ou uma meta de segunda linha (ex.: corrigir um ponto específico da sentença, garantir uma tutela provisória). Use string vazia ("") se genuinamente não houver um objetivo secundário claro a partir do contexto — não invente um só para preencher.
 
@@ -32,6 +34,7 @@ O QUE PREENCHER EM CADA CAMPO:
 6. "riscos": até 3 riscos ou pontos de atenção relevantes para este caso específico, cada um uma frase curta. Lista vazia se não houver nenhum risco relevante identificável no contexto.
 
 REGRAS OBRIGATÓRIAS:
+- Todo campo abaixo (objetivo, objetivo secundário, linha vermelha, passos, prazos, riscos) deve ser pensado do ponto de vista do CLIENTE do escritório indicado no contexto — nunca da parte contrária.
 - Não invente fatos que não estejam no contexto acima — cada sugestão deve ser coerente com o que foi informado sobre ESTE caso, nunca um conselho genérico de "processo judicial em geral".
 - Quando faltar base no contexto para preencher um campo com segurança, prefira devolver string vazia ou lista vazia a inventar conteúdo plausível.
 - Responda APENAS com um objeto JSON válido, sem markdown, sem texto antes ou depois — só o JSON, no formato exato abaixo.
