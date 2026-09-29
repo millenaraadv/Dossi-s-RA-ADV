@@ -4,6 +4,14 @@ export function hojeIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+/** "19/08/2026" → "2026-08-19"; devolve null quando não está em dd/mm/aaaa. */
+export function brDataParaIso(texto: string): string | null {
+  const m = texto.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return null;
+  const [, d, mo, y] = m;
+  return `${y}-${mo}-${d}`;
+}
+
 export function formatarDataBr(iso: string | null): string {
   if (!iso) return "—";
   const [y, m, d] = iso.split("-");

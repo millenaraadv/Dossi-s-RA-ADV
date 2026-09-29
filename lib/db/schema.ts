@@ -58,6 +58,15 @@ export const importStatusEnum = pgEnum("import_status", [
 
 export const etapaSugestaoEnum = pgEnum("etapa_sugestao", ["estrategia", "argumentos"]);
 
+export const tipoVinculoProcessualEnum = pgEnum("tipo_vinculo_processual", [
+  "conexao",
+  "agravo_instrumento",
+  "agravo_interno",
+  "recurso_especial",
+  "recurso_extraordinario",
+  "outro",
+]);
+
 export const users = pgTable("users", {
   id: uuid("id")
     .primaryKey()
@@ -228,6 +237,31 @@ export const argumentsTable = pgTable(
   (t) => [index("arguments_dossier_idx").on(t.dossierId)],
 ).enableRLS();
 
+// Processos vinculados ao dossiê principal por conexão/apensamento, ou por um
+// recurso que gera número próprio (agravo de instrumento, agravo interno,
+// REsp, RE etc.) — lista de CRUD imediato, fora do fluxo de concluir-edição
+// (mesmo padrão de `steps`/`deadlines`).
+export const processLinks = pgTable(
+  "process_links",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    dossierId: uuid("dossier_id").notNull().references(() => dossiers.id, { onDelete: "cascade" }),
+    tipo: tipoVinculoProcessualEnum("tipo").notNull(),
+    numeroProcesso: text("numero_processo"),
+    tribunalInstancia: text("tribunal_instancia"),
+    status: text("status"),
+    resumo: text("resumo"),
+    resultado: text("resultado"),
+    prazoContagem: text("prazo_contagem"),
+    prazoDataTexto: text("prazo_data_texto"),
+    prazoData: date("prazo_data"),
+    ordem: integer("ordem").notNull().default(0),
+    criadoEm: timestamp("criado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
+    atualizadoEm: timestamp("atualizado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
+  },
+  (t) => [index("process_links_dossier_idx").on(t.dossierId)],
+).enableRLS();
+
 export const dossierVersions = pgTable(
   "dossier_versions",
   {
@@ -328,6 +362,7 @@ export const dossiersRelations = relations(dossiers, ({ one, many }) => ({
   passos: many(steps),
   prazos: many(deadlines),
   argumentos: many(argumentsTable),
+  vinculos: many(processLinks),
   versoes: many(dossierVersions),
 }));
 
@@ -359,6 +394,10 @@ export const deadlinesRelations = relations(deadlines, ({ one }) => ({
 
 export const argumentsTableRelations = relations(argumentsTable, ({ one }) => ({
   dossier: one(dossiers, { fields: [argumentsTable.dossierId], references: [dossiers.id] }),
+}));
+
+export const processLinksRelations = relations(processLinks, ({ one }) => ({
+  dossier: one(dossiers, { fields: [processLinks.dossierId], references: [dossiers.id] }),
 }));
 
 export const dossierVersionsRelations = relations(dossierVersions, ({ one }) => ({

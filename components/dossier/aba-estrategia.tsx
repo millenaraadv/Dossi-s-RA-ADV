@@ -90,7 +90,7 @@ export function AbaEstrategia({
     if (!sugestao) return;
     setAplicandoObjetivo(true);
     try {
-      await patchDossier(dossier.id, { objetivo: sugestao.objetivo });
+      await patchDossier(dossier.id, { objetivo: sugestao.objetivo }, { viaIa: true });
       await onDossierChanged();
     } finally {
       setAplicandoObjetivo(false);
@@ -101,7 +101,7 @@ export function AbaEstrategia({
     if (!sugestao) return;
     setAplicandoObjetivoSecundario(true);
     try {
-      await patchDossier(dossier.id, { objetivoSecundario: sugestao.objetivoSecundario });
+      await patchDossier(dossier.id, { objetivoSecundario: sugestao.objetivoSecundario }, { viaIa: true });
       await onDossierChanged();
     } finally {
       setAplicandoObjetivoSecundario(false);
@@ -112,7 +112,7 @@ export function AbaEstrategia({
     if (!sugestao) return;
     setAplicandoLinhaVermelha(true);
     try {
-      await patchDossier(dossier.id, { linhaVermelha: sugestao.linhaVermelha });
+      await patchDossier(dossier.id, { linhaVermelha: sugestao.linhaVermelha }, { viaIa: true });
       await onDossierChanged();
     } finally {
       setAplicandoLinhaVermelha(false);
@@ -124,7 +124,11 @@ export function AbaEstrategia({
     const passo = sugestao.passos[indice];
     setAplicandoPasso(indice);
     try {
-      await createStep(dossier.id, { acao: passo.acao, responsavelId: null, proximaData: passo.proximaData || null });
+      await createStep(
+        dossier.id,
+        { acao: passo.acao, responsavelId: null, proximaData: passo.proximaData || null },
+        { viaIa: true },
+      );
       await onDossierChanged();
       setSugestao((atual) => (atual ? { ...atual, passos: atual.passos.filter((_, i) => i !== indice) } : atual));
     } finally {
@@ -137,11 +141,15 @@ export function AbaEstrategia({
     const prazo = sugestao.prazos[indice];
     setAplicandoPrazo(indice);
     try {
-      await createDeadline(dossier.id, {
-        ato: prazo.ato,
-        contagem: prazo.contagem || null,
-        dataTexto: prazo.dataTexto || null,
-      });
+      await createDeadline(
+        dossier.id,
+        {
+          ato: prazo.ato,
+          contagem: prazo.contagem || null,
+          dataTexto: prazo.dataTexto || null,
+        },
+        { viaIa: true },
+      );
       await onPrazosChanged();
       setSugestao((atual) => (atual ? { ...atual, prazos: atual.prazos.filter((_, i) => i !== indice) } : atual));
     } finally {

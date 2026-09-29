@@ -1,5 +1,5 @@
 import "server-only";
-import { MATERIAS } from "@/lib/dossier-constants";
+import { MATERIAS, TIPOS_VINCULO_PROCESSUAL, VINCULO_TIPO_LABEL } from "@/lib/dossier-constants";
 
 /**
  * Prompt da importação de autos (README Parte 4.1). Regras não-negociáveis do
@@ -16,7 +16,8 @@ REGRAS OBRIGATÓRIAS — siga à risca:
 4. "resumo": até 5 frases, em português, resumindo o caso para alguém que ainda não o conhece.
 5. "firac": 1 a 3 parágrafos por letra (f, i, r, a, c), em português, cada parágrafo como um item separado no array. Se não houver conteúdo suficiente para alguma letra, retorne um array vazio para ela — não invente conteúdo para preencher.
 6. "timeline": lista das movimentações processuais relevantes encontradas no texto, cada uma com "dataTexto" (formato dd/mm/aaaa quando a data estiver clara) e "ato" (descrição curta). Lista vazia se não houver nenhuma identificável.
-7. Responda APENAS com um objeto JSON válido, sem markdown (sem \`\`\`), sem texto antes ou depois — só o JSON, no formato exato abaixo.
+7. "vinculos": lista de OUTROS processos vinculados a este, mencionados explicitamente nos autos — processos conexos/apensados (mesma causa/partes tramitando junto) e recursos que geram número próprio (agravo de instrumento, agravo interno, recurso especial, recurso extraordinário). Para cada um, "tipo" deve ser exatamente uma destas opções: ${TIPOS_VINCULO_PROCESSUAL.map((t) => `"${t}" (${VINCULO_TIPO_LABEL[t]})`).join(", ")}. NUNCA invente o número de um processo vinculado: se o tipo for mencionado mas o número não estiver claro no texto, retorne "" em "numeroProcesso". Não inclua aqui recursos triviais que não geram processo próprio (ex.: embargos de declaração). Lista vazia se não houver nenhum vínculo identificável.
+8. Responda APENAS com um objeto JSON válido, sem markdown (sem \`\`\`), sem texto antes ou depois — só o JSON, no formato exato abaixo.
 
 Formato de resposta:
 {
@@ -38,7 +39,8 @@ Formato de resposta:
     "r": ["string"],
     "a": ["string"],
     "c": ["string"]
-  }
+  },
+  "vinculos": [{"tipo": "uma das opções da regra 7", "numeroProcesso": "string ou \\"\\"", "tribunalInstancia": "string ou \\"\\"", "status": "string ou \\"\\"", "resumo": "string ou \\"\\""}]
 }
 
 AUTOS DO PROCESSO (texto extraído do arquivo enviado):

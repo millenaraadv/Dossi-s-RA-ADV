@@ -10,7 +10,12 @@ import type { createDeadlineSchema, patchDeadlineSchema } from "@/lib/validation
 type CreateInput = z.infer<typeof createDeadlineSchema>;
 type PatchInput = z.infer<typeof patchDeadlineSchema>;
 
-export async function createDeadline(dossierId: string, input: CreateInput, actorId: string) {
+export async function createDeadline(
+  dossierId: string,
+  input: CreateInput,
+  actorId: string,
+  opcoes?: { viaIa?: boolean },
+) {
   return db.transaction(async (tx) => {
     const [dossier] = await tx.select().from(dossiers).where(eq(dossiers.id, dossierId)).limit(1);
     if (!dossier) throw new NotFoundError("Dossiê não encontrado.");
@@ -38,6 +43,7 @@ export async function createDeadline(dossierId: string, input: CreateInput, acto
       entidadeId: deadline.id,
       acao: "criar",
       depois: deadline,
+      viaIa: opcoes?.viaIa ?? false,
     });
 
     return deadline;

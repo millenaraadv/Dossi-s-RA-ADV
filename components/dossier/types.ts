@@ -29,4 +29,5 @@ export type ArgumentoForm = {
   previsaoLegal: string;
   jurisprudencia: string;
   doutrina: string;
+  viaIa?: boolean;
 };

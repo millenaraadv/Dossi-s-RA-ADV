@@ -15,7 +15,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const { id } = await params;
     const body = await request.json();
     const input = createDeadlineSchema.parse(body);
-    const deadline = await createDeadline(id, input, user.id);
+    const deadline = await createDeadline(id, input, user.id, { viaIa: body?.viaIa === true });
 
     return NextResponse.json(deadline, { status: 201 });
   } catch (err) {

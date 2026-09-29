@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { DossierFull } from "@/lib/types/dossier";
 import { formatarDataBr, formatarDataLonga } from "@/lib/dates";
-import { FIRAC_LETRAS } from "@/lib/dossier-constants";
+import { FIRAC_LETRAS, VINCULO_TIPO_LABEL } from "@/lib/dossier-constants";
 import { archivoFontFaceCss } from "@/lib/pdf/font";
 
 const COR = {
@@ -155,6 +155,19 @@ export function buildDossierPdfHtml(d: DossierFull): string {
     )
     .join("");
 
+  const vinculosHtml = d.vinculos
+    .map(
+      (v) => `
+    <tr class="keep">
+      <td style="padding:6px 12px 6px 0; border-bottom:1px solid ${COR.divisoria};">${esc(VINCULO_TIPO_LABEL[v.tipo as keyof typeof VINCULO_TIPO_LABEL] ?? v.tipo)}</td>
+      <td style="padding:6px 12px; border-bottom:1px solid ${COR.divisoria};">${esc(v.numeroProcesso) || "—"}</td>
+      <td style="padding:6px 12px; border-bottom:1px solid ${COR.divisoria};">${esc(v.tribunalInstancia) || "—"}</td>
+      <td style="padding:6px 12px; border-bottom:1px solid ${COR.divisoria};">${esc(v.status) || "—"}</td>
+      <td style="padding:6px 0 6px 12px; border-bottom:1px solid ${COR.divisoria};">${esc(v.resultado) || "—"}</td>
+    </tr>`,
+    )
+    .join("");
+
   const historicoHtml = d.versoes
     .map(
       (v) => `
@@ -287,6 +300,23 @@ ${firacHtml}
   <h2 style="font-weight:400; font-size:15pt; letter-spacing:0.05em; margin:0; text-transform:uppercase;">Argumentos e embasamento</h2>
 </div>
 ${argumentosHtml || `<p style="font-size:10pt; color:${COR.neutro700};">Nenhum argumento registrado.</p>`}
+
+<div style="display:flex; align-items:baseline; gap:16px; border-top:1px solid ${COR.acento}; margin-top:32px; padding-top:12px;">
+  <div style="font-weight:300; font-size:22pt; line-height:1; color:${COR.acento};">04</div>
+  <h2 style="font-weight:400; font-size:15pt; letter-spacing:0.05em; margin:0; text-transform:uppercase;">Processos relacionados</h2>
+</div>
+<table style="width:100%; margin-top:16px; font-size:9.5pt;">
+  <thead>
+    <tr>
+      <th style="text-align:left; padding:6px 12px 6px 0; border-top:1px solid ${COR.acento}; border-bottom:1px solid ${COR.acento}; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:${COR.neutro700};">Tipo</th>
+      <th style="text-align:left; padding:6px 12px; border-top:1px solid ${COR.acento}; border-bottom:1px solid ${COR.acento}; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:${COR.neutro700};">Nº do processo</th>
+      <th style="text-align:left; padding:6px 12px; border-top:1px solid ${COR.acento}; border-bottom:1px solid ${COR.acento}; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:${COR.neutro700};">Tribunal/instância</th>
+      <th style="text-align:left; padding:6px 12px; border-top:1px solid ${COR.acento}; border-bottom:1px solid ${COR.acento}; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:${COR.neutro700};">Status</th>
+      <th style="text-align:left; padding:6px 0 6px 12px; border-top:1px solid ${COR.acento}; border-bottom:1px solid ${COR.acento}; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:${COR.neutro700};">Resultado</th>
+    </tr>
+  </thead>
+  <tbody>${vinculosHtml || `<tr><td style="padding:8px 0; color:${COR.neutro700};">Nenhum vínculo processual registrado.</td></tr>`}</tbody>
+</table>
 
 <div class="keep" style="margin-top:32px;">
   <h3 style="font-weight:400; font-size:11pt; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 12px;">Histórico de atualizações</h3>

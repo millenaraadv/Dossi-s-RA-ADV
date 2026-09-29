@@ -5,6 +5,7 @@ import { PDFParse } from "pdf-parse";
 import { downloadAuto } from "@/lib/supabase/storage";
 import { getImport, updateImportStatus } from "@/lib/db/queries/imports";
 import { createDossier, updateDossierGeneral, replaceTimeline, replaceFirac } from "@/lib/db/queries/dossiers";
+import { createProcessLink } from "@/lib/db/queries/process-links";
 import { buildImportPrompt } from "@/lib/ai/prompts/import-autos";
 import { gerarJson } from "@/lib/ai/client";
 import { parseImportResult } from "@/lib/ai/parse";
@@ -121,6 +122,24 @@ export async function processImport(importId: string, actorId: string): Promise<
       c: resultado.firac.c.filter((p) => p.trim()),
     };
     await replaceFirac(dossierId, firacNaoVazio, actorId, { viaIa: true });
+
+    for (const vinculo of resultado.vinculos) {
+      await createProcessLink(
+        dossierId,
+        {
+          tipo: vinculo.tipo,
+          numeroProcesso: vinculo.numeroProcesso.trim() || null,
+          tribunalInstancia: vinculo.tribunalInstancia.trim() || null,
+          status: vinculo.status.trim() || null,
+          resumo: vinculo.resumo.trim() || null,
+          resultado: null,
+          prazoContagem: null,
+          prazoDataTexto: null,
+        },
+        actorId,
+        { viaIa: true },
+      );
+    }
 
     await updateImportStatus(importId, {
       status: "concluido",

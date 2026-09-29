@@ -4,11 +4,12 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { DossierFull } from "@/lib/types/dossier";
-import { ETAPAS, camposNaoLocalizados } from "@/lib/dossier-constants";
+import { ETAPAS, ABA_VINCULOS_LABEL, camposNaoLocalizados } from "@/lib/dossier-constants";
 import { fetchDossier, patchDossier, putTimeline, putFirac, putArguments, concludeEdit, archiveDossier } from "@/lib/client/dossier-api";
 import { AbaGerais } from "@/components/dossier/aba-gerais";
 import { AbaEstrategia } from "@/components/dossier/aba-estrategia";
 import { AbaArgumentos } from "@/components/dossier/aba-argumentos";
+import { AbaVinculos } from "@/components/dossier/aba-vinculos";
 import { VersionsFooter } from "@/components/dossier/versions-footer";
 import { LoadingDots } from "@/components/ui/loading-dots";
 import type { GeraisForm, EstrategiaForm, ArgumentoForm } from "@/components/dossier/types";
@@ -74,8 +75,8 @@ export function DossierView({
   const router = useRouter();
   const searchParams = useSearchParams();
   const abaInicial = searchParams.get("aba");
-  const [tab, setTab] = useState<0 | 1 | 2>(
-    abaInicial === "1" ? 1 : abaInicial === "2" ? 2 : 0,
+  const [tab, setTab] = useState<0 | 1 | 2 | 3>(
+    abaInicial === "1" ? 1 : abaInicial === "2" ? 2 : abaInicial === "3" ? 3 : 0,
   );
   // Dossiê recém-criado por importação de autos: abre direto em edição na
   // etapa 1 (README 4.1, item 5/6). O aviso em si (abaixo) é recalculado a
@@ -181,10 +182,10 @@ export function DossierView({
     setSalvando(true);
     setErro(null);
     try {
-      await putArguments(
-        dossier.id,
-        argumentosForm.filter((a) => a.titulo.trim()),
-      );
+      const argumentosParaSalvar = argumentosForm.filter((a) => a.titulo.trim());
+      await putArguments(dossier.id, argumentosParaSalvar, {
+        viaIa: argumentosParaSalvar.some((a) => a.viaIa),
+      });
       await concludeEdit(dossier.id, 2);
       setDossier(await fetchDossier(dossier.id));
       setEditAba(null);
@@ -272,6 +273,15 @@ export function DossierView({
             {i + 1} · {label}
           </button>
         ))}
+        <button
+          type="button"
+          onClick={() => setTab(3)}
+          className={`border-b-4 px-3 py-2 text-[12.5px] font-normal uppercase ${
+            tab === 3 ? "border-acento text-texto" : "border-transparent text-neutro-700"
+          }`}
+        >
+          {ETAPAS.length + 1} · {ABA_VINCULOS_LABEL}
+        </button>
       </div>
 
       {tab === 0 && camposAindaNaoLocalizados.length > 0 && (
@@ -333,6 +343,7 @@ export function DossierView({
             onConcluir={concluirArgumentos}
           />
         )}
+        {tab === 3 && <AbaVinculos dossier={dossier} podeEditar={podeEditar} onChanged={refresh} />}
       </div>
 
       <VersionsFooter dossier={dossier} />

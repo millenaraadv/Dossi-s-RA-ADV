@@ -64,7 +64,7 @@ export function AbaArgumentos({
     const sugestao = sugestoes?.[indice];
     if (!sugestao) return;
     if (!isEditing) onStartEdit();
-    setForm((atual) => [...atual, { ...sugestao }]);
+    setForm((atual) => [...atual, { ...sugestao, viaIa: true }]);
     setSugestoes((atual) => (atual ? atual.filter((_, i) => i !== indice) : atual));
   }
 

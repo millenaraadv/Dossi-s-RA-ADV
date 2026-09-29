@@ -13,12 +13,16 @@ export async function fetchDossier(id: string): Promise<DossierFull> {
   return asJsonOrThrow(res);
 }
 
-export async function patchDossier(id: string, patch: Record<string, unknown>): Promise<void> {
+export async function patchDossier(
+  id: string,
+  patch: Record<string, unknown>,
+  opcoes?: { viaIa?: boolean },
+): Promise<void> {
   await asJsonOrThrow(
     await fetch(`/api/dossiers/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patch),
+      body: JSON.stringify({ ...patch, viaIa: opcoes?.viaIa === true }),
     }),
   );
 }
@@ -49,12 +53,13 @@ export async function putFirac(
 export async function putArguments(
   id: string,
   args: { titulo: string; fato: string; previsaoLegal: string; jurisprudencia: string; doutrina: string }[],
+  opcoes?: { viaIa?: boolean },
 ): Promise<void> {
   await asJsonOrThrow(
     await fetch(`/api/dossiers/${id}/arguments`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(args),
+      body: JSON.stringify({ args, viaIa: opcoes?.viaIa === true }),
     }),
   );
 }
@@ -72,12 +77,13 @@ export async function concludeEdit(id: string, etapa: 0 | 1 | 2): Promise<void> 
 export async function createStep(
   dossierId: string,
   input: { acao: string; responsavelId: string | null; proximaData: string | null },
+  opcoes?: { viaIa?: boolean },
 ): Promise<void> {
   await asJsonOrThrow(
     await fetch(`/api/dossiers/${dossierId}/steps`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, viaIa: opcoes?.viaIa === true }),
     }),
   );
 }
@@ -112,12 +118,13 @@ export async function addAttempt(stepId: string, input: { data: string; resultad
 export async function createDeadline(
   dossierId: string,
   input: { ato: string; contagem: string | null; dataTexto: string | null },
+  opcoes?: { viaIa?: boolean },
 ): Promise<void> {
   await asJsonOrThrow(
     await fetch(`/api/dossiers/${dossierId}/deadlines`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, viaIa: opcoes?.viaIa === true }),
     }),
   );
 }
@@ -151,6 +158,45 @@ export async function deleteDeadline(deadlineId: string): Promise<void> {
 
 export async function archiveDossier(id: string): Promise<void> {
   await asJsonOrThrow(await fetch(`/api/dossiers/${id}/archive`, { method: "POST" }));
+}
+
+export type ProcessLinkInput = {
+  tipo: string;
+  numeroProcesso: string | null;
+  tribunalInstancia: string | null;
+  status: string | null;
+  resumo: string | null;
+  resultado: string | null;
+  prazoContagem: string | null;
+  prazoDataTexto: string | null;
+};
+
+export async function createProcessLink(
+  dossierId: string,
+  input: ProcessLinkInput,
+  opcoes?: { viaIa?: boolean },
+): Promise<void> {
+  await asJsonOrThrow(
+    await fetch(`/api/dossiers/${dossierId}/process-links`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...input, viaIa: opcoes?.viaIa === true }),
+    }),
+  );
+}
+
+export async function updateProcessLink(id: string, patch: Partial<ProcessLinkInput>): Promise<void> {
+  await asJsonOrThrow(
+    await fetch(`/api/process-links/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    }),
+  );
+}
+
+export async function deleteProcessLink(id: string): Promise<void> {
+  await asJsonOrThrow(await fetch(`/api/process-links/${id}`, { method: "DELETE" }));
 }
 
 export type SugestaoEstrategia = {

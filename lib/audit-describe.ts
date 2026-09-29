@@ -3,6 +3,7 @@
 // Rule no FIRAC". Puro e sem I/O: dá pra chamar tanto no servidor (rota) —
 // hoje o único lugar que usa — quanto no client se algum dia fizer sentido.
 import { formatarDataBr } from "@/lib/dates";
+import { VINCULO_TIPO_LABEL } from "@/lib/dossier-constants";
 
 type Registro = Record<string, unknown> | null | undefined;
 
@@ -180,6 +181,37 @@ function descreverPrazo(acao: string, antes: Registro, depois: Registro): string
   return `Atualizou o prazo "${ato}"`;
 }
 
+function rotuloTipoVinculo(tipo: string | undefined): string {
+  if (!tipo) return "vínculo processual";
+  return VINCULO_TIPO_LABEL[tipo as keyof typeof VINCULO_TIPO_LABEL] ?? tipo;
+}
+
+function descreverVinculo(acao: string, antes: Registro, depois: Registro): string {
+  const identificacao = (r: Registro) => {
+    const tipo = rotuloTipoVinculo(campo<string>(r, "tipo"));
+    const numero = campo<string>(r, "numeroProcesso");
+    return numero ? `${tipo} nº ${numero}` : tipo;
+  };
+
+  if (acao === "criar") return `Adicionou o vínculo processual "${identificacao(depois)}"`;
+  if (acao === "excluir") return `Excluiu o vínculo processual "${identificacao(antes)}"`;
+
+  const nome = identificacao(depois) || identificacao(antes);
+  if (campo(antes, "status") !== campo(depois, "status")) {
+    return `Atualizou o status do vínculo "${nome}" para "${campo(depois, "status") || "—"}"`;
+  }
+  if (campo(antes, "resultado") !== campo(depois, "resultado")) {
+    return `Registrou o resultado do vínculo "${nome}"`;
+  }
+  if (
+    campo(antes, "prazoContagem") !== campo(depois, "prazoContagem") ||
+    campo(antes, "prazoDataTexto") !== campo(depois, "prazoDataTexto")
+  ) {
+    return `Atualizou o prazo do vínculo "${nome}"`;
+  }
+  return `Editou o vínculo processual "${nome}"`;
+}
+
 export function describeAuditEntry(entry: {
   entidade: string;
   acao: string;
@@ -203,6 +235,8 @@ export function describeAuditEntry(entry: {
       return descreverTentativa(depois as Registro);
     case "deadlines":
       return descreverPrazo(acao, antes as Registro, depois as Registro);
+    case "process_links":
+      return descreverVinculo(acao, antes as Registro, depois as Registro);
     default:
       return `${acao} em ${entidade}`;
   }

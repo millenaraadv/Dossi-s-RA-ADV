@@ -1,6 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { materiaSchema } from "@/lib/validation/dossier";
+import { tipoVinculoSchema } from "@/lib/validation/process-link";
 
 export const importResultSchema = z.object({
   cliente: z.string(),
@@ -22,6 +23,15 @@ export const importResultSchema = z.object({
     a: z.array(z.string()),
     c: z.array(z.string()),
   }),
+  vinculos: z.array(
+    z.object({
+      tipo: tipoVinculoSchema,
+      numeroProcesso: z.string(),
+      tribunalInstancia: z.string(),
+      status: z.string(),
+      resumo: z.string(),
+    }),
+  ),
 });
 
 export type ImportResult = z.infer<typeof importResultSchema>;

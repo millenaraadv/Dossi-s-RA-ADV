@@ -14,8 +14,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const { id } = await params;
     const body = await request.json();
-    const args = argumentsReplaceSchema.parse(body);
-    await replaceArguments(id, args, user.id);
+    const args = argumentsReplaceSchema.parse(body?.args);
+    await replaceArguments(id, args, user.id, { viaIa: body?.viaIa === true });
 
     return NextResponse.json({ ok: true });
   } catch (err) {

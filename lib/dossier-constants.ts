@@ -22,6 +22,32 @@ export const RISCOS = [
 
 export const ETAPAS = ["Gerais e FIRAC", "Estratégia", "Argumentos"] as const;
 
+// Aba adicional de "Processos relacionados" — fora do fluxo versionado de
+// concluir-edição das ETAPAS acima (é uma lista de CRUD imediato, como
+// Passos/Prazos, não um formulário com revisão). Por isso não entra em
+// ETAPAS/EtapaIndex nem em concludeEdit.
+export const ABA_VINCULOS_LABEL = "Processos relacionados";
+
+// Espelha lib/db/schema.ts (tipoVinculoProcessualEnum) — mesmo motivo do
+// MATERIAS/RISCOS acima: não puxar o schema do Drizzle para o bundle do client.
+export const TIPOS_VINCULO_PROCESSUAL = [
+  "conexao",
+  "agravo_instrumento",
+  "agravo_interno",
+  "recurso_especial",
+  "recurso_extraordinario",
+  "outro",
+] as const;
+
+export const VINCULO_TIPO_LABEL: Record<(typeof TIPOS_VINCULO_PROCESSUAL)[number], string> = {
+  conexao: "Conexão / apensamento",
+  agravo_instrumento: "Agravo de instrumento",
+  agravo_interno: "Agravo interno",
+  recurso_especial: "Recurso especial (REsp)",
+  recurso_extraordinario: "Recurso extraordinário (RE)",
+  outro: "Outro recurso",
+};
+
 export const FIRAC_LETRAS = ["F", "I", "R", "A", "C"] as const;
 export const FIRAC_TITULOS: Record<(typeof FIRAC_LETRAS)[number], string> = {
   F: "Facts — fatos",

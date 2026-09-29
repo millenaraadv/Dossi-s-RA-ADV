@@ -72,5 +72,17 @@ export type DossierFull = {
     doutrina: string | null;
     ordem: number;
   }[];
+  vinculos: {
+    id: string;
+    tipo: string;
+    numeroProcesso: string | null;
+    tribunalInstancia: string | null;
+    status: string | null;
+    resumo: string | null;
+    resultado: string | null;
+    prazoContagem: string | null;
+    prazoDataTexto: string | null;
+    ordem: number;
+  }[];
   versoes: { id: string; versao: string; data: string; marco: string | null; etapa: string | null; revisor: UsuarioRef }[];
 };

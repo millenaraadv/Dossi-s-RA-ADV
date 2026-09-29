@@ -11,7 +11,12 @@ type CreateStepInput = z.infer<typeof createStepSchema>;
 type PatchStepInput = z.infer<typeof patchStepSchema>;
 type CreateAttemptInput = z.infer<typeof createAttemptSchema>;
 
-export async function createStep(dossierId: string, input: CreateStepInput, actorId: string) {
+export async function createStep(
+  dossierId: string,
+  input: CreateStepInput,
+  actorId: string,
+  opcoes?: { viaIa?: boolean },
+) {
   return db.transaction(async (tx) => {
     const [dossier] = await tx.select().from(dossiers).where(eq(dossiers.id, dossierId)).limit(1);
     if (!dossier) throw new NotFoundError("Dossiê não encontrado.");
@@ -39,6 +44,7 @@ export async function createStep(dossierId: string, input: CreateStepInput, acto
       entidadeId: step.id,
       acao: "criar",
       depois: step,
+      viaIa: opcoes?.viaIa ?? false,
     });
 
     return step;

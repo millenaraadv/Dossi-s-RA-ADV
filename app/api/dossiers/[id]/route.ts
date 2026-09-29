@@ -30,7 +30,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const { id } = await params;
     const body = await request.json();
     const patch = patchDossierSchema.parse(body);
-    await updateDossierGeneral(id, patch, user.id);
+    // "viaIa" não é um campo do dossiê — é só um sinalizador de auditoria (o
+    // usuário aceitou uma sugestão da IA em vez de digitar do zero), lido à
+    // parte do corpo bruto, nunca validado pelo schema dos campos.
+    await updateDossierGeneral(id, patch, user.id, { viaIa: body?.viaIa === true });
 
     return NextResponse.json({ ok: true });
   } catch (err) {

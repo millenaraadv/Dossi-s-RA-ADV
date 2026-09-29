@@ -10,6 +10,7 @@ import {
   dossierVersions,
 } from "@/lib/db/schema";
 import { audit } from "@/lib/audit";
+import { brDataParaIso } from "@/lib/dates";
 import { computeDossierName } from "@/lib/db/dossier-name";
 import { camposIniciaisPorMateria } from "@/lib/db/materia-fields";
 import { etapaLabel, type EtapaIndex } from "@/lib/dossier-constants";
@@ -29,13 +30,6 @@ type PatchInput = z.infer<typeof patchDossierSchema>;
 type TimelineInput = z.infer<typeof timelineReplaceSchema>;
 type FiracInput = z.infer<typeof firacReplaceSchema>;
 type ArgumentsInput = z.infer<typeof argumentsReplaceSchema>;
-
-function brDateToIso(texto: string): string | null {
-  const m = texto.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (!m) return null;
-  const [, d, mo, y] = m;
-  return `${y}-${mo}-${d}`;
-}
 
 export async function createDossier(
   input: CreateInput,
@@ -109,6 +103,7 @@ export async function getDossierFull(id: string): Promise<DossierFull | undefine
       },
       prazos: { orderBy: (t, { asc }) => [asc(t.ordem)] },
       argumentos: { orderBy: (t, { asc }) => [asc(t.ordem)] },
+      vinculos: { orderBy: (t, { asc }) => [asc(t.ordem)] },
       versoes: { orderBy: (t, { desc }) => [desc(t.data)], with: { revisor: true } },
     },
   });
@@ -208,7 +203,7 @@ export async function replaceTimeline(
         entries.map((e, i) => ({
           dossierId: id,
           dataTexto: e.dataTexto,
-          data: brDateToIso(e.dataTexto),
+          data: brDataParaIso(e.dataTexto),
           ato: e.ato,
           ordem: i,
         })),
@@ -261,7 +256,12 @@ export async function replaceFirac(
   });
 }
 
-export async function replaceArguments(id: string, args: ArgumentsInput, actorId: string): Promise<void> {
+export async function replaceArguments(
+  id: string,
+  args: ArgumentsInput,
+  actorId: string,
+  opcoes?: { viaIa?: boolean },
+): Promise<void> {
   await db.transaction(async (tx) => {
     await getDossierOrThrow(id);
     const antes = await tx.select().from(argumentsTable).where(eq(argumentsTable.dossierId, id));
@@ -290,6 +290,7 @@ export async function replaceArguments(id: string, args: ArgumentsInput, actorId
       acao: "substituir",
       antes,
       depois: args,
+      viaIa: opcoes?.viaIa ?? false,
     });
   });
 }
