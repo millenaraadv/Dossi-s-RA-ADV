@@ -268,6 +268,11 @@ export const processLinks = pgTable(
     objetivo: text("objetivo"),
     objetivoSecundario: text("objetivo_secundario"),
     linhaVermelha: text("linha_vermelha"),
+    // Referência ao PDF atualmente anexado (o mais recente enviado em
+    // "Anexar PDF do processo") — null quando nenhum foi anexado ainda, ou
+    // depois de removido. O storage key nunca aparece na UI, só o nome.
+    arquivoAnexoNome: text("arquivo_anexo_nome"),
+    arquivoAnexoStorageKey: text("arquivo_anexo_storage_key"),
     ordem: integer("ordem").notNull().default(0),
     criadoEm: timestamp("criado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
     atualizadoEm: timestamp("atualizado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),

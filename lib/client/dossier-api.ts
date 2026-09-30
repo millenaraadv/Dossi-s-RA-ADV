@@ -254,6 +254,10 @@ export async function getProcessLinkImportStatus(importId: string): Promise<Proc
   return asJsonOrThrow(await fetch(`/api/process-link-imports/${importId}`));
 }
 
+export async function removeProcessLinkAttachment(processLinkId: string): Promise<void> {
+  await asJsonOrThrow(await fetch(`/api/process-links/${processLinkId}/import`, { method: "DELETE" }));
+}
+
 export type SugestaoEstrategia = {
   objetivo: string;
   objetivoSecundario: string;

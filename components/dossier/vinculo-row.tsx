@@ -8,6 +8,7 @@ import {
   putProcessLinkArguments,
   importProcessLinkPdf,
   getProcessLinkImportStatus,
+  removeProcessLinkAttachment,
 } from "@/lib/client/dossier-api";
 import { normalizarDataDigitada } from "@/lib/dates";
 import {
@@ -97,6 +98,7 @@ export function VinculoRow({
   const [importando, setImportando] = useState(false);
   const [progressoImport, setProgressoImport] = useState<string | null>(null);
   const [erroImport, setErroImport] = useState<string | null>(null);
+  const [removendoAnexo, setRemovendoAnexo] = useState(false);
 
   const [firacForm, setFiracForm] = useState<FiracForm>(() => buildFiracForm(vinculo));
   const [firacSalvando, setFiracSalvando] = useState(false);
@@ -204,6 +206,19 @@ export function VinculoRow({
       setImportando(false);
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  async function removerAnexo() {
+    setRemovendoAnexo(true);
+    setErroImport(null);
+    try {
+      await removeProcessLinkAttachment(vinculo.id);
+      await onChanged();
+    } catch (e) {
+      setErroImport(e instanceof Error ? e.message : "Falha ao remover o anexo.");
+    } finally {
+      setRemovendoAnexo(false);
     }
   }
 
@@ -375,8 +390,18 @@ export function VinculoRow({
           disabled={importando}
           className="inline-flex items-center gap-2 border border-ambar bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-ambar hover:bg-tinta-clara disabled:opacity-60"
         >
-          Anexar PDF do processo {importando && <LoadingDots />}
+          {vinculo.arquivoAnexoNome ? "Substituir PDF anexado" : "Anexar PDF do processo"} {importando && <LoadingDots />}
         </button>
+        {vinculo.arquivoAnexoNome && (
+          <button
+            type="button"
+            onClick={removerAnexo}
+            disabled={removendoAnexo}
+            className="inline-flex items-center gap-2 border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-tinta-clara disabled:opacity-60"
+          >
+            Remover anexo {removendoAnexo && <LoadingDots />}
+          </button>
+        )}
         <button
           type="button"
           onClick={expandir}
@@ -385,6 +410,10 @@ export function VinculoRow({
           {expandido ? "Ocultar detalhes completos" : "Ver/editar detalhes completos"}
         </button>
       </div>
+
+      {vinculo.arquivoAnexoNome && !progressoImport && (
+        <div className="mt-2 text-[11.5px] text-neutro-700">Anexo atual: {vinculo.arquivoAnexoNome}</div>
+      )}
 
       {progressoImport && (
         <div className="mt-2 flex items-center gap-2 border-l-[3px] border-ambar bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">

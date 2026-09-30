@@ -195,6 +195,7 @@ function descreverVinculo(acao: string, antes: Registro, depois: Registro): stri
 
   if (acao === "criar") return `Adicionou o vínculo processual "${identificacao(depois)}"`;
   if (acao === "excluir") return `Excluiu o vínculo processual "${identificacao(antes)}"`;
+  if (acao === "remover-anexo") return `Removeu o PDF anexado ("${campo<string>(antes, "arquivoAnexoNome")}")`;
 
   const nome = identificacao(depois) || identificacao(antes);
   if (campo(antes, "status") !== campo(depois, "status")) {

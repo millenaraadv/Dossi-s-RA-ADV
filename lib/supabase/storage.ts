@@ -18,3 +18,9 @@ export async function downloadAuto(storageKey: string): Promise<Buffer> {
   if (error) throw new Error(`Falha ao ler o arquivo: ${error.message}`);
   return Buffer.from(await data.arrayBuffer());
 }
+
+export async function deleteAuto(storageKey: string): Promise<void> {
+  const admin = createSupabaseAdminClient();
+  const { error } = await admin.storage.from(BUCKET).remove([storageKey]);
+  if (error) throw new Error(`Falha ao remover o arquivo: ${error.message}`);
+}

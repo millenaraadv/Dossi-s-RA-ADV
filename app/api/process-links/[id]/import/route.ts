@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/session";
-import { canUseAi, assertPermission } from "@/lib/auth/permissions";
+import { canUseAi, canEditDossierContent, assertPermission } from "@/lib/auth/permissions";
 import { handleRouteError } from "@/lib/api-helpers";
 import { createProcessLinkImportRecord, countRecentProcessLinkImports } from "@/lib/db/queries/process-link-imports";
+import { setProcessLinkAttachment, removeProcessLinkAttachment } from "@/lib/db/queries/process-links";
 import { uploadAuto } from "@/lib/supabase/storage";
 import { processVinculoImport } from "@/lib/ai/import-processor-vinculo";
 
@@ -43,6 +44,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const bytes = Buffer.from(await arquivo.arrayBuffer());
     const storageKey = `${user.id}/vinculo-${id}-${Date.now()}-${arquivo.name}`;
     await uploadAuto(storageKey, bytes, arquivo.type || "application/octet-stream");
+    // Marca o anexo já aqui (antes mesmo da IA processar) — se o usuário
+    // subiu o arquivo errado, "Remover anexo" precisa funcionar mesmo que a
+    // extração falhe ou ainda esteja rodando.
+    await setProcessLinkAttachment(id, { arquivoNome: arquivo.name, arquivoStorageKey: storageKey });
 
     const { id: importId } = await createProcessLinkImportRecord({
       processLinkId: id,
@@ -58,6 +63,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     );
 
     return NextResponse.json({ id: importId }, { status: 202 });
+  } catch (err) {
+    return handleRouteError(err);
+  }
+}
+
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const user = await requireUser();
+    assertPermission(canEditDossierContent(user.papel), "Seu papel não permite remover anexos.");
+
+    const { id } = await params;
+    await removeProcessLinkAttachment(id, user.id);
+
+    return NextResponse.json({ ok: true });
   } catch (err) {
     return handleRouteError(err);
   }

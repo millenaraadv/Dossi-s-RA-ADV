@@ -89,6 +89,7 @@ export type DossierFull = {
     objetivo: string | null;
     objetivoSecundario: string | null;
     linhaVermelha: string | null;
+    arquivoAnexoNome: string | null;
     ordem: number;
     atualizadoEm: string;
     firac: { id: string; letra: "F" | "I" | "R" | "A" | "C"; paragrafo: string; ordem: number }[];

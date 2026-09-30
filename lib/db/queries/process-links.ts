@@ -4,6 +4,7 @@ import { db } from "@/lib/db/client";
 import { processLinks, processLinkFirac, processLinkArguments, dossiers } from "@/lib/db/schema";
 import { audit } from "@/lib/audit";
 import { brDataParaIso } from "@/lib/dates";
+import { deleteAuto } from "@/lib/supabase/storage";
 import { NotFoundError } from "@/lib/errors";
 import type { z } from "zod";
 import type { createProcessLinkSchema, patchProcessLinkSchema } from "@/lib/validation/process-link";
@@ -118,6 +119,62 @@ export async function deleteProcessLink(id: string, actorId: string): Promise<vo
       entidadeId: id,
       acao: "excluir",
       antes,
+    });
+  });
+}
+
+/**
+ * Chamado só pela rota de import (nunca pelo PATCH público — por isso fica
+ * fora de patchProcessLinkSchema) logo após o upload dar certo. Se já havia
+ * um anexo anterior (outro PDF enviado antes), apaga o arquivo velho do
+ * storage — sem isso, cada reenvio deixaria um arquivo órfão pra trás.
+ */
+export async function setProcessLinkAttachment(
+  id: string,
+  attachment: { arquivoNome: string; arquivoStorageKey: string },
+): Promise<void> {
+  const atual = await getProcessLinkOrThrow(db, id);
+  if (atual.arquivoAnexoStorageKey && atual.arquivoAnexoStorageKey !== attachment.arquivoStorageKey) {
+    await deleteAuto(atual.arquivoAnexoStorageKey).catch(() => {});
+  }
+
+  await db
+    .update(processLinks)
+    .set({
+      arquivoAnexoNome: attachment.arquivoNome,
+      arquivoAnexoStorageKey: attachment.arquivoStorageKey,
+      atualizadoEm: new Date().toISOString(),
+    })
+    .where(eq(processLinks.id, id));
+}
+
+/**
+ * "Desanexar o PDF" (README: usuário anexou o arquivo errado) — remove só o
+ * arquivo e a referência a ele. Não mexe nos campos que já foram extraídos
+ * (partes/FIRAC/argumentos etc.): esses continuam editáveis à mão, ou o
+ * usuário anexa o PDF certo em seguida, que os sobrescreve numa nova
+ * extração.
+ */
+export async function removeProcessLinkAttachment(id: string, actorId: string): Promise<void> {
+  await db.transaction(async (tx) => {
+    const antes = await getProcessLinkOrThrow(tx, id);
+    if (!antes.arquivoAnexoStorageKey) throw new NotFoundError("Este vínculo não tem PDF anexado.");
+
+    await deleteAuto(antes.arquivoAnexoStorageKey);
+
+    await tx
+      .update(processLinks)
+      .set({ arquivoAnexoNome: null, arquivoAnexoStorageKey: null, atualizadoEm: new Date().toISOString() })
+      .where(eq(processLinks.id, id));
+
+    await audit(tx, {
+      userId: actorId,
+      dossierId: antes.dossierId,
+      entidade: "process_links",
+      entidadeId: id,
+      acao: "remover-anexo",
+      antes: { arquivoAnexoNome: antes.arquivoAnexoNome },
+      depois: { arquivoAnexoNome: null },
     });
   });
 }

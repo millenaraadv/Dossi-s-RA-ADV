@@ -85,6 +85,13 @@
       "when": 1790704607631,
       "tag": "0011_massive_ender_wiggin",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1790712063990,
+      "tag": "0012_yellow_northstar",
+      "breakpoints": true
     }
   ]
 }
