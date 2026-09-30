@@ -48,6 +48,7 @@ type EstrategiaForm = {
 };
 
 const inputClass = "w-full border border-borda-campo bg-neutro-100 px-2 py-1 text-[12.5px] text-texto outline-none";
+const rotuloClass = "text-[10px] font-semibold uppercase tracking-[0.1em] text-neutro-700";
 
 function buildGeraisForm(vinculo: Vinculo): GeraisForm {
   return {
@@ -89,6 +90,122 @@ function buildArgumentosForm(vinculo: Vinculo): ArgumentoForm[] {
   }));
 }
 
+function ConsolidatedView({ vinculo }: { vinculo: Vinculo }) {
+  return (
+    <div className="mt-6 flex flex-col gap-6">
+      <div>
+        <div className={rotuloClass}>Dados gerais</div>
+        <div className="mt-2 text-[13.5px]">
+          {vinculo.status && <div className="text-neutro-700">Status: {vinculo.status}</div>}
+          {vinculo.resumo && <p className="mt-1 max-w-[70ch]">{vinculo.resumo}</p>}
+          {(vinculo.prazoContagem || vinculo.prazoDataTexto) && (
+            <div className="mt-1 text-neutro-700">
+              Prazo: {vinculo.prazoContagem} {vinculo.prazoDataTexto}
+            </div>
+          )}
+          {vinculo.resultado && <div className="mt-1 text-neutro-700">Resultado: {vinculo.resultado}</div>}
+          {(vinculo.partes || vinculo.juiz || vinculo.fase || vinculo.valorCausa) && (
+            <div className="mt-2 grid grid-cols-2 gap-2 text-neutro-700">
+              {vinculo.partes && <div>Partes: {vinculo.partes}</div>}
+              {vinculo.juiz && <div>Magistrado: {vinculo.juiz}</div>}
+              {vinculo.fase && <div>Fase: {vinculo.fase}</div>}
+              {vinculo.valorCausa && <div>Valor da causa: {vinculo.valorCausa}</div>}
+            </div>
+          )}
+          {vinculo.arquivoAnexoNome && <div className="mt-2 text-neutro-700">Anexo: {vinculo.arquivoAnexoNome}</div>}
+          {!vinculo.status &&
+            !vinculo.resumo &&
+            !vinculo.prazoContagem &&
+            !vinculo.prazoDataTexto &&
+            !vinculo.resultado &&
+            !vinculo.partes &&
+            !vinculo.juiz &&
+            !vinculo.fase &&
+            !vinculo.valorCausa && <p className="text-neutro-700">Nenhum dado geral preenchido ainda.</p>}
+        </div>
+      </div>
+
+      <div>
+        <div className={rotuloClass}>FIRAC</div>
+        <div className="mt-2 flex flex-col gap-3">
+          {FIRAC_LETRAS.map((letra) => {
+            const paragrafos = vinculo.firac.filter((b) => b.letra === letra).map((b) => b.paragrafo);
+            return (
+              <div key={letra} className="flex gap-2">
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center bg-acento text-[13px] text-white">
+                  {letra}
+                </div>
+                <div className="flex-1">
+                  <div className="text-[10px] uppercase tracking-[0.08em] text-neutro-700">{FIRAC_TITULOS[letra]}</div>
+                  {paragrafos.length === 0 ? (
+                    <p className="mt-1 text-[13px] text-neutro-700">—</p>
+                  ) : (
+                    paragrafos.map((p, i) => (
+                      <p key={i} className="mt-1 text-[13px] leading-[1.5]">
+                        {p}
+                      </p>
+                    ))
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <div className={rotuloClass}>Estratégia</div>
+        <div className="mt-2 flex flex-col gap-3 text-[13.5px]">
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutro-700">Objetivo</div>
+            <p className="mt-1">{vinculo.objetivo || "—"}</p>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutro-700">
+                Objetivo secundário
+              </div>
+              <p className="mt-1">{vinculo.objetivoSecundario || "—"}</p>
+            </div>
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutro-700">Linha vermelha</div>
+              <p className="mt-1">{vinculo.linhaVermelha || "—"}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div className={rotuloClass}>Argumentos</div>
+        {vinculo.argumentos.length === 0 ? (
+          <p className="mt-2 text-[13.5px] text-neutro-700">Nenhum argumento registrado.</p>
+        ) : (
+          <div className="mt-2 flex flex-col gap-4">
+            {vinculo.argumentos.map((a) => (
+              <div key={a.id} className="border-t border-divisoria-fina pt-3">
+                <span className="text-[13px] text-acento">{a.tag}</span>
+                <h3 className="mt-1 text-[15px] font-normal">{a.titulo}</h3>
+                {a.fato && <p className="mt-1 max-w-[80ch] text-[13.5px]">{a.fato}</p>}
+                <div className="mt-2 flex flex-col gap-1 text-[13px]">
+                  <div>
+                    <span className="text-neutro-700">Previsão legal:</span> {a.previsaoLegal || "—"}
+                  </div>
+                  <div>
+                    <span className="text-neutro-700">Jurisprudência:</span> {a.jurisprudencia || "—"}
+                  </div>
+                  <div>
+                    <span className="text-neutro-700">Doutrina:</span> {a.doutrina || "—"}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function VinculoDetail({
   vinculo,
   podeEditar,
@@ -100,6 +217,7 @@ export function VinculoDetail({
   onChanged: () => Promise<void>;
   onVoltar: () => void;
 }) {
+  const [editando, setEditando] = useState(false);
   const [subTab, setSubTab] = useState<0 | 1 | 2>(0);
 
   const [geraisForm, setGeraisForm] = useState<GeraisForm>(() => buildGeraisForm(vinculo));
@@ -141,6 +259,15 @@ export function VinculoDetail({
 
   function campoEstrategia<K extends keyof EstrategiaForm>(chave: K, valor: EstrategiaForm[K]) {
     setEstrategiaForm((f) => ({ ...f, [chave]: valor }));
+  }
+
+  function entrarEmEdicao() {
+    setGeraisForm(buildGeraisForm(vinculo));
+    setEstrategiaForm(buildEstrategiaForm(vinculo));
+    setFiracForm(buildFiracForm(vinculo));
+    setArgumentosForm(buildArgumentosForm(vinculo));
+    setSubTab(0);
+    setEditando(true);
   }
 
   async function salvarAlteracoes() {
@@ -275,33 +402,29 @@ export function VinculoDetail({
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={onVoltar}
-        className="text-[11px] font-semibold uppercase tracking-[0.08em] text-acento-escuro"
-      >
-        ← Voltar aos vínculos
-      </button>
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={editando ? () => setEditando(false) : onVoltar}
+          className="text-[11px] font-semibold uppercase tracking-[0.08em] text-acento-escuro"
+        >
+          {editando ? "← Voltar à visualização" : "← Voltar aos vínculos"}
+        </button>
+        {podeEditar && !editando && (
+          <button
+            type="button"
+            onClick={entrarEmEdicao}
+            className="border border-acento px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-acento-escuro hover:bg-tinta-clara"
+          >
+            Editar
+          </button>
+        )}
+      </div>
 
       <h2 className="mt-2 text-[17px] font-normal">
         {rotulo}
         {vinculo.numeroProcesso && <span className="text-neutro-700"> · nº {vinculo.numeroProcesso}</span>}
       </h2>
-
-      <div className="mt-4 flex gap-1 border-b border-divisoria-fina">
-        {ETAPAS.map((label, i) => (
-          <button
-            key={label}
-            type="button"
-            onClick={() => setSubTab(i as 0 | 1 | 2)}
-            className={`border-b-4 px-3 py-2 text-[12.5px] font-normal uppercase ${
-              subTab === i ? "border-acento text-texto" : "border-transparent text-neutro-700"
-            }`}
-          >
-            4.{i + 1} · {label}
-          </button>
-        ))}
-      </div>
 
       {naoLocalizados.length > 0 && (
         <div className="mt-4 border-l-[3px] border-ambar bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">
@@ -309,11 +432,28 @@ export function VinculoDetail({
         </div>
       )}
 
-      <div className="mt-6">
-        {subTab === 0 && (
-          <div>
-            {podeEditar ? (
-              <>
+      {!editando && <ConsolidatedView vinculo={vinculo} />}
+
+      {editando && (
+        <>
+          <div className="mt-4 flex gap-1 border-b border-divisoria-fina">
+            {ETAPAS.map((label, i) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => setSubTab(i as 0 | 1 | 2)}
+                className={`border-b-4 px-3 py-2 text-[12.5px] font-normal uppercase ${
+                  subTab === i ? "border-acento text-texto" : "border-transparent text-neutro-700"
+                }`}
+              >
+                4.{i + 1} · {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-6">
+            {subTab === 0 && (
+              <div>
                 <div className="grid grid-cols-[180px_1fr_1fr] gap-2">
                   <select
                     className={inputClass}
@@ -458,97 +598,63 @@ export function VinculoDetail({
                     {erroImport}
                   </div>
                 )}
-              </>
-            ) : (
-              <div className="text-[13.5px]">
-                {vinculo.status && <div className="text-neutro-700">Status: {vinculo.status}</div>}
-                {vinculo.resumo && <p className="mt-1 max-w-[70ch]">{vinculo.resumo}</p>}
-                {(vinculo.prazoContagem || vinculo.prazoDataTexto) && (
-                  <div className="mt-1 text-neutro-700">
-                    Prazo: {vinculo.prazoContagem} {vinculo.prazoDataTexto}
-                  </div>
-                )}
-                {vinculo.resultado && <div className="mt-1 text-neutro-700">Resultado: {vinculo.resultado}</div>}
-                {(vinculo.partes || vinculo.juiz || vinculo.fase || vinculo.valorCausa) && (
-                  <div className="mt-2 grid grid-cols-2 gap-2 text-neutro-700">
-                    {vinculo.partes && <div>Partes: {vinculo.partes}</div>}
-                    {vinculo.juiz && <div>Magistrado: {vinculo.juiz}</div>}
-                    {vinculo.fase && <div>Fase: {vinculo.fase}</div>}
-                    {vinculo.valorCausa && <div>Valor da causa: {vinculo.valorCausa}</div>}
-                  </div>
-                )}
+
+                <div className="mt-6 flex flex-col gap-3">
+                  {FIRAC_LETRAS.map((letra) => {
+                    const key = letra.toLowerCase() as "f" | "i" | "r" | "a" | "c";
+                    return (
+                      <div key={letra} className="flex gap-2">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center bg-acento text-[13px] text-white">
+                          {letra}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-[10px] uppercase tracking-[0.08em] text-neutro-700">
+                            {FIRAC_TITULOS[letra]}
+                          </div>
+                          <div className="mt-1 flex flex-col gap-1">
+                            {firacForm[key].map((p, i) => (
+                              <textarea
+                                key={i}
+                                rows={2}
+                                value={p}
+                                onChange={(e) =>
+                                  setFiracForm((f) => {
+                                    const next = [...f[key]];
+                                    next[i] = e.target.value;
+                                    return { ...f, [key]: next };
+                                  })
+                                }
+                                className={inputClass}
+                              />
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => setFiracForm((f) => ({ ...f, [key]: [...f[key], ""] }))}
+                              className="self-start border border-acento px-2 py-0.5 text-[10px] font-semibold uppercase text-acento-escuro hover:bg-tinta-clara"
+                            >
+                              + Parágrafo
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={salvarFirac}
+                    disabled={firacSalvando}
+                    className="inline-flex items-center gap-2 self-start bg-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-white disabled:opacity-60"
+                  >
+                    Salvar FIRAC {firacSalvando && <LoadingDots />}
+                  </button>
+                </div>
               </div>
             )}
 
-            <div className="mt-6 flex flex-col gap-3">
-              {FIRAC_LETRAS.map((letra) => {
-                const key = letra.toLowerCase() as "f" | "i" | "r" | "a" | "c";
-                const paragrafos = podeEditar ? firacForm[key] : vinculo.firac.filter((b) => b.letra === letra).map((b) => b.paragrafo);
-                return (
-                  <div key={letra} className="flex gap-2">
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center bg-acento text-[13px] text-white">
-                      {letra}
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-[10px] uppercase tracking-[0.08em] text-neutro-700">{FIRAC_TITULOS[letra]}</div>
-                      {podeEditar ? (
-                        <div className="mt-1 flex flex-col gap-1">
-                          {firacForm[key].map((p, i) => (
-                            <textarea
-                              key={i}
-                              rows={2}
-                              value={p}
-                              onChange={(e) =>
-                                setFiracForm((f) => {
-                                  const next = [...f[key]];
-                                  next[i] = e.target.value;
-                                  return { ...f, [key]: next };
-                                })
-                              }
-                              className={inputClass}
-                            />
-                          ))}
-                          <button
-                            type="button"
-                            onClick={() => setFiracForm((f) => ({ ...f, [key]: [...f[key], ""] }))}
-                            className="self-start border border-acento px-2 py-0.5 text-[10px] font-semibold uppercase text-acento-escuro hover:bg-tinta-clara"
-                          >
-                            + Parágrafo
-                          </button>
-                        </div>
-                      ) : paragrafos.length === 0 ? (
-                        <p className="mt-1 text-[13px] text-neutro-700">—</p>
-                      ) : (
-                        paragrafos.map((p, i) => (
-                          <p key={i} className="mt-1 text-[13px] leading-[1.5]">
-                            {p}
-                          </p>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-              {podeEditar && (
-                <button
-                  type="button"
-                  onClick={salvarFirac}
-                  disabled={firacSalvando}
-                  className="inline-flex items-center gap-2 self-start bg-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-white disabled:opacity-60"
-                >
-                  Salvar FIRAC {firacSalvando && <LoadingDots />}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {subTab === 1 && (
-          <div>
-            {podeEditar ? (
-              <>
+            {subTab === 1 && (
+              <div>
                 <label className="flex flex-col gap-1">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutro-700">Objetivo</span>
+                  <span className={rotuloClass}>Objetivo</span>
                   <textarea
                     rows={3}
                     className={inputClass}
@@ -558,9 +664,7 @@ export function VinculoDetail({
                 </label>
                 <div className="mt-3 grid grid-cols-2 gap-4">
                   <label className="flex flex-col gap-1">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutro-700">
-                      Objetivo secundário
-                    </span>
+                    <span className={rotuloClass}>Objetivo secundário</span>
                     <textarea
                       rows={2}
                       className={inputClass}
@@ -569,9 +673,7 @@ export function VinculoDetail({
                     />
                   </label>
                   <label className="flex flex-col gap-1">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutro-700">
-                      Linha vermelha
-                    </span>
+                    <span className={rotuloClass}>Linha vermelha</span>
                     <textarea
                       rows={2}
                       className={inputClass}
@@ -588,35 +690,10 @@ export function VinculoDetail({
                 >
                   Salvar alterações {salvandoEstrategia && <LoadingDots />}
                 </button>
-              </>
-            ) : (
-              <div className="flex flex-col gap-3 text-[13.5px]">
-                <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutro-700">Objetivo</div>
-                  <p className="mt-1">{vinculo.objetivo || "—"}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutro-700">
-                      Objetivo secundário
-                    </div>
-                    <p className="mt-1">{vinculo.objetivoSecundario || "—"}</p>
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-neutro-700">
-                      Linha vermelha
-                    </div>
-                    <p className="mt-1">{vinculo.linhaVermelha || "—"}</p>
-                  </div>
-                </div>
               </div>
             )}
-          </div>
-        )}
 
-        {subTab === 2 && (
-          <div>
-            {podeEditar ? (
+            {subTab === 2 && (
               <div className="flex flex-col gap-3">
                 {argumentosForm.map((a, i) => (
                   <div key={i} className="border-t border-divisoria-fina pt-3 first:border-t-0 first:pt-0">
@@ -704,33 +781,10 @@ export function VinculoDetail({
                   </button>
                 </div>
               </div>
-            ) : vinculo.argumentos.length === 0 ? (
-              <p className="text-[13.5px] text-neutro-700">Nenhum argumento registrado.</p>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {vinculo.argumentos.map((a) => (
-                  <div key={a.id} className="border-t border-divisoria-fina pt-3">
-                    <span className="text-[13px] text-acento">{a.tag}</span>
-                    <h3 className="mt-1 text-[15px] font-normal">{a.titulo}</h3>
-                    {a.fato && <p className="mt-1 max-w-[80ch] text-[13.5px]">{a.fato}</p>}
-                    <div className="mt-2 flex flex-col gap-1 text-[13px]">
-                      <div>
-                        <span className="text-neutro-700">Previsão legal:</span> {a.previsaoLegal || "—"}
-                      </div>
-                      <div>
-                        <span className="text-neutro-700">Jurisprudência:</span> {a.jurisprudencia || "—"}
-                      </div>
-                      <div>
-                        <span className="text-neutro-700">Doutrina:</span> {a.doutrina || "—"}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
             )}
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }
