@@ -182,8 +182,8 @@ export async function createProcessLink(
   dossierId: string,
   input: ProcessLinkInput,
   opcoes?: { viaIa?: boolean },
-): Promise<void> {
-  await asJsonOrThrow(
+): Promise<{ id: string }> {
+  return asJsonOrThrow(
     await fetch(`/api/dossiers/${dossierId}/process-links`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createProcessLink } from "@/lib/client/dossier-api";
 import { TIPOS_VINCULO_PROCESSUAL, VINCULO_TIPO_LABEL } from "@/lib/dossier-constants";
 import { VinculoRow } from "@/components/dossier/vinculo-row";
+import { VinculoDetail } from "@/components/dossier/vinculo-detail";
 import type { DossierFull } from "@/lib/types/dossier";
 import { LoadingDots } from "@/components/ui/loading-dots";
 
@@ -18,16 +19,19 @@ export function AbaVinculos({
   podeEditar: boolean;
   onChanged: () => Promise<void>;
 }) {
+  const [selecionadoId, setSelecionadoId] = useState<string | null>(null);
   const [novoAberto, setNovoAberto] = useState(false);
   const [tipo, setTipo] = useState<(typeof TIPOS_VINCULO_PROCESSUAL)[number]>("conexao");
   const [numeroProcesso, setNumeroProcesso] = useState("");
   const [tribunalInstancia, setTribunalInstancia] = useState("");
   const [criando, setCriando] = useState(false);
 
+  const selecionado = dossier.vinculos.find((v) => v.id === selecionadoId) ?? null;
+
   async function adicionar() {
     setCriando(true);
     try {
-      await createProcessLink(dossier.id, {
+      const { id } = await createProcessLink(dossier.id, {
         tipo,
         numeroProcesso: numeroProcesso || null,
         tribunalInstancia: tribunalInstancia || null,
@@ -49,9 +53,21 @@ export function AbaVinculos({
       setNumeroProcesso("");
       setTribunalInstancia("");
       await onChanged();
+      setSelecionadoId(id);
     } finally {
       setCriando(false);
     }
+  }
+
+  if (selecionado) {
+    return (
+      <VinculoDetail
+        vinculo={selecionado}
+        podeEditar={podeEditar}
+        onChanged={onChanged}
+        onVoltar={() => setSelecionadoId(null)}
+      />
+    );
   }
 
   return (
@@ -70,7 +86,7 @@ export function AbaVinculos({
       ) : (
         <div className="mt-6 flex flex-col">
           {dossier.vinculos.map((v) => (
-            <VinculoRow key={v.id} vinculo={v} podeEditar={podeEditar} onChanged={onChanged} />
+            <VinculoRow key={v.id} vinculo={v} onClick={() => setSelecionadoId(v.id)} />
           ))}
         </div>
       )}
