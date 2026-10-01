@@ -31,12 +31,17 @@ export function parseSugestaoEstrategia(textoResposta: string): SugestaoEstrateg
   return sugestaoEstrategiaSchema.parse(extrairJson(textoResposta));
 }
 
-// Versão reduzida pra sugestão de Estratégia de um processo vinculado (sem
-// passos/prazos/riscos — ver lib/ai/prompts/suggest-estrategia-vinculo.ts).
+// Sugestão de Estratégia pra um processo vinculado — mesmo shape de
+// sugestaoEstrategiaSchema (objetivo/passos/prazos/riscos), já que o vínculo
+// também tem sua própria lista de passos/prazos (ver lib/ai/prompts/
+// suggest-estrategia-vinculo.ts).
 export const sugestaoEstrategiaVinculoSchema = z.object({
   objetivo: z.string(),
   objetivoSecundario: z.string(),
   linhaVermelha: z.string(),
+  passos: z.array(z.object({ acao: z.string(), proximaData: z.string() })),
+  prazos: z.array(z.object({ ato: z.string(), contagem: z.string(), dataTexto: z.string() })),
+  riscos: z.array(z.string()),
 });
 export type SugestaoEstrategiaVinculo = z.infer<typeof sugestaoEstrategiaVinculoSchema>;
 

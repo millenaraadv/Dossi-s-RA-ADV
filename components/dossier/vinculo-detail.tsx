@@ -194,6 +194,8 @@ export function VinculoDetail({
   const [aplicandoObjetivo, setAplicandoObjetivo] = useState(false);
   const [aplicandoObjetivoSecundario, setAplicandoObjetivoSecundario] = useState(false);
   const [aplicandoLinhaVermelha, setAplicandoLinhaVermelha] = useState(false);
+  const [aplicandoPassoSugerido, setAplicandoPassoSugerido] = useState<number | null>(null);
+  const [aplicandoPrazoSugerido, setAplicandoPrazoSugerido] = useState<number | null>(null);
 
   const [sugestoesArgumentos, setSugestoesArgumentos] = useState<SugestaoArgumento[] | null>(null);
   const [fontesArgumentos, setFontesArgumentos] = useState<FonteConsultada[]>([]);
@@ -328,6 +330,40 @@ export function VinculoDetail({
     valor: SugestaoEstrategiaVinculo[K],
   ) {
     setSugestaoEstrategia((atual) => (atual ? { ...atual, [chave]: valor } : atual));
+  }
+
+  async function adicionarPassoSugerido(indice: number) {
+    if (!sugestaoEstrategia) return;
+    const passo = sugestaoEstrategia.passos[indice];
+    setAplicandoPassoSugerido(indice);
+    try {
+      await createProcessLinkStep(
+        vinculo.id,
+        { acao: passo.acao, responsavelId: null, proximaData: passo.proximaData || null },
+        { viaIa: true },
+      );
+      await onChanged();
+      setSugestaoEstrategia((atual) => (atual ? { ...atual, passos: atual.passos.filter((_, i) => i !== indice) } : atual));
+    } finally {
+      setAplicandoPassoSugerido(null);
+    }
+  }
+
+  async function adicionarPrazoSugerido(indice: number) {
+    if (!sugestaoEstrategia) return;
+    const prazo = sugestaoEstrategia.prazos[indice];
+    setAplicandoPrazoSugerido(indice);
+    try {
+      await createProcessLinkDeadline(
+        vinculo.id,
+        { ato: prazo.ato, contagem: prazo.contagem || null, dataTexto: prazo.dataTexto || null },
+        { viaIa: true },
+      );
+      await onChanged();
+      setSugestaoEstrategia((atual) => (atual ? { ...atual, prazos: atual.prazos.filter((_, i) => i !== indice) } : atual));
+    } finally {
+      setAplicandoPrazoSugerido(null);
+    }
   }
 
   async function pedirSugestaoArgumentos() {
@@ -1251,6 +1287,163 @@ export function VinculoDetail({
                             </button>
                           </div>
                         )}
+                      </div>
+                    )}
+
+                    {sugestaoEstrategia.passos.length > 0 && (
+                      <div className="mt-4 border-t border-acento pt-3">
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                          Passos sugeridos <span className="normal-case tracking-normal text-neutro-700">(editáveis)</span>
+                        </div>
+                        <div className="mt-2 flex flex-col gap-2">
+                          {sugestaoEstrategia.passos.map((p, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                              <textarea
+                                value={p.acao}
+                                onChange={(e) =>
+                                  setSugestaoEstrategia((atual) =>
+                                    atual
+                                      ? {
+                                          ...atual,
+                                          passos: atual.passos.map((passo, j) =>
+                                            j === i ? { ...passo, acao: e.target.value } : passo,
+                                          ),
+                                        }
+                                      : atual,
+                                  )
+                                }
+                                rows={1}
+                                wrap="off"
+                                className="flex-1 resize-none overflow-x-auto whitespace-pre border border-borda-campo bg-neutro-100 px-2 py-1 text-[13.5px] text-texto outline-none"
+                              />
+                              <input
+                                type="date"
+                                value={p.proximaData}
+                                onChange={(e) =>
+                                  setSugestaoEstrategia((atual) =>
+                                    atual
+                                      ? {
+                                          ...atual,
+                                          passos: atual.passos.map((passo, j) =>
+                                            j === i ? { ...passo, proximaData: e.target.value } : passo,
+                                          ),
+                                        }
+                                      : atual,
+                                  )
+                                }
+                                className="w-[140px] shrink-0 border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => adicionarPassoSugerido(i)}
+                                disabled={aplicandoPassoSugerido === i}
+                                className="inline-flex shrink-0 items-center gap-2 border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200 disabled:opacity-60"
+                              >
+                                + Adicionar {aplicandoPassoSugerido === i && <LoadingDots />}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {sugestaoEstrategia.prazos.length > 0 && (
+                      <div className="mt-4 border-t border-acento pt-3">
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                          Prazos sugeridos <span className="normal-case tracking-normal text-neutro-700">(editáveis)</span>
+                        </div>
+                        <div className="mt-2 flex flex-col gap-2">
+                          {sugestaoEstrategia.prazos.map((p, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                              <input
+                                value={p.ato}
+                                onChange={(e) =>
+                                  setSugestaoEstrategia((atual) =>
+                                    atual
+                                      ? {
+                                          ...atual,
+                                          prazos: atual.prazos.map((prazo, j) =>
+                                            j === i ? { ...prazo, ato: e.target.value } : prazo,
+                                          ),
+                                        }
+                                      : atual,
+                                  )
+                                }
+                                placeholder="Ato"
+                                className="flex-1 border border-borda-campo bg-neutro-100 px-2 py-1 text-[13.5px] text-texto outline-none"
+                              />
+                              <input
+                                value={p.contagem}
+                                onChange={(e) =>
+                                  setSugestaoEstrategia((atual) =>
+                                    atual
+                                      ? {
+                                          ...atual,
+                                          prazos: atual.prazos.map((prazo, j) =>
+                                            j === i ? { ...prazo, contagem: e.target.value } : prazo,
+                                          ),
+                                        }
+                                      : atual,
+                                  )
+                                }
+                                placeholder="Contagem"
+                                className="w-[140px] shrink-0 border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none"
+                              />
+                              <input
+                                value={p.dataTexto}
+                                onChange={(e) =>
+                                  setSugestaoEstrategia((atual) =>
+                                    atual
+                                      ? {
+                                          ...atual,
+                                          prazos: atual.prazos.map((prazo, j) =>
+                                            j === i ? { ...prazo, dataTexto: e.target.value } : prazo,
+                                          ),
+                                        }
+                                      : atual,
+                                  )
+                                }
+                                onBlur={(e) =>
+                                  setSugestaoEstrategia((atual) =>
+                                    atual
+                                      ? {
+                                          ...atual,
+                                          prazos: atual.prazos.map((prazo, j) =>
+                                            j === i
+                                              ? { ...prazo, dataTexto: normalizarDataDigitada(e.target.value) }
+                                              : prazo,
+                                          ),
+                                        }
+                                      : atual,
+                                  )
+                                }
+                                placeholder="Data (ex.: 19/08/2026)"
+                                className="w-[140px] shrink-0 border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => adicionarPrazoSugerido(i)}
+                                disabled={aplicandoPrazoSugerido === i}
+                                className="inline-flex shrink-0 items-center gap-2 border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200 disabled:opacity-60"
+                              >
+                                + Adicionar {aplicandoPrazoSugerido === i && <LoadingDots />}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {sugestaoEstrategia.riscos.length > 0 && (
+                      <div className="mt-4 border-t border-acento pt-3">
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                          Riscos apontados
+                        </div>
+                        <ul className="mt-2 list-disc pl-4 text-[13.5px] text-texto">
+                          {sugestaoEstrategia.riscos.map((r, i) => (
+                            <li key={i}>{r}</li>
+                          ))}
+                        </ul>
                       </div>
                     )}
                   </div>

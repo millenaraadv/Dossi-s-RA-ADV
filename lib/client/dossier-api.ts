@@ -432,6 +432,9 @@ export type SugestaoEstrategiaVinculo = {
   objetivo: string;
   objetivoSecundario: string;
   linhaVermelha: string;
+  passos: { acao: string; proximaData: string }[];
+  prazos: { ato: string; contagem: string; dataTexto: string }[];
+  riscos: string[];
 };
 
 export async function suggestEstrategiaVinculo(processLinkId: string): Promise<SugestaoEstrategiaVinculo> {

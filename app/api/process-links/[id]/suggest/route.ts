@@ -15,6 +15,7 @@ import {
   parseSugestaoEstrategiaVinculo,
   parseSugestaoArgumentos,
 } from "@/lib/ai/parse-suggestions";
+import { hojeIso } from "@/lib/dates";
 
 export const runtime = "nodejs";
 
@@ -52,7 +53,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     if (etapa === 1) {
-      const respostaTexto = await gerarJson(buildSuggestEstrategiaVinculoPrompt(contexto));
+      const respostaTexto = await gerarJson(buildSuggestEstrategiaVinculoPrompt(contexto, hojeIso()));
       const resultado = parseSugestaoEstrategiaVinculo(respostaTexto);
       await createSuggestionRecord({
         dossierId: vinculo.dossierId,
