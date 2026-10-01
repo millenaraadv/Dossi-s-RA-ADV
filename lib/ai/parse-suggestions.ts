@@ -44,10 +44,15 @@ export function parseSugestaoEstrategiaVinculo(textoResposta: string): SugestaoE
   return sugestaoEstrategiaVinculoSchema.parse(extrairJson(textoResposta));
 }
 
-// Sugestão de FIRAC pra um processo vinculado (4.1) — um parágrafo por letra,
-// que o usuário pode adicionar como novo parágrafo em cada bloco (mesmo
-// padrão de "+ Adicionar" dos Argumentos, não substitui o que já existe).
+// Sugestão pra aba 4.1 (Gerais e FIRAC) de um processo vinculado: resumo e
+// resultado (texto narrativo, "Substituir" direto como na Estratégia),
+// linha do tempo (só movimentações cuja data já apareça no contexto — nunca
+// inventada, ver prompt) e um parágrafo por letra do FIRAC ("+ Adicionar",
+// mesmo padrão dos Argumentos).
 export const sugestaoFiracVinculoSchema = z.object({
+  resumo: z.string(),
+  resultado: z.string(),
+  timeline: z.array(z.object({ dataTexto: z.string(), ato: z.string() })),
   f: z.string(),
   i: z.string(),
   r: z.string(),

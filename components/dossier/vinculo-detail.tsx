@@ -168,6 +168,7 @@ export function VinculoDetail({
   const [argumentosSalvando, setArgumentosSalvando] = useState(false);
   const [timelineForm, setTimelineForm] = useState<TimelineEntryForm[]>(() => buildTimelineForm(vinculo));
   const [timelineSalvando, setTimelineSalvando] = useState(false);
+  const [timelineViaIa, setTimelineViaIa] = useState(false);
 
   const [novaAberta, setNovaAberta] = useState(false);
   const [novaAcao, setNovaAcao] = useState("");
@@ -184,6 +185,8 @@ export function VinculoDetail({
   const [sugestaoFirac, setSugestaoFirac] = useState<SugestaoFiracVinculo | null>(null);
   const [carregandoSugestaoFirac, setCarregandoSugestaoFirac] = useState(false);
   const [erroSugestaoFirac, setErroSugestaoFirac] = useState<string | null>(null);
+  const [aplicandoResumoFirac, setAplicandoResumoFirac] = useState(false);
+  const [aplicandoResultadoFirac, setAplicandoResultadoFirac] = useState(false);
 
   const [sugestaoEstrategia, setSugestaoEstrategia] = useState<SugestaoEstrategiaVinculo | null>(null);
   const [carregandoSugestaoEstrategia, setCarregandoSugestaoEstrategia] = useState(false);
@@ -211,6 +214,7 @@ export function VinculoDetail({
     setFiracViaIa(false);
     setArgumentosForm(buildArgumentosForm(vinculo));
     setTimelineForm(buildTimelineForm(vinculo));
+    setTimelineViaIa(false);
   }
 
   const naoLocalizados = camposVinculoNaoLocalizados(vinculo);
@@ -230,6 +234,7 @@ export function VinculoDetail({
     setFiracViaIa(false);
     setArgumentosForm(buildArgumentosForm(vinculo));
     setTimelineForm(buildTimelineForm(vinculo));
+    setTimelineViaIa(false);
     setEditando(true);
   }
 
@@ -451,6 +456,52 @@ export function VinculoDetail({
     setFiracViaIa(true);
   }
 
+  function atualizarSugestaoResumo(valor: string) {
+    setSugestaoFirac((atual) => (atual ? { ...atual, resumo: valor } : atual));
+  }
+
+  function atualizarSugestaoResultado(valor: string) {
+    setSugestaoFirac((atual) => (atual ? { ...atual, resultado: valor } : atual));
+  }
+
+  function atualizarSugestaoMovimentacao(indice: number, campo: "dataTexto" | "ato", valor: string) {
+    setSugestaoFirac((atual) =>
+      atual
+        ? { ...atual, timeline: atual.timeline.map((t, i) => (i === indice ? { ...t, [campo]: valor } : t)) }
+        : atual,
+    );
+  }
+
+  async function substituirResumoSugerido() {
+    if (!sugestaoFirac) return;
+    setAplicandoResumoFirac(true);
+    try {
+      await updateProcessLink(vinculo.id, { resumo: sugestaoFirac.resumo }, { viaIa: true });
+      await onChanged();
+    } finally {
+      setAplicandoResumoFirac(false);
+    }
+  }
+
+  async function substituirResultadoSugerido() {
+    if (!sugestaoFirac) return;
+    setAplicandoResultadoFirac(true);
+    try {
+      await updateProcessLink(vinculo.id, { resultado: sugestaoFirac.resultado }, { viaIa: true });
+      await onChanged();
+    } finally {
+      setAplicandoResultadoFirac(false);
+    }
+  }
+
+  function adicionarMovimentacaoSugerida(indice: number) {
+    const mov = sugestaoFirac?.timeline[indice];
+    if (!mov) return;
+    setTimelineForm((atual) => [...atual, { dataTexto: mov.dataTexto, ato: mov.ato }]);
+    setTimelineViaIa(true);
+    setSugestaoFirac((atual) => (atual ? { ...atual, timeline: atual.timeline.filter((_, i) => i !== indice) } : atual));
+  }
+
   async function salvarArgumentos() {
     setArgumentosSalvando(true);
     try {
@@ -467,7 +518,10 @@ export function VinculoDetail({
   async function salvarTimeline() {
     setTimelineSalvando(true);
     try {
-      await putProcessLinkTimeline(vinculo.id, timelineForm.filter((t) => t.dataTexto.trim() || t.ato.trim()));
+      await putProcessLinkTimeline(vinculo.id, timelineForm.filter((t) => t.dataTexto.trim() || t.ato.trim()), {
+        viaIa: timelineViaIa,
+      });
+      setTimelineViaIa(false);
       await onChanged();
     } finally {
       setTimelineSalvando(false);
@@ -923,7 +977,86 @@ export function VinculoDetail({
 
             {sugestaoFirac && (
               <div className="mt-4 flex flex-col gap-4 border-l-[3px] border-ambar bg-tinta-clara p-4">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                      Resumo sugerido <span className="normal-case tracking-normal text-neutro-700">(editável)</span>
+                    </div>
+                    <textarea
+                      rows={2}
+                      value={sugestaoFirac.resumo}
+                      onChange={(e) => atualizarSugestaoResumo(e.target.value)}
+                      className="mt-1 w-full border border-borda-campo bg-neutro-100 p-2 text-[13.5px] text-texto outline-none"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={substituirResumoSugerido}
+                    disabled={aplicandoResumoFirac}
+                    className="inline-flex shrink-0 items-center gap-2 self-start border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200 disabled:opacity-60"
+                  >
+                    Substituir resumo {aplicandoResumoFirac && <LoadingDots />}
+                  </button>
+                </div>
+
+                {sugestaoFirac.resultado && (
+                  <div className="flex items-start justify-between gap-4 border-t border-acento pt-3">
+                    <div className="flex-1">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                        Resultado sugerido <span className="normal-case tracking-normal text-neutro-700">(editável)</span>
+                      </div>
+                      <textarea
+                        rows={2}
+                        value={sugestaoFirac.resultado}
+                        onChange={(e) => atualizarSugestaoResultado(e.target.value)}
+                        className="mt-1 w-full border border-borda-campo bg-neutro-100 p-2 text-[13.5px] text-texto outline-none"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={substituirResultadoSugerido}
+                      disabled={aplicandoResultadoFirac}
+                      className="inline-flex shrink-0 items-center gap-2 self-start border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200 disabled:opacity-60"
+                    >
+                      Substituir resultado {aplicandoResultadoFirac && <LoadingDots />}
+                    </button>
+                  </div>
+                )}
+
+                {sugestaoFirac.timeline.length > 0 && (
+                  <div className="border-t border-acento pt-3">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                      Linha do tempo sugerida{" "}
+                      <span className="normal-case tracking-normal text-neutro-700">(editável)</span>
+                    </div>
+                    <div className="mt-2 flex flex-col gap-2">
+                      {sugestaoFirac.timeline.map((t, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <input
+                            value={t.dataTexto}
+                            onChange={(e) => atualizarSugestaoMovimentacao(i, "dataTexto", e.target.value)}
+                            placeholder="dd/mm/aaaa"
+                            className="w-[110px] shrink-0 border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none"
+                          />
+                          <input
+                            value={t.ato}
+                            onChange={(e) => atualizarSugestaoMovimentacao(i, "ato", e.target.value)}
+                            className="flex-1 border border-borda-campo bg-neutro-100 px-2 py-1 text-[13.5px] text-texto outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => adicionarMovimentacaoSugerida(i)}
+                            className="inline-flex shrink-0 items-center gap-2 border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200"
+                          >
+                            + Adicionar
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="border-t border-acento pt-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
                   FIRAC sugerido <span className="normal-case tracking-normal text-neutro-700">(editável)</span>
                 </div>
                 {FIRAC_LETRAS.map((letra) => {

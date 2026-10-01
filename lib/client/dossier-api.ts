@@ -241,12 +241,16 @@ export async function putProcessLinkArguments(
   );
 }
 
-export async function putProcessLinkTimeline(id: string, entries: { dataTexto: string; ato: string }[]): Promise<void> {
+export async function putProcessLinkTimeline(
+  id: string,
+  entries: { dataTexto: string; ato: string }[],
+  opcoes?: { viaIa?: boolean },
+): Promise<void> {
   await asJsonOrThrow(
     await fetch(`/api/process-links/${id}/timeline`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(entries),
+      body: JSON.stringify({ entries, viaIa: opcoes?.viaIa === true }),
     }),
   );
 }
@@ -403,7 +407,16 @@ export async function suggestArgumentos(
   );
 }
 
-export type SugestaoFiracVinculo = { f: string; i: string; r: string; a: string; c: string };
+export type SugestaoFiracVinculo = {
+  resumo: string;
+  resultado: string;
+  timeline: { dataTexto: string; ato: string }[];
+  f: string;
+  i: string;
+  r: string;
+  a: string;
+  c: string;
+};
 
 export async function suggestFiracVinculo(processLinkId: string): Promise<SugestaoFiracVinculo> {
   return asJsonOrThrow(

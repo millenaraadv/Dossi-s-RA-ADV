@@ -14,8 +14,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     const { id } = await params;
     const body = await request.json();
-    const entries = timelineReplaceSchema.parse(body);
-    await replaceProcessLinkTimeline(id, entries, user.id);
+    const entries = timelineReplaceSchema.parse(body?.entries);
+    await replaceProcessLinkTimeline(id, entries, user.id, { viaIa: body?.viaIa === true });
 
     return NextResponse.json({ ok: true });
   } catch (err) {
