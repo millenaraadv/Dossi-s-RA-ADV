@@ -44,6 +44,7 @@ export function AbaVinculos({
         juiz: null,
         fase: null,
         valorCausa: null,
+        advogadoContrario: null,
         objetivo: null,
         objetivoSecundario: null,
         linhaVermelha: null,
@@ -72,10 +73,6 @@ export function AbaVinculos({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-[15px] font-normal">Processos relacionados</h2>
-      </div>
-
       {dossier.vinculos.length === 0 && (
         <div className="border-l-[3px] border-acento bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">
           Registre aqui processos conexos/apensados e recursos que geram número próprio (agravo de instrumento, agravo

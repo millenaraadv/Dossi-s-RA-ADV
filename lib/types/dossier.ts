@@ -86,12 +86,15 @@ export type DossierFull = {
     juiz: string | null;
     fase: string | null;
     valorCausa: string | null;
+    advogadoContrario: string | null;
+    risco: string;
     objetivo: string | null;
     objetivoSecundario: string | null;
     linhaVermelha: string | null;
     arquivoAnexoNome: string | null;
     ordem: number;
     atualizadoEm: string;
+    timeline: { id: string; dataTexto: string; data: string | null; ato: string; ordem: number }[];
     firac: { id: string; letra: "F" | "I" | "R" | "A" | "C"; paragrafo: string; ordem: number }[];
     argumentos: {
       id: string;

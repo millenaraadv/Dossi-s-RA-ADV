@@ -242,6 +242,8 @@ export function describeAuditEntry(entry: {
       return `${descreverFirac((antes as Registro[]) ?? [], depois as Registro)} (processo relacionado)`;
     case "process_link_arguments":
       return `${descreverArgumentos((antes as Registro[]) ?? [], (depois as Registro[]) ?? [])} (processo relacionado)`;
+    case "process_link_timeline_entries":
+      return `${descreverTimeline()} (processo relacionado)`;
     default:
       return `${acao} em ${entidade}`;
   }

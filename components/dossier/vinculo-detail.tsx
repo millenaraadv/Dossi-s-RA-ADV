@@ -6,6 +6,7 @@ import {
   deleteProcessLink,
   putProcessLinkFirac,
   putProcessLinkArguments,
+  putProcessLinkTimeline,
   importProcessLinkPdf,
   getProcessLinkImportStatus,
   removeProcessLinkAttachment,
@@ -22,6 +23,7 @@ import {
   FIRAC_LETRAS,
   FIRAC_TITULOS,
   ETAPAS,
+  RISCOS,
   camposVinculoNaoLocalizados,
 } from "@/lib/dossier-constants";
 import type { DossierFull } from "@/lib/types/dossier";
@@ -37,6 +39,7 @@ type ArgumentoForm = {
   viaIa?: boolean;
 };
 type FiracForm = { f: string[]; i: string[]; r: string[]; a: string[]; c: string[] };
+type TimelineEntryForm = { dataTexto: string; ato: string };
 
 type GeraisForm = {
   tipo: (typeof TIPOS_VINCULO_PROCESSUAL)[number];
@@ -51,6 +54,8 @@ type GeraisForm = {
   juiz: string;
   fase: string;
   valorCausa: string;
+  advogadoContrario: string;
+  risco: string;
 };
 
 type EstrategiaForm = {
@@ -76,7 +81,13 @@ function buildGeraisForm(vinculo: Vinculo): GeraisForm {
     juiz: vinculo.juiz ?? "",
     fase: vinculo.fase ?? "",
     valorCausa: vinculo.valorCausa ?? "",
+    advogadoContrario: vinculo.advogadoContrario ?? "",
+    risco: vinculo.risco,
   };
+}
+
+function buildTimelineForm(vinculo: Vinculo): TimelineEntryForm[] {
+  return vinculo.timeline.map((t) => ({ dataTexto: t.dataTexto, ato: t.ato }));
 }
 
 function buildEstrategiaForm(vinculo: Vinculo): EstrategiaForm {
@@ -132,6 +143,8 @@ export function VinculoDetail({
   const [firacSalvando, setFiracSalvando] = useState(false);
   const [argumentosForm, setArgumentosForm] = useState<ArgumentoForm[]>(() => buildArgumentosForm(vinculo));
   const [argumentosSalvando, setArgumentosSalvando] = useState(false);
+  const [timelineForm, setTimelineForm] = useState<TimelineEntryForm[]>(() => buildTimelineForm(vinculo));
+  const [timelineSalvando, setTimelineSalvando] = useState(false);
 
   const [sugestaoEstrategia, setSugestaoEstrategia] = useState<SugestaoEstrategiaVinculo | null>(null);
   const [carregandoSugestaoEstrategia, setCarregandoSugestaoEstrategia] = useState(false);
@@ -157,6 +170,7 @@ export function VinculoDetail({
     setEstrategiaForm(buildEstrategiaForm(vinculo));
     setFiracForm(buildFiracForm(vinculo));
     setArgumentosForm(buildArgumentosForm(vinculo));
+    setTimelineForm(buildTimelineForm(vinculo));
   }
 
   const naoLocalizados = camposVinculoNaoLocalizados(vinculo);
@@ -174,6 +188,7 @@ export function VinculoDetail({
     setEstrategiaForm(buildEstrategiaForm(vinculo));
     setFiracForm(buildFiracForm(vinculo));
     setArgumentosForm(buildArgumentosForm(vinculo));
+    setTimelineForm(buildTimelineForm(vinculo));
     setEditando(true);
   }
 
@@ -193,6 +208,8 @@ export function VinculoDetail({
         juiz: geraisForm.juiz || null,
         fase: geraisForm.fase || null,
         valorCausa: geraisForm.valorCausa || null,
+        advogadoContrario: geraisForm.advogadoContrario || null,
+        risco: geraisForm.risco,
       });
       await onChanged();
     } finally {
@@ -382,6 +399,16 @@ export function VinculoDetail({
     }
   }
 
+  async function salvarTimeline() {
+    setTimelineSalvando(true);
+    try {
+      await putProcessLinkTimeline(vinculo.id, timelineForm.filter((t) => t.dataTexto.trim() || t.ato.trim()));
+      await onChanged();
+    } finally {
+      setTimelineSalvando(false);
+    }
+  }
+
   const rotulo = VINCULO_TIPO_LABEL[vinculo.tipo as keyof typeof VINCULO_TIPO_LABEL] ?? vinculo.tipo;
 
   return (
@@ -513,6 +540,26 @@ export function VinculoDetail({
                   />
                 </div>
 
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <input
+                    className={inputClass}
+                    placeholder="Advogado contrário"
+                    value={geraisForm.advogadoContrario}
+                    onChange={(e) => campo("advogadoContrario", e.target.value)}
+                  />
+                  <select
+                    className={inputClass}
+                    value={geraisForm.risco}
+                    onChange={(e) => campo("risco", e.target.value)}
+                  >
+                    {RISCOS.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <textarea
                   rows={2}
                   className={`mt-2 ${inputClass}`}
@@ -599,6 +646,10 @@ export function VinculoDetail({
                     {vinculo.valorCausa && <div>Valor da causa: {vinculo.valorCausa}</div>}
                   </div>
                 )}
+                <div className="mt-2 grid grid-cols-2 gap-2 text-neutro-700">
+                  {vinculo.advogadoContrario && <div>Advogado contrário: {vinculo.advogadoContrario}</div>}
+                  <div>Risco/prognóstico: {vinculo.risco}</div>
+                </div>
                 {vinculo.arquivoAnexoNome && (
                   <div className="mt-2 text-neutro-700">Anexo: {vinculo.arquivoAnexoNome}</div>
                 )}
@@ -613,6 +664,83 @@ export function VinculoDetail({
                   !vinculo.valorCausa && <p className="text-neutro-700">Nenhum dado geral preenchido ainda.</p>}
               </div>
             )}
+
+            <div className="mt-6 border-l border-acento pl-4">
+              <h3 className="mb-3 text-[12px] uppercase tracking-[0.1em] text-neutro-700">Linha do tempo</h3>
+              {editando ? (
+                <div className="flex flex-col gap-2">
+                  {timelineForm.map((t, i) => (
+                    <div key={i} className="grid grid-cols-[96px_1fr_auto] items-center gap-2">
+                      <input
+                        className={inputClass}
+                        value={t.dataTexto}
+                        placeholder="dd/mm/aaaa"
+                        onChange={(e) =>
+                          setTimelineForm((f) => {
+                            const next = [...f];
+                            next[i] = { ...next[i], dataTexto: e.target.value };
+                            return next;
+                          })
+                        }
+                        onBlur={(e) =>
+                          setTimelineForm((f) => {
+                            const next = [...f];
+                            next[i] = { ...next[i], dataTexto: normalizarDataDigitada(e.target.value) };
+                            return next;
+                          })
+                        }
+                      />
+                      <input
+                        className={inputClass}
+                        value={t.ato}
+                        onChange={(e) =>
+                          setTimelineForm((f) => {
+                            const next = [...f];
+                            next[i] = { ...next[i], ato: e.target.value };
+                            return next;
+                          })
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setTimelineForm((f) => f.filter((_, j) => j !== i))}
+                        className="border border-acento px-2 py-1 text-[10px] font-semibold uppercase text-acento-escuro hover:bg-tinta-clara"
+                      >
+                        Excluir
+                      </button>
+                    </div>
+                  ))}
+                  <div className="mt-1 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTimelineForm((f) => [...f, { dataTexto: "", ato: "" }])}
+                      className="border border-acento px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-acento-escuro hover:bg-tinta-clara"
+                    >
+                      + Nova movimentação
+                    </button>
+                    <button
+                      type="button"
+                      onClick={salvarTimeline}
+                      disabled={timelineSalvando}
+                      className="inline-flex items-center gap-2 bg-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-white disabled:opacity-60"
+                    >
+                      Salvar linha do tempo {timelineSalvando && <LoadingDots />}
+                    </button>
+                  </div>
+                </div>
+              ) : vinculo.timeline.length === 0 ? (
+                <p className="text-[13px] text-neutro-700">Nenhuma movimentação registrada.</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {vinculo.timeline.map((t) => (
+                    <div key={t.id} className="grid grid-cols-[96px_1fr] gap-3">
+                      <span className="text-[11.5px] font-semibold text-neutro-700">{t.dataTexto}</span>
+                      <span className="text-[13px]">{t.ato}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <div className="mt-6 flex flex-col gap-3">
               {FIRAC_LETRAS.map((letra) => {

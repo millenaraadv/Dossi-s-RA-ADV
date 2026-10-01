@@ -173,6 +173,8 @@ export type ProcessLinkInput = {
   juiz: string | null;
   fase: string | null;
   valorCausa: string | null;
+  advogadoContrario: string | null;
+  risco?: string;
   objetivo: string | null;
   objetivoSecundario: string | null;
   linhaVermelha: string | null;
@@ -233,6 +235,16 @@ export async function putProcessLinkArguments(
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ args, viaIa: opcoes?.viaIa === true }),
+    }),
+  );
+}
+
+export async function putProcessLinkTimeline(id: string, entries: { dataTexto: string; ato: string }[]): Promise<void> {
+  await asJsonOrThrow(
+    await fetch(`/api/process-links/${id}/timeline`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(entries),
     }),
   );
 }

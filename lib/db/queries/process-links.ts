@@ -1,19 +1,20 @@
 import "server-only";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { processLinks, processLinkFirac, processLinkArguments, dossiers } from "@/lib/db/schema";
+import { processLinks, processLinkFirac, processLinkArguments, processLinkTimelineEntries, dossiers } from "@/lib/db/schema";
 import { audit } from "@/lib/audit";
 import { brDataParaIso } from "@/lib/dates";
 import { deleteAuto } from "@/lib/supabase/storage";
 import { NotFoundError } from "@/lib/errors";
 import type { z } from "zod";
 import type { createProcessLinkSchema, patchProcessLinkSchema } from "@/lib/validation/process-link";
-import type { firacReplaceSchema, argumentsReplaceSchema } from "@/lib/validation/dossier";
+import type { firacReplaceSchema, argumentsReplaceSchema, timelineReplaceSchema } from "@/lib/validation/dossier";
 
 type CreateInput = z.infer<typeof createProcessLinkSchema>;
 type PatchInput = z.infer<typeof patchProcessLinkSchema>;
 type FiracInput = z.infer<typeof firacReplaceSchema>;
 type ArgumentsInput = z.infer<typeof argumentsReplaceSchema>;
+type TimelineInput = z.infer<typeof timelineReplaceSchema>;
 
 /**
  * Pra montar o contexto das sugestões de IA dentro de um vínculo (ver
@@ -64,6 +65,7 @@ export async function createProcessLink(
         juiz: input.juiz ?? null,
         fase: input.fase ?? null,
         valorCausa: input.valorCausa ?? null,
+        advogadoContrario: input.advogadoContrario ?? null,
         objetivo: input.objetivo ?? null,
         objetivoSecundario: input.objetivoSecundario ?? null,
         linhaVermelha: input.linhaVermelha ?? null,
@@ -192,6 +194,45 @@ export async function removeProcessLinkAttachment(id: string, actorId: string): 
       acao: "remover-anexo",
       antes: { arquivoAnexoNome: antes.arquivoAnexoNome },
       depois: { arquivoAnexoNome: null },
+    });
+  });
+}
+
+export async function replaceProcessLinkTimeline(
+  processLinkId: string,
+  entries: TimelineInput,
+  actorId: string,
+  opcoes?: { viaIa?: boolean },
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    const vinculo = await getProcessLinkOrThrow(tx, processLinkId);
+    const antes = await tx
+      .select()
+      .from(processLinkTimelineEntries)
+      .where(eq(processLinkTimelineEntries.processLinkId, processLinkId));
+
+    await tx.delete(processLinkTimelineEntries).where(eq(processLinkTimelineEntries.processLinkId, processLinkId));
+    if (entries.length > 0) {
+      await tx.insert(processLinkTimelineEntries).values(
+        entries.map((e, i) => ({
+          processLinkId,
+          dataTexto: e.dataTexto,
+          data: brDataParaIso(e.dataTexto),
+          ato: e.ato,
+          ordem: i,
+        })),
+      );
+    }
+
+    await audit(tx, {
+      userId: actorId,
+      dossierId: vinculo.dossierId,
+      entidade: "process_link_timeline_entries",
+      entidadeId: processLinkId,
+      acao: "substituir",
+      antes,
+      depois: entries,
+      viaIa: opcoes?.viaIa ?? false,
     });
   });
 }

@@ -262,6 +262,8 @@ export const processLinks = pgTable(
     juiz: text("juiz"),
     fase: text("fase"),
     valorCausa: text("valor_causa"),
+    advogadoContrario: text("advogado_contrario"),
+    risco: riscoEnum("risco").notNull().default("A avaliar"),
     // Estratégia deste processo (mesmo trio da aba Estratégia do dossiê
     // principal) — pra dar pra entender a tese e o limite negociado neste
     // outro processo sem precisar abrir o dossiê/autos dele.
@@ -278,6 +280,19 @@ export const processLinks = pgTable(
     atualizadoEm: timestamp("atualizado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
   },
   (t) => [index("process_links_dossier_idx").on(t.dossierId)],
+).enableRLS();
+
+export const processLinkTimelineEntries = pgTable(
+  "process_link_timeline_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    processLinkId: uuid("process_link_id").notNull().references(() => processLinks.id, { onDelete: "cascade" }),
+    dataTexto: text("data_texto").notNull(),
+    data: date("data"),
+    ato: text("ato").notNull(),
+    ordem: integer("ordem").notNull().default(0),
+  },
+  (t) => [index("process_link_timeline_process_link_idx").on(t.processLinkId)],
 ).enableRLS();
 
 export const processLinkFirac = pgTable(
@@ -466,8 +481,13 @@ export const argumentsTableRelations = relations(argumentsTable, ({ one }) => ({
 
 export const processLinksRelations = relations(processLinks, ({ one, many }) => ({
   dossier: one(dossiers, { fields: [processLinks.dossierId], references: [dossiers.id] }),
+  timeline: many(processLinkTimelineEntries),
   firac: many(processLinkFirac),
   argumentos: many(processLinkArguments),
+}));
+
+export const processLinkTimelineEntriesRelations = relations(processLinkTimelineEntries, ({ one }) => ({
+  processLink: one(processLinks, { fields: [processLinkTimelineEntries.processLinkId], references: [processLinks.id] }),
 }));
 
 export const processLinkFiracRelations = relations(processLinkFirac, ({ one }) => ({
