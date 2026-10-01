@@ -15,6 +15,23 @@ type PatchInput = z.infer<typeof patchProcessLinkSchema>;
 type FiracInput = z.infer<typeof firacReplaceSchema>;
 type ArgumentsInput = z.infer<typeof argumentsReplaceSchema>;
 
+/**
+ * Pra montar o contexto das sugestões de IA dentro de um vínculo (ver
+ * lib/ai/prompts/contexto-vinculo.ts) — traz o FIRAC do próprio vínculo e o
+ * nome do cliente do dossiê pai (o vínculo não tem campo de cliente próprio).
+ */
+export async function getProcessLinkWithContext(id: string) {
+  const vinculo = await db.query.processLinks.findFirst({
+    where: eq(processLinks.id, id),
+    with: {
+      firac: { orderBy: (t, { asc }) => [asc(t.ordem)] },
+      dossier: { columns: { cliente: true } },
+    },
+  });
+  if (!vinculo) throw new NotFoundError("Vínculo processual não encontrado.");
+  return vinculo;
+}
+
 export async function createProcessLink(
   dossierId: string,
   input: CreateInput,

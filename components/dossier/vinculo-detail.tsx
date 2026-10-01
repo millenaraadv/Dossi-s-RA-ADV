@@ -9,6 +9,11 @@ import {
   importProcessLinkPdf,
   getProcessLinkImportStatus,
   removeProcessLinkAttachment,
+  suggestEstrategiaVinculo,
+  suggestArgumentosVinculo,
+  type SugestaoEstrategiaVinculo,
+  type SugestaoArgumento,
+  type FonteConsultada,
 } from "@/lib/client/dossier-api";
 import { normalizarDataDigitada } from "@/lib/dates";
 import {
@@ -23,7 +28,14 @@ import type { DossierFull } from "@/lib/types/dossier";
 import { LoadingDots } from "@/components/ui/loading-dots";
 
 type Vinculo = DossierFull["vinculos"][number];
-type ArgumentoForm = { titulo: string; fato: string; previsaoLegal: string; jurisprudencia: string; doutrina: string };
+type ArgumentoForm = {
+  titulo: string;
+  fato: string;
+  previsaoLegal: string;
+  jurisprudencia: string;
+  doutrina: string;
+  viaIa?: boolean;
+};
 type FiracForm = { f: string[]; i: string[]; r: string[]; a: string[]; c: string[] };
 
 type GeraisForm = {
@@ -121,6 +133,18 @@ export function VinculoDetail({
   const [argumentosForm, setArgumentosForm] = useState<ArgumentoForm[]>(() => buildArgumentosForm(vinculo));
   const [argumentosSalvando, setArgumentosSalvando] = useState(false);
 
+  const [sugestaoEstrategia, setSugestaoEstrategia] = useState<SugestaoEstrategiaVinculo | null>(null);
+  const [carregandoSugestaoEstrategia, setCarregandoSugestaoEstrategia] = useState(false);
+  const [erroSugestaoEstrategia, setErroSugestaoEstrategia] = useState<string | null>(null);
+  const [aplicandoObjetivo, setAplicandoObjetivo] = useState(false);
+  const [aplicandoObjetivoSecundario, setAplicandoObjetivoSecundario] = useState(false);
+  const [aplicandoLinhaVermelha, setAplicandoLinhaVermelha] = useState(false);
+
+  const [sugestoesArgumentos, setSugestoesArgumentos] = useState<SugestaoArgumento[] | null>(null);
+  const [fontesArgumentos, setFontesArgumentos] = useState<FonteConsultada[]>([]);
+  const [carregandoSugestaoArgumentos, setCarregandoSugestaoArgumentos] = useState(false);
+  const [erroSugestaoArgumentos, setErroSugestaoArgumentos] = useState<string | null>(null);
+
   // Ajusta o formulário quando o vínculo muda por fora desta tela (ex.: um
   // import de PDF terminando em segundo plano) — comparação durante a própria
   // renderização (padrão do React pra "resetar estado derivado quando uma
@@ -188,6 +212,83 @@ export function VinculoDetail({
     } finally {
       setSalvandoEstrategia(false);
     }
+  }
+
+  async function pedirSugestaoEstrategia() {
+    setCarregandoSugestaoEstrategia(true);
+    setErroSugestaoEstrategia(null);
+    try {
+      setSugestaoEstrategia(await suggestEstrategiaVinculo(vinculo.id));
+    } catch (e) {
+      setErroSugestaoEstrategia(e instanceof Error ? e.message : "Não foi possível obter sugestões da IA.");
+    } finally {
+      setCarregandoSugestaoEstrategia(false);
+    }
+  }
+
+  async function substituirObjetivoSugerido() {
+    if (!sugestaoEstrategia) return;
+    setAplicandoObjetivo(true);
+    try {
+      await updateProcessLink(vinculo.id, { objetivo: sugestaoEstrategia.objetivo }, { viaIa: true });
+      await onChanged();
+    } finally {
+      setAplicandoObjetivo(false);
+    }
+  }
+
+  async function substituirObjetivoSecundarioSugerido() {
+    if (!sugestaoEstrategia) return;
+    setAplicandoObjetivoSecundario(true);
+    try {
+      await updateProcessLink(vinculo.id, { objetivoSecundario: sugestaoEstrategia.objetivoSecundario }, { viaIa: true });
+      await onChanged();
+    } finally {
+      setAplicandoObjetivoSecundario(false);
+    }
+  }
+
+  async function substituirLinhaVermelhaSugerida() {
+    if (!sugestaoEstrategia) return;
+    setAplicandoLinhaVermelha(true);
+    try {
+      await updateProcessLink(vinculo.id, { linhaVermelha: sugestaoEstrategia.linhaVermelha }, { viaIa: true });
+      await onChanged();
+    } finally {
+      setAplicandoLinhaVermelha(false);
+    }
+  }
+
+  function atualizarSugestaoEstrategia<K extends keyof SugestaoEstrategiaVinculo>(
+    chave: K,
+    valor: SugestaoEstrategiaVinculo[K],
+  ) {
+    setSugestaoEstrategia((atual) => (atual ? { ...atual, [chave]: valor } : atual));
+  }
+
+  async function pedirSugestaoArgumentos() {
+    setCarregandoSugestaoArgumentos(true);
+    setErroSugestaoArgumentos(null);
+    try {
+      const resultado = await suggestArgumentosVinculo(vinculo.id);
+      setSugestoesArgumentos(resultado.argumentos);
+      setFontesArgumentos(resultado.fontes);
+    } catch (e) {
+      setErroSugestaoArgumentos(e instanceof Error ? e.message : "Não foi possível obter sugestões da IA.");
+    } finally {
+      setCarregandoSugestaoArgumentos(false);
+    }
+  }
+
+  function atualizarSugestaoArgumento(i: number, campo: keyof SugestaoArgumento, valor: string) {
+    setSugestoesArgumentos((atual) => (atual ? atual.map((s, j) => (j === i ? { ...s, [campo]: valor } : s)) : atual));
+  }
+
+  function adicionarSugestaoArgumento(indice: number) {
+    const sugestao = sugestoesArgumentos?.[indice];
+    if (!sugestao) return;
+    setArgumentosForm((atual) => [...atual, { ...sugestao, viaIa: true }]);
+    setSugestoesArgumentos((atual) => (atual ? atual.filter((_, i) => i !== indice) : atual));
   }
 
   async function excluir() {
@@ -271,10 +372,10 @@ export function VinculoDetail({
   async function salvarArgumentos() {
     setArgumentosSalvando(true);
     try {
-      await putProcessLinkArguments(
-        vinculo.id,
-        argumentosForm.filter((a) => a.titulo.trim()),
-      );
+      const argumentosParaSalvar = argumentosForm.filter((a) => a.titulo.trim());
+      await putProcessLinkArguments(vinculo.id, argumentosParaSalvar, {
+        viaIa: argumentosParaSalvar.some((a) => a.viaIa),
+      });
       await onChanged();
     } finally {
       setArgumentosSalvando(false);
@@ -291,7 +392,7 @@ export function VinculoDetail({
           onClick={editando ? () => setEditando(false) : onVoltar}
           className="text-[11px] font-semibold uppercase tracking-[0.08em] text-acento-escuro"
         >
-          {editando ? "← Voltar à visualização" : "← Voltar aos vínculos"}
+          {editando ? "← Voltar à visualização" : "← Voltar aos processos relacionados"}
         </button>
         {podeEditar && !editando && (
           <button
@@ -462,7 +563,7 @@ export function VinculoDetail({
                     disabled={excluindo}
                     className="ml-auto inline-flex items-center gap-2 border border-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-acento-escuro hover:bg-tinta-clara disabled:opacity-60"
                   >
-                    Excluir vínculo {excluindo && <LoadingDots />}
+                    Excluir processo relacionado {excluindo && <LoadingDots />}
                   </button>
                 </div>
 
@@ -582,6 +683,103 @@ export function VinculoDetail({
           <div>
             {editando ? (
               <>
+                <div className="mb-4 flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={pedirSugestaoEstrategia}
+                    disabled={carregandoSugestaoEstrategia}
+                    className="inline-flex items-center gap-2 border border-ambar bg-transparent px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ambar hover:bg-tinta-clara disabled:opacity-60"
+                  >
+                    {carregandoSugestaoEstrategia ? (
+                      <>
+                        Lendo o processo e redigindo sugestões <LoadingDots />
+                      </>
+                    ) : (
+                      "Sugestões da IA"
+                    )}
+                  </button>
+                </div>
+
+                {erroSugestaoEstrategia && (
+                  <div className="mb-4 border-l-[3px] border-acento bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">
+                    {erroSugestaoEstrategia}
+                  </div>
+                )}
+
+                {sugestaoEstrategia && (
+                  <div className="mb-6 border-l-[3px] border-ambar bg-tinta-clara p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                          Sugestão de objetivo <span className="normal-case tracking-normal text-neutro-700">(editável)</span>
+                        </div>
+                        <textarea
+                          rows={2}
+                          value={sugestaoEstrategia.objetivo}
+                          onChange={(e) => atualizarSugestaoEstrategia("objetivo", e.target.value)}
+                          className="mt-1 w-full max-w-[60ch] border border-borda-campo bg-neutro-100 p-2 text-[14px] text-texto outline-none"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={substituirObjetivoSugerido}
+                        disabled={aplicandoObjetivo}
+                        className="inline-flex shrink-0 items-center gap-2 border border-acento bg-transparent px-3 py-1.5 text-[11px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200 disabled:opacity-60"
+                      >
+                        Substituir objetivo {aplicandoObjetivo && <LoadingDots />}
+                      </button>
+                    </div>
+
+                    {(sugestaoEstrategia.objetivoSecundario || sugestaoEstrategia.linhaVermelha) && (
+                      <div className="mt-4 grid grid-cols-2 gap-4 border-t border-acento pt-3">
+                        {sugestaoEstrategia.objetivoSecundario && (
+                          <div>
+                            <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                              Objetivo secundário{" "}
+                              <span className="normal-case tracking-normal text-neutro-700">(editável)</span>
+                            </div>
+                            <textarea
+                              rows={2}
+                              value={sugestaoEstrategia.objetivoSecundario}
+                              onChange={(e) => atualizarSugestaoEstrategia("objetivoSecundario", e.target.value)}
+                              className="mt-1 w-full border border-borda-campo bg-neutro-100 p-2 text-[13.5px] text-texto outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={substituirObjetivoSecundarioSugerido}
+                              disabled={aplicandoObjetivoSecundario}
+                              className="mt-1.5 inline-flex items-center gap-2 border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200 disabled:opacity-60"
+                            >
+                              Substituir {aplicandoObjetivoSecundario && <LoadingDots />}
+                            </button>
+                          </div>
+                        )}
+                        {sugestaoEstrategia.linhaVermelha && (
+                          <div>
+                            <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                              Linha vermelha <span className="normal-case tracking-normal text-neutro-700">(editável)</span>
+                            </div>
+                            <textarea
+                              rows={2}
+                              value={sugestaoEstrategia.linhaVermelha}
+                              onChange={(e) => atualizarSugestaoEstrategia("linhaVermelha", e.target.value)}
+                              className="mt-1 w-full border border-borda-campo bg-neutro-100 p-2 text-[13.5px] text-texto outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={substituirLinhaVermelhaSugerida}
+                              disabled={aplicandoLinhaVermelha}
+                              className="mt-1.5 inline-flex items-center gap-2 border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200 disabled:opacity-60"
+                            >
+                              Substituir {aplicandoLinhaVermelha && <LoadingDots />}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <label className="flex flex-col gap-1">
                   <span className={rotuloClass}>Objetivo</span>
                   <textarea
@@ -645,6 +843,109 @@ export function VinculoDetail({
           <div>
             {editando ? (
               <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={pedirSugestaoArgumentos}
+                    disabled={carregandoSugestaoArgumentos}
+                    className="inline-flex items-center gap-2 border border-ambar bg-transparent px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ambar hover:bg-tinta-clara disabled:opacity-60"
+                  >
+                    {carregandoSugestaoArgumentos ? (
+                      <>
+                        Lendo o processo e redigindo sugestões <LoadingDots />
+                      </>
+                    ) : (
+                      "Sugestões da IA"
+                    )}
+                  </button>
+                </div>
+
+                {erroSugestaoArgumentos && (
+                  <div className="border-l-[3px] border-acento bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">
+                    {erroSugestaoArgumentos}
+                  </div>
+                )}
+
+                {sugestoesArgumentos && sugestoesArgumentos.length > 0 && (
+                  <div className="flex flex-col gap-4 border-l-[3px] border-ambar bg-tinta-clara p-4">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                      Argumentos sugeridos <span className="normal-case tracking-normal text-neutro-700">(editáveis)</span>
+                    </div>
+                    {sugestoesArgumentos.map((s, i) => (
+                      <div
+                        key={i}
+                        className="flex items-start justify-between gap-4 border-t border-acento pt-3 first:border-t-0 first:pt-0"
+                      >
+                        <div className="flex max-w-[70ch] flex-1 flex-col gap-2">
+                          <input
+                            value={s.titulo}
+                            onChange={(e) => atualizarSugestaoArgumento(i, "titulo", e.target.value)}
+                            className="border border-borda-campo bg-neutro-100 px-2 py-1 text-[14.5px] text-texto outline-none"
+                          />
+                          <textarea
+                            rows={2}
+                            value={s.fato}
+                            onChange={(e) => atualizarSugestaoArgumento(i, "fato", e.target.value)}
+                            placeholder="Fato"
+                            className="border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none"
+                          />
+                          <label className="flex flex-col gap-0.5 text-[12.5px]">
+                            <span className="font-semibold">Previsão legal</span>
+                            <input
+                              value={s.previsaoLegal}
+                              onChange={(e) => atualizarSugestaoArgumento(i, "previsaoLegal", e.target.value)}
+                              className="border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none"
+                            />
+                          </label>
+                          <label className="flex flex-col gap-0.5 text-[12.5px]">
+                            <span className="font-semibold">Jurisprudência</span>
+                            <textarea
+                              rows={2}
+                              value={s.jurisprudencia}
+                              onChange={(e) => atualizarSugestaoArgumento(i, "jurisprudencia", e.target.value)}
+                              className="border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none"
+                            />
+                          </label>
+                          <label className="flex flex-col gap-0.5 text-[12.5px]">
+                            <span className="font-semibold">Doutrina</span>
+                            <textarea
+                              rows={2}
+                              value={s.doutrina}
+                              onChange={(e) => atualizarSugestaoArgumento(i, "doutrina", e.target.value)}
+                              className="border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none"
+                            />
+                          </label>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => adicionarSugestaoArgumento(i)}
+                          className="inline-flex shrink-0 items-center gap-2 border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200"
+                        >
+                          + Adicionar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {fontesArgumentos.length > 0 && (
+                  <div className="border-l-[3px] border-acento bg-tinta-clara p-3 text-[12.5px]">
+                    <div className="font-semibold uppercase tracking-[0.08em] text-acento-profundo">
+                      Fontes consultadas pela IA na busca{" "}
+                      <span className="normal-case font-normal">(confira antes de citar em peça)</span>
+                    </div>
+                    <ul className="mt-2 flex flex-col gap-1">
+                      {fontesArgumentos.map((f, i) => (
+                        <li key={i}>
+                          <a href={f.url} target="_blank" rel="noopener noreferrer" className="text-acento-escuro underline">
+                            {f.titulo}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 {argumentosForm.map((a, i) => (
                   <div key={i} className="border-t border-divisoria-fina pt-3 first:border-t-0 first:pt-0">
                     <div className="mb-1 flex items-center justify-between">

@@ -1,6 +1,4 @@
 import "server-only";
-import type { DossierFull } from "@/lib/types/dossier";
-import { buildContextoDossie } from "@/lib/ai/prompts/contexto-dossie";
 
 /**
  * Prompt de sugestões para a etapa 2 — Estratégia (README 4.2). Só sugere:
@@ -8,12 +6,17 @@ import { buildContextoDossie } from "@/lib/ai/prompts/contexto-dossie";
  * objetivo secundário, linha vermelha) ou "+ Adicionar" (por passo/prazo) —
  * ver components/dossier/aba-estrategia.tsx. O usuário também pode editar o
  * texto sugerido antes de aplicar.
+ *
+ * Recebe o bloco de contexto já pronto (não o dossiê inteiro) pra poder ser
+ * reaproveitado tanto pelo dossiê principal (buildContextoDossie) quanto por
+ * um processo vinculado (buildContextoVinculo) — ver app/api/dossiers/[id]/
+ * suggest/route.ts e app/api/process-links/[id]/suggest/route.ts.
  */
-export function buildSuggestEstrategiaPrompt(dossier: DossierFull, hojeIso: string): string {
+export function buildSuggestEstrategiaPrompt(contexto: string, hojeIso: string): string {
   return `Você é um assistente jurídico que ajuda um advogado brasileiro a montar a estratégia de um processo. O que você escrever é um RASCUNHO para revisão humana: o advogado lê, edita se quiser e só então decide aplicar cada parte — nada é gravado automaticamente.
 
 Contexto do processo:
-${buildContextoDossie(dossier)}
+${contexto}
 
 Hoje é ${hojeIso}.
 

@@ -315,7 +315,7 @@ ${argumentosHtml || `<p style="font-size:10pt; color:${COR.neutro700};">Nenhum a
       <th style="text-align:left; padding:6px 0 6px 12px; border-top:1px solid ${COR.acento}; border-bottom:1px solid ${COR.acento}; font-size:8pt; text-transform:uppercase; letter-spacing:0.1em; color:${COR.neutro700};">Resultado</th>
     </tr>
   </thead>
-  <tbody>${vinculosHtml || `<tr><td style="padding:8px 0; color:${COR.neutro700};">Nenhum vínculo processual registrado.</td></tr>`}</tbody>
+  <tbody>${vinculosHtml || `<tr><td style="padding:8px 0; color:${COR.neutro700};">Nenhum processo relacionado registrado.</td></tr>`}</tbody>
 </table>
 
 <div class="keep" style="margin-top:32px;">

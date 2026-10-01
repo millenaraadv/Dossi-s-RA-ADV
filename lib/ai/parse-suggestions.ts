@@ -31,6 +31,19 @@ export function parseSugestaoEstrategia(textoResposta: string): SugestaoEstrateg
   return sugestaoEstrategiaSchema.parse(extrairJson(textoResposta));
 }
 
+// Versão reduzida pra sugestão de Estratégia de um processo vinculado (sem
+// passos/prazos/riscos — ver lib/ai/prompts/suggest-estrategia-vinculo.ts).
+export const sugestaoEstrategiaVinculoSchema = z.object({
+  objetivo: z.string(),
+  objetivoSecundario: z.string(),
+  linhaVermelha: z.string(),
+});
+export type SugestaoEstrategiaVinculo = z.infer<typeof sugestaoEstrategiaVinculoSchema>;
+
+export function parseSugestaoEstrategiaVinculo(textoResposta: string): SugestaoEstrategiaVinculo {
+  return sugestaoEstrategiaVinculoSchema.parse(extrairJson(textoResposta));
+}
+
 // Rede de segurança além do prompt (README 4.3: "modelos alucinam
 // jurisprudência com frequência"). Testado na prática: o modelo às vezes
 // obedece a instrução de escrever "a conferir" só como um prefixo e mesmo

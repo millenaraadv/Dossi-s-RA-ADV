@@ -182,7 +182,7 @@ function descreverPrazo(acao: string, antes: Registro, depois: Registro): string
 }
 
 function rotuloTipoVinculo(tipo: string | undefined): string {
-  if (!tipo) return "vínculo processual";
+  if (!tipo) return "processo relacionado";
   return VINCULO_TIPO_LABEL[tipo as keyof typeof VINCULO_TIPO_LABEL] ?? tipo;
 }
 
@@ -193,24 +193,24 @@ function descreverVinculo(acao: string, antes: Registro, depois: Registro): stri
     return numero ? `${tipo} nº ${numero}` : tipo;
   };
 
-  if (acao === "criar") return `Adicionou o vínculo processual "${identificacao(depois)}"`;
-  if (acao === "excluir") return `Excluiu o vínculo processual "${identificacao(antes)}"`;
+  if (acao === "criar") return `Adicionou o processo relacionado "${identificacao(depois)}"`;
+  if (acao === "excluir") return `Excluiu o processo relacionado "${identificacao(antes)}"`;
   if (acao === "remover-anexo") return `Removeu o PDF anexado ("${campo<string>(antes, "arquivoAnexoNome")}")`;
 
   const nome = identificacao(depois) || identificacao(antes);
   if (campo(antes, "status") !== campo(depois, "status")) {
-    return `Atualizou o status do vínculo "${nome}" para "${campo(depois, "status") || "—"}"`;
+    return `Atualizou o status do processo relacionado "${nome}" para "${campo(depois, "status") || "—"}"`;
   }
   if (campo(antes, "resultado") !== campo(depois, "resultado")) {
-    return `Registrou o resultado do vínculo "${nome}"`;
+    return `Registrou o resultado do processo relacionado "${nome}"`;
   }
   if (
     campo(antes, "prazoContagem") !== campo(depois, "prazoContagem") ||
     campo(antes, "prazoDataTexto") !== campo(depois, "prazoDataTexto")
   ) {
-    return `Atualizou o prazo do vínculo "${nome}"`;
+    return `Atualizou o prazo do processo relacionado "${nome}"`;
   }
-  return `Editou o vínculo processual "${nome}"`;
+  return `Editou o processo relacionado "${nome}"`;
 }
 
 export function describeAuditEntry(entry: {
@@ -239,9 +239,9 @@ export function describeAuditEntry(entry: {
     case "process_links":
       return descreverVinculo(acao, antes as Registro, depois as Registro);
     case "process_link_firac":
-      return `${descreverFirac((antes as Registro[]) ?? [], depois as Registro)} (processo vinculado)`;
+      return `${descreverFirac((antes as Registro[]) ?? [], depois as Registro)} (processo relacionado)`;
     case "process_link_arguments":
-      return `${descreverArgumentos((antes as Registro[]) ?? [], (depois as Registro[]) ?? [])} (processo vinculado)`;
+      return `${descreverArgumentos((antes as Registro[]) ?? [], (depois as Registro[]) ?? [])} (processo relacionado)`;
     default:
       return `${acao} em ${entidade}`;
   }

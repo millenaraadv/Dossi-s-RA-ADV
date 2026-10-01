@@ -192,12 +192,16 @@ export async function createProcessLink(
   );
 }
 
-export async function updateProcessLink(id: string, patch: Partial<ProcessLinkInput>): Promise<void> {
+export async function updateProcessLink(
+  id: string,
+  patch: Partial<ProcessLinkInput>,
+  opcoes?: { viaIa?: boolean },
+): Promise<void> {
   await asJsonOrThrow(
     await fetch(`/api/process-links/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patch),
+      body: JSON.stringify({ ...patch, viaIa: opcoes?.viaIa === true }),
     }),
   );
 }
@@ -222,12 +226,13 @@ export async function putProcessLinkFirac(
 export async function putProcessLinkArguments(
   id: string,
   args: { titulo: string; fato: string; previsaoLegal: string; jurisprudencia: string; doutrina: string }[],
+  opcoes?: { viaIa?: boolean },
 ): Promise<void> {
   await asJsonOrThrow(
     await fetch(`/api/process-links/${id}/arguments`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ args }),
+      body: JSON.stringify({ args, viaIa: opcoes?.viaIa === true }),
     }),
   );
 }
@@ -292,6 +297,34 @@ export async function suggestArgumentos(
 ): Promise<{ argumentos: SugestaoArgumento[]; fontes: FonteConsultada[] }> {
   return asJsonOrThrow(
     await fetch(`/api/dossiers/${dossierId}/suggest`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ etapa: 2 }),
+    }),
+  );
+}
+
+export type SugestaoEstrategiaVinculo = {
+  objetivo: string;
+  objetivoSecundario: string;
+  linhaVermelha: string;
+};
+
+export async function suggestEstrategiaVinculo(processLinkId: string): Promise<SugestaoEstrategiaVinculo> {
+  return asJsonOrThrow(
+    await fetch(`/api/process-links/${processLinkId}/suggest`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ etapa: 1 }),
+    }),
+  );
+}
+
+export async function suggestArgumentosVinculo(
+  processLinkId: string,
+): Promise<{ argumentos: SugestaoArgumento[]; fontes: FonteConsultada[] }> {
+  return asJsonOrThrow(
+    await fetch(`/api/process-links/${processLinkId}/suggest`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ etapa: 2 }),

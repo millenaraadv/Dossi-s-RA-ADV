@@ -76,13 +76,15 @@ export function AbaVinculos({
         <h2 className="text-[15px] font-normal">Processos relacionados</h2>
       </div>
 
-      <div className="border-l-[3px] border-acento bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">
-        Registre aqui processos conexos/apensados e recursos que geram número próprio (agravo de instrumento, agravo
-        interno, REsp, RE etc.), para manter o histórico de tudo que corre em paralelo a este dossiê.
-      </div>
+      {dossier.vinculos.length === 0 && (
+        <div className="border-l-[3px] border-acento bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">
+          Registre aqui processos conexos/apensados e recursos que geram número próprio (agravo de instrumento, agravo
+          interno, REsp, RE etc.), para manter o histórico de tudo que corre em paralelo a este dossiê.
+        </div>
+      )}
 
       {dossier.vinculos.length === 0 ? (
-        <p className="mt-6 text-[13.5px] text-neutro-700">Nenhum vínculo processual registrado.</p>
+        <p className="mt-6 text-[13.5px] text-neutro-700">Nenhum processo relacionado registrado.</p>
       ) : (
         <div className="mt-6 flex flex-col">
           {dossier.vinculos.map((v) => (
@@ -142,7 +144,7 @@ export function AbaVinculos({
               onClick={() => setNovoAberto(true)}
               className="border border-acento px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-acento-escuro hover:bg-tinta-clara"
             >
-              + Adicionar processo vinculado
+              + Adicionar processo relacionado
             </button>
           )}
         </div>

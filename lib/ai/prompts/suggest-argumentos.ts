@@ -1,6 +1,4 @@
 import "server-only";
-import type { DossierFull } from "@/lib/types/dossier";
-import { buildContextoDossie } from "@/lib/ai/prompts/contexto-dossie";
 
 /**
  * Prompt de sugestões para a etapa 3 — Argumentos (README 4.3). Chamado via
@@ -13,14 +11,18 @@ import { buildContextoDossie } from "@/lib/ai/prompts/contexto-dossie";
  * pela IA mesmo assim é bloqueada — nunca confia numa citação "de memória"
  * sem fonte pra conferir. Nada é gravado sem o usuário clicar em
  * "+ Adicionar" (ver components/dossier/aba-argumentos.tsx).
+ *
+ * Recebe o bloco de contexto já pronto (não o dossiê inteiro) pra poder ser
+ * reaproveitado tanto pelo dossiê principal quanto por um processo vinculado
+ * — ver comentário equivalente em suggest-estrategia.ts.
  */
-export function buildSuggestArgumentosPrompt(dossier: DossierFull): string {
+export function buildSuggestArgumentosPrompt(contexto: string): string {
   return `Você é um assistente jurídico que sugere linhas de argumentação para um advogado brasileiro revisar. Sua sugestão é só um rascunho para revisão humana — o advogado decide o que aceitar, e jurisprudência/doutrina sugeridas sempre precisam ser conferidas antes de qualquer uso em peça.
 
 Você TEM uma ferramenta de busca no Google disponível. Use-a para procurar uma ementa de jurisprudência real e uma referência de doutrina real que se encaixem na tese de cada argumento — não responda "de memória" sem pesquisar.
 
 Contexto do processo:
-${buildContextoDossie(dossier)}
+${contexto}
 
 ATENÇÃO — DE QUE LADO VOCÊ ESTÁ: o "Cliente do escritório" indicado no contexto acima é quem contratou o escritório. Todo argumento sugerido deve sustentar a posição do CLIENTE neste processo — nunca a posição da parte contrária. Identifique pela descrição de "Partes" e pelo resumo/FIRAC se o cliente é autor/requerente ou réu/requerido antes de montar os argumentos: se o cliente for réu, os argumentos defendem por que a pretensão contrária deve ser rejeitada/reduzida; se for autor, sustentam por que o pedido do cliente deve ser acolhido.
 

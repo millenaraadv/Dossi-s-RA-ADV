@@ -15,7 +15,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const { id } = await params;
     const body = await request.json();
     const patch = patchProcessLinkSchema.parse(body);
-    const vinculo = await updateProcessLink(id, patch, user.id);
+    const vinculo = await updateProcessLink(id, patch, user.id, { viaIa: body?.viaIa === true });
 
     return NextResponse.json(vinculo);
   } catch (err) {

@@ -2,16 +2,14 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/session";
 import { canUseAi, assertPermission } from "@/lib/auth/permissions";
 import { handleRouteError } from "@/lib/api-helpers";
-import { NotFoundError } from "@/lib/errors";
 import { suggestRequestSchema } from "@/lib/validation/dossier";
-import { getDossierFull } from "@/lib/db/queries/dossiers";
+import { getProcessLinkWithContext } from "@/lib/db/queries/process-links";
 import { countRecentSuggestions, createSuggestionRecord } from "@/lib/db/queries/suggestions";
 import { gerarJson, gerarComBusca } from "@/lib/ai/client";
-import { buildContextoDossie } from "@/lib/ai/prompts/contexto-dossie";
-import { buildSuggestEstrategiaPrompt } from "@/lib/ai/prompts/suggest-estrategia";
+import { buildContextoVinculo } from "@/lib/ai/prompts/contexto-vinculo";
+import { buildSuggestEstrategiaVinculoPrompt } from "@/lib/ai/prompts/suggest-estrategia-vinculo";
 import { buildSuggestArgumentosPrompt } from "@/lib/ai/prompts/suggest-argumentos";
-import { parseSugestaoEstrategia, parseSugestaoArgumentos } from "@/lib/ai/parse-suggestions";
-import { hojeIso } from "@/lib/dates";
+import { parseSugestaoEstrategiaVinculo, parseSugestaoArgumentos } from "@/lib/ai/parse-suggestions";
 
 export const runtime = "nodejs";
 
@@ -33,21 +31,29 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const { id } = await params;
     const { etapa } = suggestRequestSchema.parse(await request.json());
 
-    const dossier = await getDossierFull(id);
-    if (!dossier) throw new NotFoundError("Dossiê não encontrado.");
-
-    const contexto = buildContextoDossie(dossier);
+    const vinculo = await getProcessLinkWithContext(id);
+    const contexto = buildContextoVinculo(vinculo);
 
     if (etapa === 1) {
-      const respostaTexto = await gerarJson(buildSuggestEstrategiaPrompt(contexto, hojeIso()));
-      const resultado = parseSugestaoEstrategia(respostaTexto);
-      await createSuggestionRecord({ dossierId: id, etapa: "estrategia", criadoPorId: user.id, respostaBruta: resultado });
+      const respostaTexto = await gerarJson(buildSuggestEstrategiaVinculoPrompt(contexto));
+      const resultado = parseSugestaoEstrategiaVinculo(respostaTexto);
+      await createSuggestionRecord({
+        dossierId: vinculo.dossierId,
+        etapa: "estrategia",
+        criadoPorId: user.id,
+        respostaBruta: resultado,
+      });
       return NextResponse.json(resultado);
     }
 
     const { texto: respostaTexto, fontes } = await gerarComBusca(buildSuggestArgumentosPrompt(contexto));
     const resultado = parseSugestaoArgumentos(respostaTexto, fontes);
-    await createSuggestionRecord({ dossierId: id, etapa: "argumentos", criadoPorId: user.id, respostaBruta: resultado });
+    await createSuggestionRecord({
+      dossierId: vinculo.dossierId,
+      etapa: "argumentos",
+      criadoPorId: user.id,
+      respostaBruta: resultado,
+    });
     return NextResponse.json(resultado);
   } catch (err) {
     return handleRouteError(err);
