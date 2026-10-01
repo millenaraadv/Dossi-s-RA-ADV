@@ -216,12 +216,13 @@ export async function deleteProcessLink(id: string): Promise<void> {
 export async function putProcessLinkFirac(
   id: string,
   firac: { f: string[]; i: string[]; r: string[]; a: string[]; c: string[] },
+  opcoes?: { viaIa?: boolean },
 ): Promise<void> {
   await asJsonOrThrow(
     await fetch(`/api/process-links/${id}/firac`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(firac),
+      body: JSON.stringify({ ...firac, viaIa: opcoes?.viaIa === true }),
     }),
   );
 }
@@ -248,6 +249,91 @@ export async function putProcessLinkTimeline(id: string, entries: { dataTexto: s
       body: JSON.stringify(entries),
     }),
   );
+}
+
+export async function createProcessLinkStep(
+  processLinkId: string,
+  input: { acao: string; responsavelId: string | null; proximaData: string | null },
+  opcoes?: { viaIa?: boolean },
+): Promise<void> {
+  await asJsonOrThrow(
+    await fetch(`/api/process-links/${processLinkId}/steps`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...input, viaIa: opcoes?.viaIa === true }),
+    }),
+  );
+}
+
+export async function updateProcessLinkStep(
+  stepId: string,
+  patch: Partial<{ acao: string; responsavelId: string | null; proximaData: string | null; concluido: boolean }>,
+): Promise<void> {
+  await asJsonOrThrow(
+    await fetch(`/api/process-link-steps/${stepId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    }),
+  );
+}
+
+export async function deleteProcessLinkStep(stepId: string): Promise<void> {
+  await asJsonOrThrow(await fetch(`/api/process-link-steps/${stepId}`, { method: "DELETE" }));
+}
+
+export async function addProcessLinkStepAttempt(
+  stepId: string,
+  input: { data: string; resultado: string },
+): Promise<void> {
+  await asJsonOrThrow(
+    await fetch(`/api/process-link-steps/${stepId}/attempts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    }),
+  );
+}
+
+export async function createProcessLinkDeadline(
+  processLinkId: string,
+  input: { ato: string; contagem: string | null; dataTexto: string | null },
+  opcoes?: { viaIa?: boolean },
+): Promise<void> {
+  await asJsonOrThrow(
+    await fetch(`/api/process-links/${processLinkId}/deadlines`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...input, viaIa: opcoes?.viaIa === true }),
+    }),
+  );
+}
+
+export async function updateProcessLinkDeadline(
+  deadlineId: string,
+  patch: Partial<{
+    ato: string;
+    contagem: string | null;
+    dataTexto: string | null;
+    redacaoOk: boolean;
+    redacaoLink: string | null;
+    correcaoOk: boolean;
+    correcaoPorId: string | null;
+    protocoloOk: boolean;
+    protocoloData: string | null;
+  }>,
+): Promise<void> {
+  await asJsonOrThrow(
+    await fetch(`/api/process-link-deadlines/${deadlineId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    }),
+  );
+}
+
+export async function deleteProcessLinkDeadline(deadlineId: string): Promise<void> {
+  await asJsonOrThrow(await fetch(`/api/process-link-deadlines/${deadlineId}`, { method: "DELETE" }));
 }
 
 export type ProcessLinkImportStatusResponse = {
@@ -313,6 +399,18 @@ export async function suggestArgumentos(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ etapa: 2 }),
+    }),
+  );
+}
+
+export type SugestaoFiracVinculo = { f: string; i: string; r: string; a: string; c: string };
+
+export async function suggestFiracVinculo(processLinkId: string): Promise<SugestaoFiracVinculo> {
+  return asJsonOrThrow(
+    await fetch(`/api/process-links/${processLinkId}/suggest`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ etapa: 0 }),
     }),
   );
 }

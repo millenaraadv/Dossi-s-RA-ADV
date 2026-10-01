@@ -10,13 +10,21 @@ import { LoadingDots } from "@/components/ui/loading-dots";
 
 const inputClass = "w-full border border-borda-campo bg-neutro-100 px-2 py-1.5 text-[13px] text-texto outline-none";
 
+type Membro = { id: string; nome: string; cor: string | null };
+
 export function AbaVinculos({
   dossier,
   podeEditar,
+  podeRegistrarTentativa,
+  podeMarcarPrazo,
+  membros,
   onChanged,
 }: {
   dossier: DossierFull;
   podeEditar: boolean;
+  podeRegistrarTentativa: boolean;
+  podeMarcarPrazo: boolean;
+  membros: Membro[];
   onChanged: () => Promise<void>;
 }) {
   const [selecionadoId, setSelecionadoId] = useState<string | null>(null);
@@ -66,6 +74,9 @@ export function AbaVinculos({
         vinculo={selecionado}
         dossier={dossier}
         podeEditar={podeEditar}
+        podeRegistrarTentativa={podeRegistrarTentativa}
+        podeMarcarPrazo={podeMarcarPrazo}
+        membros={membros}
         onChanged={onChanged}
         onVoltar={() => setSelecionadoId(null)}
       />

@@ -110,6 +110,14 @@ export async function getDossierFull(id: string): Promise<DossierFull | undefine
           timeline: { orderBy: (t, { asc }) => [asc(t.ordem)] },
           firac: { orderBy: (t, { asc }) => [asc(t.ordem)] },
           argumentos: { orderBy: (t, { asc }) => [asc(t.ordem)] },
+          passos: {
+            orderBy: (t, { asc }) => [asc(t.ordem)],
+            with: {
+              responsavel: true,
+              tentativas: { orderBy: (t, { asc }) => [asc(t.data)] },
+            },
+          },
+          prazos: { orderBy: (t, { asc }) => [asc(t.ordem)] },
         },
       },
       versoes: { orderBy: (t, { desc }) => [desc(t.data)], with: { revisor: true } },

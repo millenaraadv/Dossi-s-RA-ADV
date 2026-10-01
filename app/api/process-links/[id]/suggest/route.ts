@@ -7,9 +7,14 @@ import { getProcessLinkWithContext } from "@/lib/db/queries/process-links";
 import { countRecentSuggestions, createSuggestionRecord } from "@/lib/db/queries/suggestions";
 import { gerarJson, gerarComBusca } from "@/lib/ai/client";
 import { buildContextoVinculo } from "@/lib/ai/prompts/contexto-vinculo";
+import { buildSuggestFiracVinculoPrompt } from "@/lib/ai/prompts/suggest-firac-vinculo";
 import { buildSuggestEstrategiaVinculoPrompt } from "@/lib/ai/prompts/suggest-estrategia-vinculo";
 import { buildSuggestArgumentosPrompt } from "@/lib/ai/prompts/suggest-argumentos";
-import { parseSugestaoEstrategiaVinculo, parseSugestaoArgumentos } from "@/lib/ai/parse-suggestions";
+import {
+  parseSugestaoFiracVinculo,
+  parseSugestaoEstrategiaVinculo,
+  parseSugestaoArgumentos,
+} from "@/lib/ai/parse-suggestions";
 
 export const runtime = "nodejs";
 
@@ -33,6 +38,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const vinculo = await getProcessLinkWithContext(id);
     const contexto = buildContextoVinculo(vinculo);
+
+    if (etapa === 0) {
+      const respostaTexto = await gerarJson(buildSuggestFiracVinculoPrompt(contexto));
+      const resultado = parseSugestaoFiracVinculo(respostaTexto);
+      await createSuggestionRecord({
+        dossierId: vinculo.dossierId,
+        etapa: "firac",
+        criadoPorId: user.id,
+        respostaBruta: resultado,
+      });
+      return NextResponse.json(resultado);
+    }
 
     if (etapa === 1) {
       const respostaTexto = await gerarJson(buildSuggestEstrategiaVinculoPrompt(contexto));

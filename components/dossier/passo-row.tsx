@@ -8,6 +8,7 @@ import { LoadingDots } from "@/components/ui/loading-dots";
 
 type Passo = DossierFull["passos"][number];
 type Membro = { id: string; nome: string; cor: string | null };
+type PassoPatch = Partial<{ acao: string; responsavelId: string | null; proximaData: string | null; concluido: boolean }>;
 
 const inputClass = "w-full border border-borda-campo bg-neutro-100 px-2 py-1 text-[13px] text-texto outline-none";
 
@@ -17,12 +18,18 @@ export function PassoRow({
   podeRegistrarTentativa,
   membros,
   onChanged,
+  api = { updateStep, deleteStep, addAttempt },
 }: {
   passo: Passo;
   isEditing: boolean;
   podeRegistrarTentativa: boolean;
   membros: Membro[];
   onChanged: () => Promise<void>;
+  api?: {
+    updateStep: (id: string, patch: PassoPatch) => Promise<void>;
+    deleteStep: (id: string) => Promise<void>;
+    addAttempt: (id: string, input: { data: string; resultado: string }) => Promise<void>;
+  };
 }) {
   const [tentativaAberta, setTentativaAberta] = useState(false);
   const [tentativaData, setTentativaData] = useState("");
@@ -35,7 +42,7 @@ export function PassoRow({
   async function alternarConcluido() {
     setSalvando(true);
     try {
-      await updateStep(passo.id, { concluido: !passo.concluido });
+      await api.updateStep(passo.id, { concluido: !passo.concluido });
       await onChanged();
     } finally {
       setSalvando(false);
@@ -46,7 +53,7 @@ export function PassoRow({
     if (!tentativaData.trim() || !tentativaResultado.trim()) return;
     setSalvando(true);
     try {
-      await addAttempt(passo.id, { data: tentativaData, resultado: tentativaResultado });
+      await api.addAttempt(passo.id, { data: tentativaData, resultado: tentativaResultado });
       setTentativaAberta(false);
       setTentativaData("");
       setTentativaResultado("");
@@ -59,7 +66,7 @@ export function PassoRow({
   async function excluir() {
     setSalvando(true);
     try {
-      await deleteStep(passo.id);
+      await api.deleteStep(passo.id);
       await onChanged();
     } finally {
       setSalvando(false);
@@ -72,12 +79,12 @@ export function PassoRow({
         <input
           className={inputClass}
           defaultValue={passo.acao}
-          onBlur={(e) => e.target.value !== passo.acao && updateStep(passo.id, { acao: e.target.value }).then(onChanged)}
+          onBlur={(e) => e.target.value !== passo.acao && api.updateStep(passo.id, { acao: e.target.value }).then(onChanged)}
         />
         <select
           className={inputClass}
           defaultValue={passo.responsavelId ?? ""}
-          onChange={(e) => updateStep(passo.id, { responsavelId: e.target.value || null }).then(onChanged)}
+          onChange={(e) => api.updateStep(passo.id, { responsavelId: e.target.value || null }).then(onChanged)}
         >
           <option value="">—</option>
           {membros.map((m) => (
@@ -90,7 +97,7 @@ export function PassoRow({
           type="date"
           className={inputClass}
           defaultValue={passo.proximaData ?? ""}
-          onChange={(e) => updateStep(passo.id, { proximaData: e.target.value || null }).then(onChanged)}
+          onChange={(e) => api.updateStep(passo.id, { proximaData: e.target.value || null }).then(onChanged)}
         />
         <button
           type="button"

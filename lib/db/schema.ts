@@ -56,7 +56,7 @@ export const importStatusEnum = pgEnum("import_status", [
   "erro",
 ]);
 
-export const etapaSugestaoEnum = pgEnum("etapa_sugestao", ["estrategia", "argumentos"]);
+export const etapaSugestaoEnum = pgEnum("etapa_sugestao", ["estrategia", "argumentos", "firac"]);
 
 export const tipoVinculoProcessualEnum = pgEnum("tipo_vinculo_processual", [
   "conexao",
@@ -310,6 +310,68 @@ export const processLinkTimelineEntries = pgTable(
   (t) => [index("process_link_timeline_process_link_idx").on(t.processLinkId)],
 ).enableRLS();
 
+// "Próximos passos" e "Prazos em aberto" do processo relacionado — mesmo
+// padrão de `steps`/`step_attempts`/`deadlines` (README 4.2), só que presos
+// ao vínculo em vez do dossiê pai.
+export const processLinkSteps = pgTable(
+  "process_link_steps",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    processLinkId: uuid("process_link_id").notNull().references(() => processLinks.id, { onDelete: "cascade" }),
+    acao: text("acao").notNull(),
+    responsavelId: uuid("responsavel_id").references(() => users.id, { onDelete: "restrict" }),
+    proximaData: date("proxima_data"),
+    concluido: boolean("concluido").notNull().default(false),
+    ordem: integer("ordem").notNull().default(0),
+    criadoEm: timestamp("criado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
+    atualizadoEm: timestamp("atualizado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("process_link_steps_process_link_idx").on(t.processLinkId),
+    index("process_link_steps_responsavel_idx").on(t.responsavelId),
+  ],
+).enableRLS();
+
+export const processLinkStepAttempts = pgTable(
+  "process_link_step_attempts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    stepId: uuid("step_id").notNull().references(() => processLinkSteps.id, { onDelete: "cascade" }),
+    data: date("data").notNull(),
+    resultado: text("resultado").notNull(),
+    registradoPorId: uuid("registrado_por_id").references(() => users.id, { onDelete: "restrict" }),
+    criadoEm: timestamp("criado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("process_link_step_attempts_step_idx").on(t.stepId),
+    index("process_link_step_attempts_data_idx").on(t.data),
+  ],
+).enableRLS();
+
+export const processLinkDeadlines = pgTable(
+  "process_link_deadlines",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    processLinkId: uuid("process_link_id").notNull().references(() => processLinks.id, { onDelete: "cascade" }),
+    ato: text("ato").notNull(),
+    contagem: text("contagem"),
+    dataTexto: text("data_texto"),
+    redacaoOk: boolean("redacao_ok").notNull().default(false),
+    redacaoLink: text("redacao_link"),
+    redacaoPorId: uuid("redacao_por_id").references(() => users.id, { onDelete: "restrict" }),
+    redacaoEm: timestamp("redacao_em", { withTimezone: true, mode: "string" }),
+    correcaoOk: boolean("correcao_ok").notNull().default(false),
+    correcaoPorId: uuid("correcao_por_id").references(() => users.id, { onDelete: "restrict" }),
+    correcaoEm: timestamp("correcao_em", { withTimezone: true, mode: "string" }),
+    protocoloOk: boolean("protocolo_ok").notNull().default(false),
+    protocoloData: date("protocolo_data"),
+    protocoloPorId: uuid("protocolo_por_id").references(() => users.id, { onDelete: "restrict" }),
+    ordem: integer("ordem").notNull().default(0),
+    criadoEm: timestamp("criado_em", { withTimezone: true, mode: "string" }).notNull().defaultNow(),
+  },
+  (t) => [index("process_link_deadlines_process_link_idx").on(t.processLinkId)],
+).enableRLS();
+
 export const processLinkFirac = pgTable(
   "process_link_firac",
   {
@@ -500,6 +562,8 @@ export const processLinksRelations = relations(processLinks, ({ one, many }) => 
   timeline: many(processLinkTimelineEntries),
   firac: many(processLinkFirac),
   argumentos: many(processLinkArguments),
+  passos: many(processLinkSteps),
+  prazos: many(processLinkDeadlines),
 }));
 
 export const processLinkFieldsRelations = relations(processLinkFields, ({ one }) => ({
@@ -508,6 +572,20 @@ export const processLinkFieldsRelations = relations(processLinkFields, ({ one })
 
 export const processLinkTimelineEntriesRelations = relations(processLinkTimelineEntries, ({ one }) => ({
   processLink: one(processLinks, { fields: [processLinkTimelineEntries.processLinkId], references: [processLinks.id] }),
+}));
+
+export const processLinkStepsRelations = relations(processLinkSteps, ({ one, many }) => ({
+  processLink: one(processLinks, { fields: [processLinkSteps.processLinkId], references: [processLinks.id] }),
+  responsavel: one(users, { fields: [processLinkSteps.responsavelId], references: [users.id] }),
+  tentativas: many(processLinkStepAttempts),
+}));
+
+export const processLinkStepAttemptsRelations = relations(processLinkStepAttempts, ({ one }) => ({
+  step: one(processLinkSteps, { fields: [processLinkStepAttempts.stepId], references: [processLinkSteps.id] }),
+}));
+
+export const processLinkDeadlinesRelations = relations(processLinkDeadlines, ({ one }) => ({
+  processLink: one(processLinks, { fields: [processLinkDeadlines.processLinkId], references: [processLinks.id] }),
 }));
 
 export const processLinkFiracRelations = relations(processLinkFirac, ({ one }) => ({

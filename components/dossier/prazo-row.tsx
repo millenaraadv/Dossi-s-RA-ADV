@@ -8,6 +8,17 @@ import { LoadingDots } from "@/components/ui/loading-dots";
 
 type Prazo = DossierFull["prazos"][number];
 type Membro = { id: string; nome: string; cor: string | null };
+type PrazoPatch = Partial<{
+  ato: string;
+  contagem: string | null;
+  dataTexto: string | null;
+  redacaoOk: boolean;
+  redacaoLink: string | null;
+  correcaoOk: boolean;
+  correcaoPorId: string | null;
+  protocoloOk: boolean;
+  protocoloData: string | null;
+}>;
 
 const inputClass = "w-full border border-borda-campo bg-neutro-100 px-2 py-1 text-[12.5px] text-texto outline-none";
 
@@ -38,22 +49,27 @@ export function PrazoRow({
   podeMarcar,
   membros,
   onChanged,
+  api = { updateDeadline, deleteDeadline },
 }: {
   prazo: Prazo;
   isEditing: boolean;
   podeMarcar: boolean;
   membros: Membro[];
   onChanged: () => Promise<void>;
+  api?: {
+    updateDeadline: (id: string, patch: PrazoPatch) => Promise<void>;
+    deleteDeadline: (id: string) => Promise<void>;
+  };
 }) {
   const [salvando, setSalvando] = useState(false);
   const [link, setLink] = useState(prazo.redacaoLink ?? "");
   const [protocoloData, setProtocoloData] = useState(prazo.protocoloData ?? "");
   const [dataTexto, setDataTexto] = useState(prazo.dataTexto ?? "");
 
-  async function marcar(patch: Parameters<typeof updateDeadline>[1]) {
+  async function marcar(patch: PrazoPatch) {
     setSalvando(true);
     try {
-      await updateDeadline(prazo.id, patch);
+      await api.updateDeadline(prazo.id, patch);
       await onChanged();
     } finally {
       setSalvando(false);
@@ -63,7 +79,7 @@ export function PrazoRow({
   async function excluir() {
     setSalvando(true);
     try {
-      await deleteDeadline(prazo.id);
+      await api.deleteDeadline(prazo.id);
       await onChanged();
     } finally {
       setSalvando(false);
@@ -77,13 +93,13 @@ export function PrazoRow({
           <input
             className={inputClass}
             defaultValue={prazo.ato}
-            onBlur={(e) => e.target.value !== prazo.ato && updateDeadline(prazo.id, { ato: e.target.value }).then(onChanged)}
+            onBlur={(e) => e.target.value !== prazo.ato && api.updateDeadline(prazo.id, { ato: e.target.value }).then(onChanged)}
           />
           <input
             className={inputClass}
             placeholder="Contagem"
             defaultValue={prazo.contagem ?? ""}
-            onBlur={(e) => updateDeadline(prazo.id, { contagem: e.target.value || null }).then(onChanged)}
+            onBlur={(e) => api.updateDeadline(prazo.id, { contagem: e.target.value || null }).then(onChanged)}
           />
           <input
             className={inputClass}
@@ -94,7 +110,7 @@ export function PrazoRow({
               const normalizada = normalizarDataDigitada(e.target.value);
               setDataTexto(normalizada);
               if (normalizada !== (prazo.dataTexto ?? "")) {
-                updateDeadline(prazo.id, { dataTexto: normalizada || null }).then(onChanged);
+                api.updateDeadline(prazo.id, { dataTexto: normalizada || null }).then(onChanged);
               }
             }}
           />

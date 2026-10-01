@@ -343,7 +343,16 @@ export function DossierView({
             onConcluir={concluirArgumentos}
           />
         )}
-        {tab === 3 && <AbaVinculos dossier={dossier} podeEditar={podeEditar} onChanged={refresh} />}
+        {tab === 3 && (
+          <AbaVinculos
+            dossier={dossier}
+            podeEditar={podeEditar}
+            podeRegistrarTentativa={podeRegistrarTentativa}
+            podeMarcarPrazo={podeMarcarPrazo}
+            membros={membros}
+            onChanged={refresh}
+          />
+        )}
       </div>
 
       <VersionsFooter dossier={dossier} />

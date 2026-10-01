@@ -107,6 +107,28 @@ export type DossierFull = {
       doutrina: string | null;
       ordem: number;
     }[];
+    passos: {
+      id: string;
+      acao: string;
+      responsavelId: string | null;
+      responsavel: UsuarioRef;
+      proximaData: string | null;
+      concluido: boolean;
+      ordem: number;
+      tentativas: { id: string; data: string; resultado: string; criadoEm: string }[];
+    }[];
+    prazos: {
+      id: string;
+      ato: string;
+      contagem: string | null;
+      dataTexto: string | null;
+      redacaoOk: boolean;
+      redacaoLink: string | null;
+      correcaoOk: boolean;
+      protocoloOk: boolean;
+      protocoloData: string | null;
+      ordem: number;
+    }[];
   }[];
   versoes: { id: string; versao: string; data: string; marco: string | null; etapa: string | null; revisor: UsuarioRef }[];
 };

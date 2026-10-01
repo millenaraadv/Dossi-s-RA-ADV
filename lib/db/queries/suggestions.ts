@@ -5,7 +5,7 @@ import { aiSuggestions } from "@/lib/db/schema";
 
 export async function createSuggestionRecord(input: {
   dossierId: string;
-  etapa: "estrategia" | "argumentos";
+  etapa: "estrategia" | "argumentos" | "firac";
   criadoPorId: string;
   respostaBruta: unknown;
 }): Promise<void> {

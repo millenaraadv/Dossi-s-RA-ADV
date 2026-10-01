@@ -10,8 +10,17 @@ import {
   importProcessLinkPdf,
   getProcessLinkImportStatus,
   removeProcessLinkAttachment,
+  suggestFiracVinculo,
   suggestEstrategiaVinculo,
   suggestArgumentosVinculo,
+  createProcessLinkStep,
+  updateProcessLinkStep,
+  deleteProcessLinkStep,
+  addProcessLinkStepAttempt,
+  createProcessLinkDeadline,
+  updateProcessLinkDeadline,
+  deleteProcessLinkDeadline,
+  type SugestaoFiracVinculo,
   type SugestaoEstrategiaVinculo,
   type SugestaoArgumento,
   type FonteConsultada,
@@ -28,8 +37,11 @@ import {
 } from "@/lib/dossier-constants";
 import type { DossierFull } from "@/lib/types/dossier";
 import { LoadingDots } from "@/components/ui/loading-dots";
+import { PassoRow } from "@/components/dossier/passo-row";
+import { PrazoRow } from "@/components/dossier/prazo-row";
 
 type Vinculo = DossierFull["vinculos"][number];
+type Membro = { id: string; nome: string; cor: string | null };
 type ArgumentoForm = {
   titulo: string;
   fato: string;
@@ -119,12 +131,18 @@ export function VinculoDetail({
   vinculo,
   dossier,
   podeEditar,
+  podeRegistrarTentativa,
+  podeMarcarPrazo,
+  membros,
   onChanged,
   onVoltar,
 }: {
   vinculo: Vinculo;
   dossier: DossierFull;
   podeEditar: boolean;
+  podeRegistrarTentativa: boolean;
+  podeMarcarPrazo: boolean;
+  membros: Membro[];
   onChanged: () => Promise<void>;
   onVoltar: () => void;
 }) {
@@ -145,10 +163,27 @@ export function VinculoDetail({
 
   const [firacForm, setFiracForm] = useState<FiracForm>(() => buildFiracForm(vinculo));
   const [firacSalvando, setFiracSalvando] = useState(false);
+  const [firacViaIa, setFiracViaIa] = useState(false);
   const [argumentosForm, setArgumentosForm] = useState<ArgumentoForm[]>(() => buildArgumentosForm(vinculo));
   const [argumentosSalvando, setArgumentosSalvando] = useState(false);
   const [timelineForm, setTimelineForm] = useState<TimelineEntryForm[]>(() => buildTimelineForm(vinculo));
   const [timelineSalvando, setTimelineSalvando] = useState(false);
+
+  const [novaAberta, setNovaAberta] = useState(false);
+  const [novaAcao, setNovaAcao] = useState("");
+  const [novoResponsavel, setNovoResponsavel] = useState("");
+  const [novaData, setNovaData] = useState("");
+  const [criandoPasso, setCriandoPasso] = useState(false);
+
+  const [novoPrazoAberto, setNovoPrazoAberto] = useState(false);
+  const [novoPrazoAto, setNovoPrazoAto] = useState("");
+  const [novoPrazoContagem, setNovoPrazoContagem] = useState("");
+  const [novoPrazoData, setNovoPrazoData] = useState("");
+  const [criandoPrazo, setCriandoPrazo] = useState(false);
+
+  const [sugestaoFirac, setSugestaoFirac] = useState<SugestaoFiracVinculo | null>(null);
+  const [carregandoSugestaoFirac, setCarregandoSugestaoFirac] = useState(false);
+  const [erroSugestaoFirac, setErroSugestaoFirac] = useState<string | null>(null);
 
   const [sugestaoEstrategia, setSugestaoEstrategia] = useState<SugestaoEstrategiaVinculo | null>(null);
   const [carregandoSugestaoEstrategia, setCarregandoSugestaoEstrategia] = useState(false);
@@ -173,6 +208,7 @@ export function VinculoDetail({
     setGeraisForm(buildGeraisForm(vinculo));
     setEstrategiaForm(buildEstrategiaForm(vinculo));
     setFiracForm(buildFiracForm(vinculo));
+    setFiracViaIa(false);
     setArgumentosForm(buildArgumentosForm(vinculo));
     setTimelineForm(buildTimelineForm(vinculo));
   }
@@ -191,6 +227,7 @@ export function VinculoDetail({
     setGeraisForm(buildGeraisForm(vinculo));
     setEstrategiaForm(buildEstrategiaForm(vinculo));
     setFiracForm(buildFiracForm(vinculo));
+    setFiracViaIa(false);
     setArgumentosForm(buildArgumentosForm(vinculo));
     setTimelineForm(buildTimelineForm(vinculo));
     setEditando(true);
@@ -384,11 +421,34 @@ export function VinculoDetail({
   async function salvarFirac() {
     setFiracSalvando(true);
     try {
-      await putProcessLinkFirac(vinculo.id, firacForm);
+      await putProcessLinkFirac(vinculo.id, firacForm, { viaIa: firacViaIa });
+      setFiracViaIa(false);
       await onChanged();
     } finally {
       setFiracSalvando(false);
     }
+  }
+
+  async function pedirSugestaoFirac() {
+    setCarregandoSugestaoFirac(true);
+    setErroSugestaoFirac(null);
+    try {
+      setSugestaoFirac(await suggestFiracVinculo(vinculo.id));
+    } catch (e) {
+      setErroSugestaoFirac(e instanceof Error ? e.message : "Não foi possível obter sugestões da IA.");
+    } finally {
+      setCarregandoSugestaoFirac(false);
+    }
+  }
+
+  function atualizarSugestaoFirac(letra: "f" | "i" | "r" | "a" | "c", valor: string) {
+    setSugestaoFirac((atual) => (atual ? { ...atual, [letra]: valor } : atual));
+  }
+
+  function adicionarParagrafoFiracSugerido(letra: "f" | "i" | "r" | "a" | "c") {
+    if (!sugestaoFirac) return;
+    setFiracForm((f) => ({ ...f, [letra]: [...f[letra], sugestaoFirac[letra]] }));
+    setFiracViaIa(true);
   }
 
   async function salvarArgumentos() {
@@ -411,6 +471,44 @@ export function VinculoDetail({
       await onChanged();
     } finally {
       setTimelineSalvando(false);
+    }
+  }
+
+  async function adicionarPasso() {
+    if (!novaAcao.trim()) return;
+    setCriandoPasso(true);
+    try {
+      await createProcessLinkStep(vinculo.id, {
+        acao: novaAcao,
+        responsavelId: novoResponsavel || null,
+        proximaData: novaData || null,
+      });
+      setNovaAberta(false);
+      setNovaAcao("");
+      setNovoResponsavel("");
+      setNovaData("");
+      await onChanged();
+    } finally {
+      setCriandoPasso(false);
+    }
+  }
+
+  async function adicionarPrazo() {
+    if (!novoPrazoAto.trim()) return;
+    setCriandoPrazo(true);
+    try {
+      await createProcessLinkDeadline(vinculo.id, {
+        ato: novoPrazoAto,
+        contagem: novoPrazoContagem || null,
+        dataTexto: novoPrazoData || null,
+      });
+      setNovoPrazoAberto(false);
+      setNovoPrazoAto("");
+      setNovoPrazoContagem("");
+      setNovoPrazoData("");
+      await onChanged();
+    } finally {
+      setCriandoPrazo(false);
     }
   }
 
@@ -798,6 +896,67 @@ export function VinculoDetail({
               )}
             </div>
 
+            {editando && (
+              <div className="mt-6 flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={pedirSugestaoFirac}
+                  disabled={carregandoSugestaoFirac}
+                  className="inline-flex items-center gap-2 border border-ambar bg-transparent px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ambar hover:bg-tinta-clara disabled:opacity-60"
+                >
+                  {carregandoSugestaoFirac ? (
+                    <>
+                      Lendo o processo e redigindo sugestões <LoadingDots />
+                    </>
+                  ) : (
+                    "Sugestões da IA"
+                  )}
+                </button>
+              </div>
+            )}
+
+            {erroSugestaoFirac && (
+              <div className="mt-4 border-l-[3px] border-acento bg-tinta-clara px-3 py-2 text-[12.5px] text-acento-profundo">
+                {erroSugestaoFirac}
+              </div>
+            )}
+
+            {sugestaoFirac && (
+              <div className="mt-4 flex flex-col gap-4 border-l-[3px] border-ambar bg-tinta-clara p-4">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-acento-profundo">
+                  FIRAC sugerido <span className="normal-case tracking-normal text-neutro-700">(editável)</span>
+                </div>
+                {FIRAC_LETRAS.map((letra) => {
+                  const key = letra.toLowerCase() as "f" | "i" | "r" | "a" | "c";
+                  return (
+                    <div key={letra} className="flex items-start gap-3 border-t border-acento pt-3 first:border-t-0 first:pt-0">
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center bg-acento text-[13px] text-white">
+                        {letra}
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-[10px] uppercase tracking-[0.08em] text-acento-profundo">
+                          {FIRAC_TITULOS[letra]}
+                        </div>
+                        <textarea
+                          rows={3}
+                          value={sugestaoFirac[key]}
+                          onChange={(e) => atualizarSugestaoFirac(key, e.target.value)}
+                          className="mt-1 w-full border border-borda-campo bg-neutro-100 p-2 text-[13.5px] text-texto outline-none"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => adicionarParagrafoFiracSugerido(key)}
+                        className="inline-flex shrink-0 items-center gap-2 self-start border border-acento bg-transparent px-2 py-1 text-[10.5px] font-semibold uppercase text-acento-escuro hover:bg-neutro-200"
+                      >
+                        + Adicionar
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             <div className="mt-6 flex flex-col gap-3">
               {FIRAC_LETRAS.map((letra) => {
                 const key = letra.toLowerCase() as "f" | "i" | "r" | "a" | "c";
@@ -1020,6 +1179,145 @@ export function VinculoDetail({
                 </div>
               </div>
             )}
+
+            <div className="mt-8">
+              <h3 className="mb-3 text-[13px] uppercase tracking-[0.1em] text-neutro-700">Próximos passos</h3>
+              {vinculo.passos.length === 0 ? (
+                <p className="text-[13.5px] text-neutro-700">Nenhum passo registrado.</p>
+              ) : (
+                <div className="flex flex-col">
+                  {vinculo.passos.map((p) => (
+                    <PassoRow
+                      key={p.id}
+                      passo={p}
+                      isEditing={editando}
+                      podeRegistrarTentativa={podeRegistrarTentativa}
+                      membros={membros}
+                      onChanged={onChanged}
+                      api={{
+                        updateStep: updateProcessLinkStep,
+                        deleteStep: deleteProcessLinkStep,
+                        addAttempt: addProcessLinkStepAttempt,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {podeEditar && (
+                <div className="mt-3">
+                  {novaAberta ? (
+                    <div className="flex flex-col gap-2 border-l-[3px] border-acento bg-neutro-100 p-3">
+                      <input
+                        placeholder="Ação"
+                        value={novaAcao}
+                        onChange={(e) => setNovaAcao(e.target.value)}
+                        className={inputClass}
+                      />
+                      <select
+                        value={novoResponsavel}
+                        onChange={(e) => setNovoResponsavel(e.target.value)}
+                        className={inputClass}
+                      >
+                        <option value="">—</option>
+                        {membros.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            {m.nome}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="date"
+                        value={novaData}
+                        onChange={(e) => setNovaData(e.target.value)}
+                        className={inputClass}
+                      />
+                      <button
+                        type="button"
+                        onClick={adicionarPasso}
+                        disabled={criandoPasso}
+                        className="inline-flex items-center gap-2 self-start bg-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-white disabled:opacity-60"
+                      >
+                        Adicionar {criandoPasso && <LoadingDots />}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setNovaAberta(true)}
+                      className="border border-acento px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-acento-escuro hover:bg-tinta-clara"
+                    >
+                      + Nova demanda
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-8">
+              <h3 className="mb-3 text-[13px] uppercase tracking-[0.1em] text-neutro-700">Prazos em aberto</h3>
+              {vinculo.prazos.length === 0 ? (
+                <p className="text-[13.5px] text-neutro-700">Nenhum prazo em aberto.</p>
+              ) : (
+                <div className="flex flex-col">
+                  {vinculo.prazos.map((p) => (
+                    <PrazoRow
+                      key={p.id}
+                      prazo={p}
+                      isEditing={editando}
+                      podeMarcar={podeMarcarPrazo}
+                      membros={membros}
+                      onChanged={onChanged}
+                      api={{ updateDeadline: updateProcessLinkDeadline, deleteDeadline: deleteProcessLinkDeadline }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {podeEditar && (
+                <div className="mt-3">
+                  {novoPrazoAberto ? (
+                    <div className="flex flex-col gap-2 border-l-[3px] border-acento bg-neutro-100 p-3">
+                      <input
+                        placeholder="Ato"
+                        value={novoPrazoAto}
+                        onChange={(e) => setNovoPrazoAto(e.target.value)}
+                        className={inputClass}
+                      />
+                      <input
+                        placeholder="Contagem (ex.: 15 dias úteis)"
+                        value={novoPrazoContagem}
+                        onChange={(e) => setNovoPrazoContagem(e.target.value)}
+                        className={inputClass}
+                      />
+                      <input
+                        placeholder="Data (ex.: 19/08/2026)"
+                        value={novoPrazoData}
+                        onChange={(e) => setNovoPrazoData(e.target.value)}
+                        onBlur={(e) => setNovoPrazoData(normalizarDataDigitada(e.target.value))}
+                        className={inputClass}
+                      />
+                      <button
+                        type="button"
+                        onClick={adicionarPrazo}
+                        disabled={criandoPrazo}
+                        className="inline-flex items-center gap-2 self-start bg-acento px-3 py-1.5 text-[11px] font-semibold uppercase text-white disabled:opacity-60"
+                      >
+                        Adicionar {criandoPrazo && <LoadingDots />}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setNovoPrazoAberto(true)}
+                      className="border border-acento px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-acento-escuro hover:bg-tinta-clara"
+                    >
+                      + Novo prazo
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

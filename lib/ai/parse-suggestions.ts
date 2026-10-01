@@ -44,6 +44,22 @@ export function parseSugestaoEstrategiaVinculo(textoResposta: string): SugestaoE
   return sugestaoEstrategiaVinculoSchema.parse(extrairJson(textoResposta));
 }
 
+// Sugestão de FIRAC pra um processo vinculado (4.1) — um parágrafo por letra,
+// que o usuário pode adicionar como novo parágrafo em cada bloco (mesmo
+// padrão de "+ Adicionar" dos Argumentos, não substitui o que já existe).
+export const sugestaoFiracVinculoSchema = z.object({
+  f: z.string(),
+  i: z.string(),
+  r: z.string(),
+  a: z.string(),
+  c: z.string(),
+});
+export type SugestaoFiracVinculo = z.infer<typeof sugestaoFiracVinculoSchema>;
+
+export function parseSugestaoFiracVinculo(textoResposta: string): SugestaoFiracVinculo {
+  return sugestaoFiracVinculoSchema.parse(extrairJson(textoResposta));
+}
+
 // Rede de segurança além do prompt (README 4.3: "modelos alucinam
 // jurisprudência com frequência"). Testado na prática: o modelo às vezes
 // obedece a instrução de escrever "a conferir" só como um prefixo e mesmo

@@ -15,7 +15,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const body = await request.json();
     const firac = firacReplaceSchema.parse(body);
-    await replaceProcessLinkFirac(id, firac, user.id);
+    await replaceProcessLinkFirac(id, firac, user.id, { viaIa: body?.viaIa === true });
 
     return NextResponse.json({ ok: true });
   } catch (err) {

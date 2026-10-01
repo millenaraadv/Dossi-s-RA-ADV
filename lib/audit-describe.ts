@@ -244,6 +244,12 @@ export function describeAuditEntry(entry: {
       return `${descreverArgumentos((antes as Registro[]) ?? [], (depois as Registro[]) ?? [])} (processo relacionado)`;
     case "process_link_timeline_entries":
       return `${descreverTimeline()} (processo relacionado)`;
+    case "process_link_steps":
+      return `${descreverStep(acao, antes as Registro, depois as Registro)} (processo relacionado)`;
+    case "process_link_step_attempts":
+      return `${descreverTentativa(depois as Registro)} (processo relacionado)`;
+    case "process_link_deadlines":
+      return `${descreverPrazo(acao, antes as Registro, depois as Registro)} (processo relacionado)`;
     default:
       return `${acao} em ${entidade}`;
   }
