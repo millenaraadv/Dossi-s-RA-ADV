@@ -1,9 +1,17 @@
 import "server-only";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { processLinks, processLinkFirac, processLinkArguments, processLinkTimelineEntries, dossiers } from "@/lib/db/schema";
+import {
+  processLinks,
+  processLinkFields,
+  processLinkFirac,
+  processLinkArguments,
+  processLinkTimelineEntries,
+  dossiers,
+} from "@/lib/db/schema";
 import { audit } from "@/lib/audit";
 import { brDataParaIso } from "@/lib/dates";
+import { camposIniciaisPorMateria } from "@/lib/db/materia-fields";
 import { deleteAuto } from "@/lib/supabase/storage";
 import { NotFoundError } from "@/lib/errors";
 import type { z } from "zod";
@@ -73,6 +81,11 @@ export async function createProcessLink(
       })
       .returning();
 
+    const campos = camposIniciaisPorMateria(dossier.materia);
+    if (campos.length > 0) {
+      await tx.insert(processLinkFields).values(campos.map((c) => ({ processLinkId: vinculo.id, ...c })));
+    }
+
     await audit(tx, {
       userId: actorId,
       dossierId,
@@ -102,12 +115,22 @@ export async function updateProcessLink(
   return db.transaction(async (tx) => {
     const antes = await getProcessLinkOrThrow(tx, id);
 
-    const set: Record<string, unknown> = { ...patch, atualizadoEm: new Date().toISOString() };
+    const { camposEspecificos, ...resto } = patch;
+    const set: Record<string, unknown> = { ...resto, atualizadoEm: new Date().toISOString() };
     if ("prazoDataTexto" in patch) {
       set.prazoData = patch.prazoDataTexto ? brDataParaIso(patch.prazoDataTexto) : null;
     }
 
     await tx.update(processLinks).set(set).where(eq(processLinks.id, id));
+
+    if (camposEspecificos) {
+      for (const campo of camposEspecificos) {
+        await tx
+          .update(processLinkFields)
+          .set({ valor: campo.valor })
+          .where(and(eq(processLinkFields.processLinkId, id), eq(processLinkFields.label, campo.label)));
+      }
+    }
 
     const depois = await getProcessLinkOrThrow(tx, id);
 

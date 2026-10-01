@@ -178,6 +178,7 @@ export type ProcessLinkInput = {
   objetivo: string | null;
   objetivoSecundario: string | null;
   linhaVermelha: string | null;
+  camposEspecificos?: { label: string; valor: string }[];
 };
 
 export async function createProcessLink(

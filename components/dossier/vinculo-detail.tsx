@@ -56,6 +56,7 @@ type GeraisForm = {
   valorCausa: string;
   advogadoContrario: string;
   risco: string;
+  camposEspecificos: { label: string; valor: string }[];
 };
 
 type EstrategiaForm = {
@@ -83,6 +84,7 @@ function buildGeraisForm(vinculo: Vinculo): GeraisForm {
     valorCausa: vinculo.valorCausa ?? "",
     advogadoContrario: vinculo.advogadoContrario ?? "",
     risco: vinculo.risco,
+    camposEspecificos: vinculo.camposEspecificos.map((c) => ({ label: c.label, valor: c.valor })),
   };
 }
 
@@ -115,11 +117,13 @@ function buildArgumentosForm(vinculo: Vinculo): ArgumentoForm[] {
 
 export function VinculoDetail({
   vinculo,
+  dossier,
   podeEditar,
   onChanged,
   onVoltar,
 }: {
   vinculo: Vinculo;
+  dossier: DossierFull;
   podeEditar: boolean;
   onChanged: () => Promise<void>;
   onVoltar: () => void;
@@ -210,6 +214,7 @@ export function VinculoDetail({
         valorCausa: geraisForm.valorCausa || null,
         advogadoContrario: geraisForm.advogadoContrario || null,
         risco: geraisForm.risco,
+        camposEspecificos: geraisForm.camposEspecificos,
       });
       await onChanged();
     } finally {
@@ -461,6 +466,25 @@ export function VinculoDetail({
       <div className="mt-6">
         {subTab === 0 && (
           <div>
+            <div className="mb-4 grid grid-cols-2 gap-2 border-b border-divisoria-fina pb-4 text-[12.5px] text-neutro-700">
+              <div>
+                <span className={rotuloClass}>Cliente</span>
+                <p className="mt-0.5 text-texto">{dossier.cliente}</p>
+              </div>
+              <div>
+                <span className={rotuloClass}>Caso</span>
+                <p className="mt-0.5 text-texto">{dossier.caso}</p>
+              </div>
+              <div>
+                <span className={rotuloClass}>Matéria</span>
+                <p className="mt-0.5 text-texto">{dossier.materia}</p>
+              </div>
+              <div>
+                <span className={rotuloClass}>Profissional responsável</span>
+                <p className="mt-0.5 text-texto">{dossier.responsavel?.nome ?? "—"}</p>
+              </div>
+            </div>
+
             {editando ? (
               <>
                 <div className="grid grid-cols-[180px_1fr_1fr] gap-2">
@@ -575,6 +599,27 @@ export function VinculoDetail({
                   onChange={(e) => campo("resultado", e.target.value)}
                 />
 
+                {geraisForm.camposEspecificos.length > 0 && (
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {geraisForm.camposEspecificos.map((c, i) => (
+                      <label key={c.label} className="flex flex-col gap-1">
+                        <span className={rotuloClass}>{c.label}</span>
+                        <input
+                          className={inputClass}
+                          value={c.valor}
+                          onChange={(e) =>
+                            setGeraisForm((f) => {
+                              const next = [...f.camposEspecificos];
+                              next[i] = { ...next[i], valor: e.target.value };
+                              return { ...f, camposEspecificos: next };
+                            })
+                          }
+                        />
+                      </label>
+                    ))}
+                  </div>
+                )}
+
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <button
                     type="button"
@@ -650,6 +695,17 @@ export function VinculoDetail({
                   {vinculo.advogadoContrario && <div>Advogado contrário: {vinculo.advogadoContrario}</div>}
                   <div>Risco/prognóstico: {vinculo.risco}</div>
                 </div>
+                {vinculo.camposEspecificos.some((c) => c.valor) && (
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-neutro-700">
+                    {vinculo.camposEspecificos
+                      .filter((c) => c.valor)
+                      .map((c) => (
+                        <div key={c.label}>
+                          {c.label}: {c.valor}
+                        </div>
+                      ))}
+                  </div>
+                )}
                 {vinculo.arquivoAnexoNome && (
                   <div className="mt-2 text-neutro-700">Anexo: {vinculo.arquivoAnexoNome}</div>
                 )}

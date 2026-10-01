@@ -64,6 +64,7 @@ export function AbaVinculos({
     return (
       <VinculoDetail
         vinculo={selecionado}
+        dossier={dossier}
         podeEditar={podeEditar}
         onChanged={onChanged}
         onVoltar={() => setSelecionadoId(null)}

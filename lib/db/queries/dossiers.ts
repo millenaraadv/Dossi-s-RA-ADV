@@ -106,6 +106,7 @@ export async function getDossierFull(id: string): Promise<DossierFull | undefine
       vinculos: {
         orderBy: (t, { asc }) => [asc(t.ordem)],
         with: {
+          camposEspecificos: { orderBy: (t, { asc }) => [asc(t.ordem)] },
           timeline: { orderBy: (t, { asc }) => [asc(t.ordem)] },
           firac: { orderBy: (t, { asc }) => [asc(t.ordem)] },
           argumentos: { orderBy: (t, { asc }) => [asc(t.ordem)] },

@@ -94,6 +94,7 @@ export type DossierFull = {
     arquivoAnexoNome: string | null;
     ordem: number;
     atualizadoEm: string;
+    camposEspecificos: { id: string; label: string; valor: string; ordem: number }[];
     timeline: { id: string; dataTexto: string; data: string | null; ato: string; ordem: number }[];
     firac: { id: string; letra: "F" | "I" | "R" | "A" | "C"; paragrafo: string; ordem: number }[];
     argumentos: {

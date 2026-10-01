@@ -282,6 +282,21 @@ export const processLinks = pgTable(
   (t) => [index("process_links_dossier_idx").on(t.dossierId)],
 ).enableRLS();
 
+// Campos específicos do processo relacionado, por matéria do dossiê pai —
+// mesmo padrão de `dossier_fields` (README 4.1), semeado na criação a partir
+// de camposIniciaisPorMateria(dossiê.materia) e editado por label.
+export const processLinkFields = pgTable(
+  "process_link_fields",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    processLinkId: uuid("process_link_id").notNull().references(() => processLinks.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    valor: text("valor").notNull(),
+    ordem: integer("ordem").notNull().default(0),
+  },
+  (t) => [index("process_link_fields_process_link_idx").on(t.processLinkId)],
+).enableRLS();
+
 export const processLinkTimelineEntries = pgTable(
   "process_link_timeline_entries",
   {
@@ -481,9 +496,14 @@ export const argumentsTableRelations = relations(argumentsTable, ({ one }) => ({
 
 export const processLinksRelations = relations(processLinks, ({ one, many }) => ({
   dossier: one(dossiers, { fields: [processLinks.dossierId], references: [dossiers.id] }),
+  camposEspecificos: many(processLinkFields),
   timeline: many(processLinkTimelineEntries),
   firac: many(processLinkFirac),
   argumentos: many(processLinkArguments),
+}));
+
+export const processLinkFieldsRelations = relations(processLinkFields, ({ one }) => ({
+  processLink: one(processLinks, { fields: [processLinkFields.processLinkId], references: [processLinks.id] }),
 }));
 
 export const processLinkTimelineEntriesRelations = relations(processLinkTimelineEntries, ({ one }) => ({

@@ -42,4 +42,6 @@ export const patchProcessLinkSchema = z.object({
   objetivo: z.string().nullable().optional(),
   objetivoSecundario: z.string().nullable().optional(),
   linhaVermelha: z.string().nullable().optional(),
+  // Casado por label, não por id (mesmo motivo de patchDossierSchema).
+  camposEspecificos: z.array(z.object({ label: z.string(), valor: z.string() })).optional(),
 });
